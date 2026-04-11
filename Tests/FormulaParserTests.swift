@@ -141,4 +141,68 @@ struct FormulaParserTests {
             seed: nil
         ))
     }
+
+    // ── Spreadsheet-style text and numeric formulas ─────────────────────────
+
+    @Test("parses =upper(\"hello\")")
+    func parseUpper() throws {
+        #expect(try FormulaParser.parse(#"=upper("hello")"#) == .upper(text: "hello"))
+    }
+
+    @Test("parses =lower(\"HELLO\")")
+    func parseLower() throws {
+        #expect(try FormulaParser.parse(#"=lower("HELLO")"#) == .lower(text: "HELLO"))
+    }
+
+    @Test("parses =trim(\"  hi  \")")
+    func parseTrim() throws {
+        #expect(try FormulaParser.parse(#"=trim("  hi  ")"#) == .trim(text: "  hi  "))
+    }
+
+    @Test("parses =len(\"abc\")")
+    func parseLen() throws {
+        #expect(try FormulaParser.parse(#"=len("abc")"#) == .len(text: "abc"))
+    }
+
+    @Test("parses =concat(\"a\", \"b\", \"c\")")
+    func parseConcat() throws {
+        #expect(
+            try FormulaParser.parse(#"=concat("a", "b", "c")"#)
+            == .concat(parts: ["a", "b", "c"])
+        )
+    }
+
+    @Test("parses =replace(\"hi world\", \"world\", \"apfelpad\")")
+    func parseReplace() throws {
+        #expect(
+            try FormulaParser.parse(#"=replace("hi world", "world", "apfelpad")"#)
+            == .replace(text: "hi world", find: "world", replacement: "apfelpad")
+        )
+    }
+
+    @Test("parses =split(\"a,b,c\", \",\", 1)")
+    func parseSplit() throws {
+        #expect(
+            try FormulaParser.parse(#"=split("a,b,c", ",", 1)"#)
+            == .splitCall(text: "a,b,c", delim: ",", index: 1)
+        )
+    }
+
+    @Test("parses =if(\"yes\", \"then\", \"else\")")
+    func parseIf() throws {
+        #expect(
+            try FormulaParser.parse(#"=if("yes", "then", "else")"#)
+            == .ifCall(cond: "yes", thenValue: "then", elseValue: "else")
+        )
+    }
+
+    @Test("parses =sum(1, 2, 3)")
+    func parseSum() throws {
+        #expect(try FormulaParser.parse("=sum(1, 2, 3)") == .sum(args: ["1", "2", "3"]))
+    }
+
+    @Test("parses =avg(10, 20, 30)")
+    func parseAvg() throws {
+        #expect(try FormulaParser.parse("=avg(10, 20, 30)") == .avg(args: ["10", "20", "30"]))
+    }
 }

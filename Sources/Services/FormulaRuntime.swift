@@ -78,10 +78,6 @@ final class FormulaRuntime: Sendable {
                 continuation.yield(.evaluating)
                 do {
                     switch call {
-                    case .math(let expression):
-                        let text = try MathFormulaEvaluator.evaluate(expression)
-                        try await cache.set(key: key, value: text)
-                        continuation.yield(.ready(text: text))
                     case .apfel(let prompt, _):
                         guard let apfelEvaluator else {
                             throw RuntimeError.llmNotConfigured
@@ -99,6 +95,11 @@ final class FormulaRuntime: Sendable {
                         if let final = cachedFinal {
                             continuation.yield(.ready(text: final))
                         }
+                    default:
+                        // All non-streaming formulas share the same synchronous path.
+                        let text = try synchronousCompute(for: call)
+                        try await cache.set(key: key, value: text)
+                        continuation.yield(.ready(text: text))
                     }
                     continuation.finish()
                 } catch {
@@ -109,16 +110,51 @@ final class FormulaRuntime: Sendable {
         }
     }
 
+    /// Evaluate any non-streaming (pure synchronous) formula call.
+    /// Centralises the text/math/spreadsheet dispatch so both the streaming
+    /// and non-streaming entry points reuse it.
+    private func synchronousCompute(for call: FormulaCall) throws -> String {
+        switch call {
+        case .math(let expression):
+            return try MathFormulaEvaluator.evaluate(expression)
+        case .upper(let t):
+            return try UpperFormulaEvaluator.evaluate(t)
+        case .lower(let t):
+            return try LowerFormulaEvaluator.evaluate(t)
+        case .trim(let t):
+            return try TrimFormulaEvaluator.evaluate(t)
+        case .len(let t):
+            return try LenFormulaEvaluator.evaluate(t)
+        case .concat(let parts):
+            return try ConcatFormulaEvaluator.evaluate(parts)
+        case .replace(let text, let find, let replacement):
+            return try ReplaceFormulaEvaluator.evaluate(
+                text: text, find: find, replacement: replacement
+            )
+        case .splitCall(let text, let delim, let index):
+            return try SplitFormulaEvaluator.evaluate(
+                text: text, delim: delim, index: index
+            )
+        case .ifCall(let cond, let thenValue, let elseValue):
+            return try IfFormulaEvaluator.evaluate(
+                cond: cond, thenValue: thenValue, elseValue: elseValue
+            )
+        case .sum(let args):
+            return try SumFormulaEvaluator.evaluate(args)
+        case .avg(let args):
+            return try AvgFormulaEvaluator.evaluate(args)
+        case .apfel:
+            throw RuntimeError.apfelRequiresStreamingPath
+        }
+    }
+
     private func computeValue(
         for call: FormulaCall,
         source: String,
         context: String,
         seed: Int?
     ) async throws -> String {
-        switch call {
-        case .math(let expression):
-            return try MathFormulaEvaluator.evaluate(expression)
-        case .apfel(let prompt, _):
+        if case .apfel(let prompt, _) = call {
             guard let apfelEvaluator else {
                 throw RuntimeError.llmNotConfigured
             }
@@ -129,6 +165,7 @@ final class FormulaRuntime: Sendable {
                 seed: seed
             )
         }
+        return try synchronousCompute(for: call)
     }
 
     private func extractSeed(_ call: FormulaCall) -> Int? {
@@ -139,11 +176,14 @@ final class FormulaRuntime: Sendable {
 
 enum RuntimeError: LocalizedError {
     case llmNotConfigured
+    case apfelRequiresStreamingPath
 
     var errorDescription: String? {
         switch self {
         case .llmNotConfigured:
             return "=apfel(...) needs a running apfel server. Start apfel first, then retry."
+        case .apfelRequiresStreamingPath:
+            return "internal error: .apfel must go through the streaming path"
         }
     }
 }

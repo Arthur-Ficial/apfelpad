@@ -30,9 +30,58 @@ enum FormulaParser {
                 throw Error.malformedArguments("math expects 1 arg")
             }
             return .math(expression: rawArgs[0].trimmingCharacters(in: .whitespaces))
+        case "upper":
+            return .upper(text: try singleStringArg(rawArgs, name: "upper"))
+        case "lower":
+            return .lower(text: try singleStringArg(rawArgs, name: "lower"))
+        case "trim":
+            return .trim(text: try singleStringArg(rawArgs, name: "trim"))
+        case "len":
+            return .len(text: try singleStringArg(rawArgs, name: "len"))
+        case "concat":
+            return .concat(parts: rawArgs.map(Self.parseStringLiteral))
+        case "replace":
+            guard rawArgs.count == 3 else {
+                throw Error.malformedArguments("replace expects 3 args")
+            }
+            return .replace(
+                text: Self.parseStringLiteral(rawArgs[0]),
+                find: Self.parseStringLiteral(rawArgs[1]),
+                replacement: Self.parseStringLiteral(rawArgs[2])
+            )
+        case "split":
+            guard (2...3).contains(rawArgs.count) else {
+                throw Error.malformedArguments("split expects 2 or 3 args")
+            }
+            let index = rawArgs.count == 3 ? try Self.parseIntLiteral(rawArgs[2]) : 0
+            return .splitCall(
+                text: Self.parseStringLiteral(rawArgs[0]),
+                delim: Self.parseStringLiteral(rawArgs[1]),
+                index: index
+            )
+        case "if":
+            guard rawArgs.count == 3 else {
+                throw Error.malformedArguments("if expects 3 args")
+            }
+            return .ifCall(
+                cond: Self.parseStringLiteral(rawArgs[0]),
+                thenValue: Self.parseStringLiteral(rawArgs[1]),
+                elseValue: Self.parseStringLiteral(rawArgs[2])
+            )
+        case "sum":
+            return .sum(args: rawArgs.map(Self.parseStringLiteral))
+        case "avg":
+            return .avg(args: rawArgs.map(Self.parseStringLiteral))
         default:
             throw Error.unknownFunction(name)
         }
+    }
+
+    private static func singleStringArg(_ args: [String], name: String) throws -> String {
+        guard args.count == 1 else {
+            throw Error.malformedArguments("\(name) expects 1 arg")
+        }
+        return Self.parseStringLiteral(args[0])
     }
 
     static func canonicalise(_ source: String) throws -> String {
@@ -47,6 +96,23 @@ enum FormulaParser {
             return "=apfel(\"\(prompt)\", \(seed))"
         case .math(let expr):
             return "=math(\(expr))"
+        case .upper(let t):   return "=upper(\"\(t)\")"
+        case .lower(let t):   return "=lower(\"\(t)\")"
+        case .trim(let t):    return "=trim(\"\(t)\")"
+        case .len(let t):     return "=len(\"\(t)\")"
+        case .concat(let parts):
+            let rendered = parts.map { "\"\($0)\"" }.joined(separator: ", ")
+            return "=concat(\(rendered))"
+        case .replace(let t, let f, let r):
+            return "=replace(\"\(t)\", \"\(f)\", \"\(r)\")"
+        case .splitCall(let t, let d, let i):
+            return "=split(\"\(t)\", \"\(d)\", \(i))"
+        case .ifCall(let c, let tv, let ev):
+            return "=if(\"\(c)\", \"\(tv)\", \"\(ev)\")"
+        case .sum(let args):
+            return "=sum(\(args.joined(separator: ", ")))"
+        case .avg(let args):
+            return "=avg(\(args.joined(separator: ", ")))"
         }
     }
 
