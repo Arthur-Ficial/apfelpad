@@ -1,0 +1,7 @@
+{
+  "description": "unclosed formulas must be skipped without crashing; valid ones nearby must still be discovered",
+  "spans": [
+    { "source": "=math(9*9)", "kind": "math", "expression": "9*9", "renderedValue": "81" },
+    { "source": "=math(2+2)", "kind": "math", "expression": "2+2", "renderedValue": "4" }
+  ]
+}

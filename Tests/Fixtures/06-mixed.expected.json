@@ -1,0 +1,10 @@
+{
+  "description": "math + apfel + math + math + math interleaved across paragraphs",
+  "spans": [
+    { "source": "=math(24*60)", "kind": "math", "expression": "24*60", "renderedValue": "1440" },
+    { "source": "=apfel(\"why does time feel so fast\", 7)", "kind": "apfel", "prompt": "why does time feel so fast", "seed": 7 },
+    { "source": "=math(8)", "kind": "math", "expression": "8", "renderedValue": "8" },
+    { "source": "=math(24-8)", "kind": "math", "expression": "24-8", "renderedValue": "16" },
+    { "source": "=math((24-8)*60)", "kind": "math", "expression": "(24-8)*60", "renderedValue": "960" }
+  ]
+}

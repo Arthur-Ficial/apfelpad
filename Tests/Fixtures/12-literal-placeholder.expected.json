@@ -1,0 +1,6 @@
+{
+  "description": "literal '...' placeholder form must be skipped, real formula still discovered",
+  "spans": [
+    { "source": "=math(5*5)", "kind": "math", "expression": "5*5", "renderedValue": "25" }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "description": "baseline single =math formula",
+  "spans": [
+    { "source": "=math(1+1)", "kind": "math", "expression": "1+1", "renderedValue": "2" }
+  ]
+}

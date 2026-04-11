@@ -1,0 +1,8 @@
+{
+  "description": "three adjacent formulas with no whitespace between them",
+  "spans": [
+    { "source": "=math(1+1)", "kind": "math", "expression": "1+1", "renderedValue": "2" },
+    { "source": "=math(2+2)", "kind": "math", "expression": "2+2", "renderedValue": "4" },
+    { "source": "=math(3+3)", "kind": "math", "expression": "3+3", "renderedValue": "6" }
+  ]
+}

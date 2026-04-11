@@ -1,0 +1,8 @@
+{
+  "description": "emoji, CJK, and non-ASCII characters around and inside formulas",
+  "spans": [
+    { "source": "=math(21*2)", "kind": "math", "expression": "21*2", "renderedValue": "42" },
+    { "source": "=math(100+23)", "kind": "math", "expression": "100+23", "renderedValue": "123" },
+    { "source": "=apfel(\"write a haiku about 春\", 3)", "kind": "apfel", "prompt": "write a haiku about 春", "seed": 3 }
+  ]
+}

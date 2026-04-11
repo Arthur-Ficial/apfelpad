@@ -1,0 +1,8 @@
+{
+  "description": "three forms of the =() anonymous apfel shortcut",
+  "spans": [
+    { "source": "=()", "kind": "apfel", "prompt": "", "seed": null },
+    { "source": "=(hello world)", "kind": "apfel", "prompt": "hello world", "seed": null },
+    { "source": "=(\"love letter\", 42)", "kind": "apfel", "prompt": "love letter", "seed": 42 }
+  ]
+}

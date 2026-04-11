@@ -1,0 +1,8 @@
+{
+  "description": "formulas inside markdown headings must be discovered",
+  "spans": [
+    { "source": "=math(2025)", "kind": "math", "expression": "2025", "renderedValue": "2025" },
+    { "source": "=math(40*6)", "kind": "math", "expression": "40*6", "renderedValue": "240" },
+    { "source": "=math(40*6*150)", "kind": "math", "expression": "40*6*150", "renderedValue": "36000" }
+  ]
+}

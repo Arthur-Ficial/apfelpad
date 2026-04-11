@@ -1,0 +1,6 @@
+{
+  "description": "German double-low-9 and left-double-quote around an =apfel call with seed",
+  "spans": [
+    { "source": "=apfel(„einen warmen Willkommensgruß\u201C, 42)", "kind": "apfel", "prompt": "einen warmen Willkommensgruß", "seed": 42 }
+  ]
+}

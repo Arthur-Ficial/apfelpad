@@ -1,0 +1,7 @@
+{
+  "description": "prose references to formulas inside backticks must NOT be evaluated",
+  "spans": [
+    { "source": "=math(2+2)", "kind": "math", "expression": "2+2", "renderedValue": "4" },
+    { "source": "=math(10/2)", "kind": "math", "expression": "10/2", "renderedValue": "5" }
+  ]
+}

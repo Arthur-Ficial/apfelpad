@@ -1,0 +1,8 @@
+{
+  "description": "three =math spans including nested parens and arithmetic",
+  "spans": [
+    { "source": "=math(365*24)", "kind": "math", "expression": "365*24", "renderedValue": "8760" },
+    { "source": "=math(365*8)", "kind": "math", "expression": "365*8", "renderedValue": "2920" },
+    { "source": "=math((365-104-10)*8)", "kind": "math", "expression": "(365-104-10)*8", "renderedValue": "2008" }
+  ]
+}

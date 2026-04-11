@@ -1,0 +1,6 @@
+{
+  "description": "a curly-quoted apfel call containing both nested parens AND a false =math inside its string — walker must not be fooled",
+  "spans": [
+    { "source": "=apfel(\u201Claugh (out loud) about =math(2+2)\u201D, 5)", "kind": "apfel", "prompt": "laugh (out loud) about =math(2+2)", "seed": 5 }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "description": "English curly double quotes (U+201C U+201D) around an =apfel call",
+  "spans": [
+    { "source": "=apfel(\u201Ca short greeting\u201D)", "kind": "apfel", "prompt": "a short greeting", "seed": null }
+  ]
+}
