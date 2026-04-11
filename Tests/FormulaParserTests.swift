@@ -39,6 +39,12 @@ struct FormulaParserTests {
         #expect(canonical == #"=apfel("hi", 42)"#)
     }
 
+    @Test("=math preserves commas inside number literals")
+    func mathWithUSCommas() throws {
+        let result = try FormulaParser.parse("=math($1,250 + $750)")
+        #expect(result == .math(expression: "$1,250 + $750"))
+    }
+
     @Test("parses =math(42+2*3)")
     func mathCall() throws {
         let result = try FormulaParser.parse("=math(42+2*3)")

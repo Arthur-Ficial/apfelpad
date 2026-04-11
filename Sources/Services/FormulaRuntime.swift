@@ -163,6 +163,11 @@ final class FormulaRuntime: Sendable {
             return DayFormulaEvaluator.evaluate()
         case .time:
             return TimeFormulaEvaluator.evaluate()
+        case .recording:
+            // v0.4 preview: the span renders a placeholder message.
+            // The real implementation will show an inline record button
+            // that captures audio via apfel and transcribes on stop.
+            return "🎙 recording UI — v0.4 (tap to record via apfel)"
         }
     }
 

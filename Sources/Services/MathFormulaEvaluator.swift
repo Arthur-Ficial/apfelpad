@@ -13,7 +13,11 @@ enum MathFormulaEvaluator {
     }
 
     static func evaluate(_ expression: String) throws -> String {
-        let tokens = tokenise(expression)
+        // US annotation: strip $ prefix, drop commas between digits, expand
+        // k/m/b suffixes. Run BEFORE tokenisation so the parser sees clean
+        // numeric literals.
+        let normalised = normaliseUSNumbers(expression)
+        let tokens = tokenise(normalised)
         var parser = Parser(tokens: tokens)
         let value = try parser.parseExpression()
         if parser.hasRemaining {
@@ -22,7 +26,7 @@ enum MathFormulaEvaluator {
         return format(value)
     }
 
-    private static func format(_ value: Double) -> String {
+    static func format(_ value: Double) -> String {
         if value.isNaN || value.isInfinite {
             return String(value)
         }
@@ -30,6 +34,58 @@ enum MathFormulaEvaluator {
             return String(Int(value))
         }
         return String(value)
+    }
+
+    /// Normalise human-friendly number syntax:
+    ///   $1,000.50 → 1000.50
+    ///   1,234     → 1234
+    ///   10k       → 10000
+    ///   2m        → 2000000
+    ///   3b        → 3000000000
+    static func normaliseUSNumbers(_ raw: String) -> String {
+        var out = ""
+        let chars = Array(raw)
+        var i = 0
+        while i < chars.count {
+            let ch = chars[i]
+            if ch == "$" { i += 1; continue }
+            if ch.isNumber {
+                var num = ""
+                var sawDecimal = false
+                while i < chars.count {
+                    let c = chars[i]
+                    if c.isNumber {
+                        num.append(c); i += 1
+                    } else if c == "," && i + 1 < chars.count && chars[i+1].isNumber {
+                        i += 1  // skip thousand separator
+                    } else if c == "." && !sawDecimal && i + 1 < chars.count && chars[i+1].isNumber {
+                        num.append(c); sawDecimal = true; i += 1
+                    } else {
+                        break
+                    }
+                }
+                // Suffix: k/K/m/M/b/B
+                if i < chars.count {
+                    let suffix = chars[i]
+                    let mul: Double?
+                    switch suffix {
+                    case "k", "K": mul = 1_000
+                    case "m", "M": mul = 1_000_000
+                    case "b", "B": mul = 1_000_000_000
+                    default: mul = nil
+                    }
+                    if let m = mul, let v = Double(num) {
+                        num = format(v * m)
+                        i += 1
+                    }
+                }
+                out.append(num)
+                continue
+            }
+            out.append(ch)
+            i += 1
+        }
+        return out
     }
 
     // MARK: - Tokeniser

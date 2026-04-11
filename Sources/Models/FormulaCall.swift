@@ -22,4 +22,6 @@ enum FormulaCall: Equatable {
     case month
     case day
     case time
+    // v0.4 preview — placeholder that renders a "coming soon" message.
+    case recording
 }

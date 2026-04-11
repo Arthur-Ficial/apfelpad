@@ -33,7 +33,8 @@ struct Document: Equatable {
         let knownNames: Set<String> = [
             "apfel", "math", "ref", "count", "date", "clip", "file",
             "upper", "lower", "trim", "len", "concat", "replace",
-            "if", "sum", "avg", "split"
+            "if", "sum", "avg", "split",
+            "cw", "month", "day", "time", "recording"
         ]
         var i = 0
         while i < n {

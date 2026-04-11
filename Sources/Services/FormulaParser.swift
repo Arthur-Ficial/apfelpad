@@ -21,6 +21,11 @@ enum FormulaParser {
         let inside = String(
             afterEquals[afterEquals.index(after: lparen)..<afterEquals.index(before: afterEquals.endIndex)]
         )
+        // =math takes the WHOLE inside as a single expression — no comma
+        // splitting, so =math($1,250 + $750) parses with thousand separators.
+        if name == "math" {
+            return .math(expression: inside.trimmingCharacters(in: .whitespaces))
+        }
         let rawArgs = try splitTopLevelCommas(inside)
         switch name {
         case "apfel":
@@ -94,6 +99,9 @@ enum FormulaParser {
         case "time":
             guard rawArgs.isEmpty else { throw Error.malformedArguments("time takes no args") }
             return .time
+        case "recording":
+            guard rawArgs.isEmpty else { throw Error.malformedArguments("recording takes no args") }
+            return .recording
         default:
             throw Error.unknownFunction(name)
         }
@@ -153,6 +161,7 @@ enum FormulaParser {
         case .month: return "=month()"
         case .day: return "=day()"
         case .time: return "=time()"
+        case .recording: return "=recording()"
         }
     }
 
