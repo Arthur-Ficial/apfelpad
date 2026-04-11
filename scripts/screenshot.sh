@@ -20,7 +20,9 @@ sleep 0.5
 
 print "==> Launching apfelpad..."
 open "$APP"
-sleep 3.0
+# Wait longer so =apfel(...) formula in the welcome doc finishes streaming
+# before we capture — otherwise the screenshot shows the "evaluating" placeholder.
+sleep 20.0
 
 # Find the window ID via CoreGraphics (Swift inline script)
 WINDOW_ID=$(swift - <<'SWIFT'

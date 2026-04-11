@@ -31,4 +31,30 @@ struct DocumentTests {
         #expect(doc.rawMarkdown == "")
         #expect(doc.spans.isEmpty)
     }
+
+    @Test("discovers nested-paren math formula")
+    func nestedParens() throws {
+        let doc = try Document(rawMarkdown: "=math((365-104-10)*8)")
+        #expect(doc.spans.count == 1)
+        #expect(doc.spans[0].call == .math(expression: "(365-104-10)*8"))
+    }
+
+    @Test("skips formula references inside code spans")
+    func skipsCodeSpans() throws {
+        let doc = try Document(rawMarkdown: "Use `=apfel(hello)` anywhere.")
+        #expect(doc.spans.isEmpty)
+    }
+
+    @Test("skips literal '...' placeholder")
+    func skipsPlaceholder() throws {
+        let doc = try Document(rawMarkdown: "Every =apfel(...) formula runs.")
+        #expect(doc.spans.isEmpty)
+    }
+
+    @Test("finds formula after a skipped code span")
+    func afterCodeSpan() throws {
+        let doc = try Document(rawMarkdown: "`=apfel(x)` then =math(1+1)")
+        #expect(doc.spans.count == 1)
+        #expect(doc.spans[0].call == .math(expression: "1+1"))
+    }
 }

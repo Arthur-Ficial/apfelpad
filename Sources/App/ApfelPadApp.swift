@@ -68,11 +68,11 @@ struct ApfelPadApp: App {
 
     ## On-device AI
 
-    Every =apfel(...) formula runs entirely on your Mac via Foundation
+    Every `=apfel(...)` formula runs entirely on your Mac via Foundation
     Models. The prompt is visible. The output is reproducible via seed.
     The source travels with the file.
 
-    =apfel("write a warm two-sentence welcome for a new apfelpad user", 7)
+    =apfel("one sentence — why formulas beat chat for writing", 7)
     """
 }
 
