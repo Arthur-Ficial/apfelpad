@@ -26,6 +26,23 @@ final class DocumentViewModel {
 
     func replaceRuntime(_ runtime: FormulaRuntime) {
         self.runtime = runtime
+        // The server just came up — re-evaluate every =apfel span that was
+        // waiting (.idle, .evaluating, or .error) so users never see the
+        // "LLM not configured" error message in normal launch.
+        var indicesToRerun: [Int] = []
+        for (i, span) in document.spans.enumerated() {
+            if case .apfel = span.call {
+                switch span.value {
+                case .idle, .evaluating, .error:
+                    indicesToRerun.append(i)
+                default:
+                    break
+                }
+            }
+        }
+        if !indicesToRerun.isEmpty {
+            Task { await evaluateIndices(indicesToRerun) }
+        }
     }
 }
 

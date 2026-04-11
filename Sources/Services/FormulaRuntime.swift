@@ -80,7 +80,13 @@ final class FormulaRuntime: Sendable {
                     switch call {
                     case .apfel(let prompt, _):
                         guard let apfelEvaluator else {
-                            throw RuntimeError.llmNotConfigured
+                            // No LLM yet — the app is still spinning up the
+                            // apfel server. Stay in .evaluating (shows "…")
+                            // and the document VM will re-evaluate once
+                            // replaceRuntime plugs in the real LLM client.
+                            continuation.yield(.evaluating)
+                            continuation.finish()
+                            return
                         }
                         for try await partial in apfelEvaluator.evaluateStreaming(
                             prompt: prompt,
