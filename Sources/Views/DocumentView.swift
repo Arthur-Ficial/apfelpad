@@ -4,6 +4,7 @@ import UniformTypeIdentifiers
 struct DocumentView: View {
     @Bindable var vm: DocumentViewModel
     @Bindable var barVM: FormulaBarViewModel
+    var settingsVM: SettingsViewModel? = nil
     @State private var editing: Bool = false
 
     var body: some View {
@@ -13,6 +14,9 @@ struct DocumentView: View {
                 editor
             } else {
                 renderedView
+            }
+            if settingsVM?.showLineCount == true {
+                statusStrip
             }
         }
         .navigationTitle(vm.windowTitle)
@@ -62,6 +66,32 @@ struct DocumentView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(24)
         }
+    }
+
+    private var statusStrip: some View {
+        HStack {
+            Text("\(lineCount) lines · \(wordCount) words · \(vm.document.spans.count) formulas")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Spacer()
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 4)
+        .background(Color(white: 0.97))
+        .overlay(
+            Rectangle()
+                .frame(height: 1)
+                .foregroundStyle(.separator),
+            alignment: .top
+        )
+    }
+
+    private var lineCount: Int {
+        max(1, vm.rawText.split(separator: "\n", omittingEmptySubsequences: false).count)
+    }
+
+    private var wordCount: Int {
+        vm.rawText.split { $0.isWhitespace }.count
     }
 
     private func handleDrop(_ providers: [NSItemProvider]) -> Bool {

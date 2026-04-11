@@ -20,15 +20,41 @@ Think spreadsheets, but for text, with on-device AI as one of the functions.
 
 ### The formulas
 
+On-device AI and arithmetic:
+
 | Formula | Example | What it does |
 |---|---|---|
 | `=apfel(prompt, seed?)` | `=apfel("a love letter", 42)` | On-device LLM call, auto-scoped context |
-| `=math(expression)` | `=math(42+2*3)` | Pure arithmetic, no model |
+| `=(prompt, seed?)` | `=(love letter, 42)` | Anonymous shortcut for `=apfel(...)` |
+| `=math(expression)` | `=math(42+2*3)` | Pure arithmetic |
+
+Text and numeric (v0.2.2 — Google-Sheets-style, no LLM):
+
+| Formula | Example | What it does |
+|---|---|---|
+| `=upper(text)` | `=upper("hello")` | Uppercase |
+| `=lower(text)` | `=lower("HELLO")` | Lowercase |
+| `=trim(text)` | `=trim("  hi  ")` | Strip whitespace |
+| `=len(text)` | `=len("apfelpad")` | Character count |
+| `=concat(a, b, …)` | `=concat("Hello, ", "world")` | Join strings |
+| `=replace(t, f, r)` | `=replace("hi world", "world", "apfelpad")` | Substitute first occurrence |
+| `=split(t, d, i?)` | `=split("a,b,c", ",", 1)` | Return the *i*-th piece |
+| `=if(cond, then, else)` | `=if("yes", "go", "stop")` | Branching |
+| `=sum(n1, n2, …)` | `=sum(1, 2, 3)` | Variadic numeric sum |
+| `=avg(n1, n2, …)` | `=avg(2, 4, 6)` | Arithmetic mean |
+
+Future (v0.4+ — named anchors and world hooks):
+
+| Formula | Example | What it does |
+|---|---|---|
 | `=ref(@anchor)` | `=ref(@intro)` | Insert content of a named block |
 | `=count(@anchor?)` | `=count()` | Word count of doc or block |
 | `=date(format?)` | `=date("YYYY-MM-DD")` | Current date |
 | `=clip()` | `=apfel("fix", =clip())` | Current clipboard snapshot |
 | `=file(path)` | `=apfel("summarize", =file("notes.md"))` | Local file content |
+
+See **[docs/formulas.md](docs/formulas.md)** for the full catalogue with
+semantics, edge cases, and Google Sheets equivalents.
 
 ### Auto-quoting
 

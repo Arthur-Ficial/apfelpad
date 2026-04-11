@@ -5,6 +5,9 @@ struct SettingsPanel: View {
 
     var body: some View {
         Form {
+            Section("Editor") {
+                Toggle("Show line count in the status strip", isOn: $vm.showLineCount)
+            }
             Section("Updates") {
                 Toggle("Check for updates on launch", isOn: $vm.checkOnLaunch)
                 HStack {

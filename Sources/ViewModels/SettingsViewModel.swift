@@ -17,10 +17,14 @@ final class SettingsViewModel {
     var checkOnLaunch: Bool {
         didSet { UserDefaults.standard.set(checkOnLaunch, forKey: Self.checkOnLaunchKey) }
     }
+    var showLineCount: Bool {
+        didSet { UserDefaults.standard.set(showLineCount, forKey: Self.showLineCountKey) }
+    }
     var sessionDismissedBanner: Bool = false
 
     private let checker: UpdateChecking
     private static let checkOnLaunchKey = "apfelpad_check_for_updates_on_launch"
+    private static let showLineCountKey = "apfelpad_show_line_count"
 
     init(currentVersion: String, checker: UpdateChecking) {
         self.currentVersion = currentVersion
@@ -29,6 +33,11 @@ final class SettingsViewModel {
             self.checkOnLaunch = true
         } else {
             self.checkOnLaunch = UserDefaults.standard.bool(forKey: Self.checkOnLaunchKey)
+        }
+        if UserDefaults.standard.object(forKey: Self.showLineCountKey) == nil {
+            self.showLineCount = false
+        } else {
+            self.showLineCount = UserDefaults.standard.bool(forKey: Self.showLineCountKey)
         }
     }
 

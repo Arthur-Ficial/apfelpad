@@ -34,7 +34,7 @@ struct ApfelPadApp: App {
         WindowGroup("apfelpad") {
             VStack(spacing: 0) {
                 UpdateBanner(vm: settingsVM)
-                DocumentView(vm: documentVM, barVM: barVM)
+                DocumentView(vm: documentVM, barVM: barVM, settingsVM: settingsVM)
             }
             .task {
                 // Start server in background — =apfel becomes available once ready
