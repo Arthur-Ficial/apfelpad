@@ -30,31 +30,38 @@ struct Document: Equatable {
         let chars = Array(text)
         let n = chars.count
         let codeMask = codeSpanMask(for: chars)
-        let knownNames: Set<String> = ["apfel", "math", "ref", "count", "date", "clip", "file"]
+        let knownNames: Set<String> = [
+            "apfel", "math", "ref", "count", "date", "clip", "file",
+            "upper", "lower", "trim", "len", "concat", "replace",
+            "if", "sum", "avg", "split"
+        ]
         var i = 0
         while i < n {
             if chars[i] != "=" || codeMask[i] {
                 i += 1
                 continue
             }
-            // Read function name
+            // Read function name (may be empty for =(…) anonymous shortcut)
             var j = i + 1
             var name = ""
             while j < n, chars[j].isLetter {
                 name.append(chars[j])
                 j += 1
             }
-            guard knownNames.contains(name), j < n, chars[j] == "(" else {
+            // Accept either `=name(` (with a known name) or `=(` (anonymous apfel)
+            let isAnonymous = (name.isEmpty && j < n && chars[j] == "(")
+            let isNamed = (!name.isEmpty && knownNames.contains(name) && j < n && chars[j] == "(")
+            guard isAnonymous || isNamed else {
                 i += 1
                 continue
             }
-            // Balanced-paren walk for the argument list
+            // Balanced-paren walk for the argument list — smart-quote aware
             var depth = 1
             var k = j + 1
             var inString = false
             while k < n && depth > 0 {
                 let ch = chars[k]
-                if ch == "\"" { inString.toggle() }
+                if Self.isStringDelimiter(ch) { inString.toggle() }
                 if !inString && ch == "(" { depth += 1 }
                 if !inString && ch == ")" { depth -= 1 }
                 if depth == 0 { break }
@@ -66,7 +73,7 @@ struct Document: Equatable {
             }
             let sourceChars = chars[i...k]
             let source = String(sourceChars)
-            // Skip the placeholder form `=name(...)`
+            // Skip the placeholder form `=name(...)` whose only arg is literal "..."
             let argStart = j + 1
             let inner = String(chars[argStart..<k]).trimmingCharacters(in: .whitespaces)
             if inner == "..." {
@@ -84,6 +91,20 @@ struct Document: Equatable {
             i = k + 1
         }
         return out
+    }
+
+    /// Characters that begin or end a quoted-string literal inside a formula.
+    /// Includes ASCII and smart/curly/German quotes so the discovery walker
+    /// does not mis-count parens inside curly-quoted prompts.
+    private static func isStringDelimiter(_ ch: Character) -> Bool {
+        switch ch {
+        case "\"", "'":
+            return true
+        case "\u{201C}", "\u{201D}", "\u{201E}", "\u{2018}", "\u{2019}":
+            return true
+        default:
+            return false
+        }
     }
 
     /// Produce a per-character bitmask that is true for every position

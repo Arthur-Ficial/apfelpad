@@ -36,6 +36,9 @@ enum InlineFormulaRenderer {
             piece.backgroundColor = backgroundColour
             piece.foregroundColor = accentColour
         }
+        // Every span gets a link pointing at its UUID so clicks route through
+        // SwiftUI's environment(\.openURL) handler in DocumentView.
+        piece.link = URL(string: "apfelpad://span/\(span.id.uuidString)")
         return piece
     }
 }

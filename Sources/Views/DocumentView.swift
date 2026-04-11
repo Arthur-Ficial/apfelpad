@@ -28,6 +28,13 @@ struct DocumentView: View {
         .onDrop(of: [UTType.fileURL], isTargeted: nil) { providers in
             handleDrop(providers)
         }
+        .environment(\.openURL, OpenURLAction { url in
+            if let span = SpanClickRouter.handle(url: url, in: vm.document) {
+                barVM.select(span)
+                return .handled
+            }
+            return .systemAction
+        })
     }
 
     private var editor: some View {

@@ -57,4 +57,32 @@ struct DocumentTests {
         #expect(doc.spans.count == 1)
         #expect(doc.spans[0].call == .math(expression: "1+1"))
     }
+
+    @Test("paren inside curly-quoted string does not break discovery")
+    func curlyQuotedParen() throws {
+        // The closing `)` inside the quoted string must not be mistaken
+        // for the formula's closing paren. Walker must treat curly quotes
+        // as string delimiters too.
+        let input = "=apfel(\u{201C}laugh (out loud)\u{201D})"
+        let doc = try Document(rawMarkdown: input)
+        #expect(doc.spans.count == 1)
+        #expect(doc.spans[0].call == .apfel(prompt: "laugh (out loud)", seed: nil))
+    }
+
+    @Test("discovers curly-quoted =apfel with seed")
+    func curlyApfelWithSeed() throws {
+        let left = "\u{201C}"
+        let right = "\u{201D}"
+        let input = "Prelude =apfel(\(left)write a haiku\(right), 42) end"
+        let doc = try Document(rawMarkdown: input)
+        #expect(doc.spans.count == 1)
+        #expect(doc.spans[0].call == .apfel(prompt: "write a haiku", seed: 42))
+    }
+
+    @Test("discovers =() anonymous shortcut")
+    func anonShortcut() throws {
+        let doc = try Document(rawMarkdown: "Hello =(say hi) world")
+        #expect(doc.spans.count == 1)
+        #expect(doc.spans[0].call == .apfel(prompt: "say hi", seed: nil))
+    }
 }

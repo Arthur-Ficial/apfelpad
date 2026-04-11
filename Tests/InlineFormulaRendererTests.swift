@@ -1,4 +1,5 @@
 import Testing
+import Foundation
 @testable import apfelpad
 
 @Suite("InlineFormulaRenderer")
@@ -49,5 +50,39 @@ struct InlineFormulaRendererTests {
         #expect(rendered.contains("done"))
         #expect(rendered.contains("\u{1F9EE}"))
         #expect(!rendered.contains("=math(1+1)"))
+    }
+
+    @Test("emits a .link attribute per span with the span's UUID")
+    func linkAttribute() throws {
+        var doc = try Document(rawMarkdown: "=math(1+1)")
+        doc.spans[0].value = .ready(text: "2")
+        let attr = InlineFormulaRenderer.render(doc)
+        // Find at least one run carrying a link URL pointing at the span
+        var foundLink: URL?
+        for run in attr.runs {
+            if let link = run.link {
+                foundLink = link
+                break
+            }
+        }
+        let expected = URL(string: "apfelpad://span/\(doc.spans[0].id.uuidString)")
+        #expect(foundLink == expected)
+    }
+
+    @Test("every span in a multi-span document has a link")
+    func multipleLinks() throws {
+        var doc = try Document(rawMarkdown: "=math(1) and =math(2)")
+        doc.spans[0].value = .ready(text: "1")
+        doc.spans[1].value = .ready(text: "2")
+        let attr = InlineFormulaRenderer.render(doc)
+        var links: [URL] = []
+        for run in attr.runs {
+            if let link = run.link { links.append(link) }
+        }
+        #expect(links.count == 2)
+        let ids = doc.spans.map { $0.id.uuidString }
+        for link in links {
+            #expect(ids.contains(link.lastPathComponent))
+        }
     }
 }
