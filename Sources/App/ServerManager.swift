@@ -165,9 +165,11 @@ final class ServerManager {
 
     private func waitForReady(port: Int, timeout: Double) async -> Bool {
         let start = Date()
+        var delay: UInt64 = 50
         while Date().timeIntervalSince(start) < timeout {
             if await Self.isHealthyServer(port: port) { return true }
-            try? await Task.sleep(for: .milliseconds(200))
+            try? await Task.sleep(for: .milliseconds(delay))
+            delay = min(delay * 2, 500)
         }
         return false
     }

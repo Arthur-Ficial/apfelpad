@@ -1,219 +1,1003 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>apfelpad — a formula notepad for thinking</title>
-  <meta name="description" content="A native macOS markdown notepad where on-device AI is a first-class formula. Type =apfel(\"love letter\", 42), press Return, watch it stream inline. Reproducible, cached, 100% local.">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <meta property="og:title" content="apfelpad — a formula notepad for thinking">
-  <meta property="og:description" content="On-device AI as a first-class formula. Like =SUM but for language.">
+  <!-- Primary SEO -->
+  <title>apfelpad: A formula notepad for thinking on macOS</title>
+  <meta name="description" content="A native macOS markdown notepad where on-device AI is a first-class formula. Type =apfel(&quot;love letter&quot;, 42), press Return, watch it stream inline. Reproducible, cached, 100% local. No API keys, no cloud.">
+  <link rel="canonical" href="https://apfelpad.franzai.com/">
+
+  <!-- Open Graph -->
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://apfelpad.franzai.com">
+  <meta property="og:site_name" content="apfelpad">
+  <meta property="og:url" content="https://apfelpad.franzai.com/">
+  <meta property="og:title" content="apfelpad: On-device AI as a first-class formula.">
+  <meta property="og:description" content="A native macOS markdown notepad with inline formulas. =apfel() calls on-device AI, =math() does arithmetic, all rendered inline in pale green. No API keys. No cloud. Nothing leaves your Mac.">
   <meta property="og:image" content="https://apfelpad.franzai.com/img/social.png">
+  <meta property="og:image:secure_url" content="https://apfelpad.franzai.com/img/social.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="apfelpad: a formula notepad for thinking with on-device AI on macOS">
+  <meta property="og:locale" content="en_US">
 
+  <!-- Twitter / X card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="apfelpad — a formula notepad for thinking">
-  <meta name="twitter:description" content="On-device AI as a first-class formula.">
+  <meta name="twitter:title" content="apfelpad: On-device AI as a first-class formula.">
+  <meta name="twitter:description" content="A native macOS markdown notepad with inline formulas. =apfel() calls on-device AI, =math() does arithmetic. No API keys. No cloud.">
+  <meta name="twitter:image" content="https://apfelpad.franzai.com/img/social.png">
+  <meta name="twitter:image:alt" content="apfelpad: a formula notepad for thinking with on-device AI on macOS">
 
+  <!-- App hints -->
+  <meta name="application-name" content="apfelpad">
+  <meta name="apple-mobile-web-app-title" content="apfelpad">
+  <meta name="theme-color" content="#2a7d35">
+
+  <!-- Structured data -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     "name": "apfelpad",
-    "operatingSystem": "macOS 26",
+    "operatingSystem": "macOS 26+",
     "applicationCategory": "ProductivityApplication",
-    "softwareVersion": "0.2.0",
-    "downloadUrl": "https://github.com/Arthur-Ficial/apfelpad/releases/download/v0.2.0/apfelpad-v0.2.0-macos-arm64.zip",
+    "description": "A native macOS markdown notepad where on-device AI is a first-class formula. Inline rendering, deterministic caching, reproducible via seeds. Powered by Apple Intelligence via apfel.",
+    "url": "https://apfelpad.franzai.com/",
+    "downloadUrl": "https://github.com/Arthur-Ficial/apfelpad/releases/download/v0.2.1/apfelpad-v0.2.1-macos-arm64.zip",
+    "softwareVersion": "0.2.1",
     "offers": {
       "@type": "Offer",
       "price": "0",
       "priceCurrency": "USD"
+    },
+    "author": {
+      "@type": "Person",
+      "name": "Franz Enzenhofer",
+      "url": "https://fullstackoptimization.com"
     }
   }
   </script>
 
+  <link rel="icon" type="image/png" href="img/icon.png">
+  <link rel="preload" as="image" href="img/screen-hero.png" fetchpriority="high">
   <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     :root {
-      --bg: #ffffff;
-      --text: #1a1a1a;
-      --muted: #666;
-      --pale: #f0f9ef;
-      --accent: #2a7d35;
-      --border: #e6e6e6;
-      --mono: ui-monospace, "SF Mono", Menlo, monospace;
+      --brand: #2a7d35;
+      --brand-light: #34a042;
+      --dark:  #0d1117;
+      --dark2: #161b22;
+      --light: #f0f9ef;
+      --text-dark: #e6edf3;
+      --muted: #8b949e;
+      --text:  #1a1a1a;
+      --text2: #4a4a4a;
+      --bd:    #30363d;
+      --bdl:   #d0e6d0;
+      --r:     12px;
+      --mono:  ui-monospace, "SF Mono", Menlo, monospace;
     }
-    * { box-sizing: border-box; }
-    html, body {
-      margin: 0;
-      padding: 0;
-      background: var(--bg);
+
+    html { scroll-behavior: smooth; overflow-x: hidden; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #fff;
       color: var(--text);
-      font-family: -apple-system, system-ui, sans-serif;
-      font-size: 17px;
-      line-height: 1.55;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
     }
-    .wrap {
-      max-width: 760px;
-      margin: 0 auto;
-      padding: 60px 24px 80px;
+
+    /* -- NAV -- */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      background: #fff;
+      border-bottom: 1px solid var(--bdl);
     }
-    header h1 {
-      font-size: 44px;
-      line-height: 1.1;
-      margin: 0 0 16px;
-      letter-spacing: -0.02em;
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      flex-shrink: 0;
     }
-    header p.tagline {
-      font-size: 20px;
-      color: var(--muted);
-      margin: 0 0 28px;
-    }
-    .download {
+    .nav-brand img { width: 24px; height: 24px; border-radius: 5px; }
+    .nav-brand span { font-weight: 700; font-size: 16px; color: var(--brand); letter-spacing: -.2px; }
+    .nav-right { display: flex; align-items: center; gap: 8px; }
+    .nav-gh { display: none !important; }
+
+    .btn-dark {
       display: inline-flex;
       align-items: center;
-      gap: 10px;
-      background: var(--accent);
-      color: white;
-      padding: 14px 22px;
+      justify-content: center;
+      gap: 6px;
+      background: var(--dark);
+      color: #fff;
+      padding: 12px 20px;
       border-radius: 8px;
       text-decoration: none;
       font-weight: 600;
-      margin-right: 12px;
+      font-size: 15px;
+      white-space: nowrap;
+      min-height: 44px;
     }
-    .download:hover { background: #1e5c27; }
-    code.brew {
-      display: inline-block;
-      background: var(--pale);
-      border: 1px solid var(--border);
-      padding: 12px 18px;
+    .btn-green {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: var(--brand);
+      color: #fff;
+      padding: 12px 20px;
       border-radius: 8px;
-      font-family: var(--mono);
+      text-decoration: none;
+      font-weight: 600;
       font-size: 15px;
-      color: var(--accent);
+      white-space: nowrap;
+      min-height: 44px;
     }
-    h2 {
-      font-size: 26px;
-      margin: 56px 0 14px;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 6px;
-    }
-    .formula {
-      display: inline-block;
-      background: var(--pale);
-      border-left: 3px solid var(--accent);
-      padding: 2px 8px;
-      font-family: var(--mono);
+    .btn-green:hover { background: #1e5c27; }
+    .btn-outline {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: transparent;
+      color: var(--text-dark);
+      padding: 12px 20px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
       font-size: 15px;
+      border: 1px solid var(--bd);
+      min-height: 44px;
     }
-    img.shot {
-      width: 100%;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      margin: 18px 0;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+
+    /* -- LAYOUT -- */
+    .wrap { width: 100%; max-width: 720px; margin: 0 auto; padding: 0 16px; }
+
+    /* -- HERO -- */
+    .hero { padding: 40px 0 0; background: #fff; text-align: center; }
+    .hero-eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--brand);
+      margin-bottom: 12px;
     }
-    ul.formulas {
-      list-style: none;
-      padding: 0;
+    .hero h1 {
+      font-size: clamp(28px, 8vw, 52px);
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      line-height: 1.05;
+      color: var(--text);
+      margin-bottom: 14px;
     }
-    ul.formulas li {
-      padding: 10px 0;
-      border-bottom: 1px solid var(--border);
-      font-family: var(--mono);
+    .hero h1 em { font-style: normal; color: var(--brand); }
+    .hero-sub {
       font-size: 15px;
+      color: var(--text2);
+      line-height: 1.5;
+      margin-bottom: 20px;
+      max-width: 440px;
+      margin-left: auto;
+      margin-right: auto;
     }
-    ul.formulas li strong {
-      color: var(--accent);
-    }
-    footer {
-      margin-top: 80px;
-      padding-top: 24px;
-      border-top: 1px solid var(--border);
+    .hero-ctas { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+    .hero-meta {
+      display: flex;
+      gap: 0;
+      flex-wrap: wrap;
+      justify-content: center;
+      font-size: 12px;
       color: var(--muted);
-      font-size: 14px;
+      margin-bottom: 32px;
     }
-    footer a { color: var(--accent); }
+    .hero-meta span { padding: 3px 10px 3px 0; }
+    .hero-meta span::before {
+      content: "";
+      display: inline-block;
+      width: 5px;
+      height: 5px;
+      background: var(--brand);
+      border-radius: 50%;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+    .hero-screenshot {
+      width: 100%;
+      max-width: 100%;
+    }
+    .hero-screenshot img {
+      display: block;
+      width: 100%;
+      max-width: 720px;
+      height: auto;
+      margin: 0 auto;
+      border-radius: 12px 12px 0 0;
+      box-shadow: 0 -4px 40px rgba(0,0,0,.1);
+    }
+
+    /* -- SHOW SECTION (rendered vs source) -- */
+    .show { background: var(--dark); padding: 48px 0; }
+    .show .wrap { max-width: 720px; }
+    .show-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--brand-light);
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    .show h2 {
+      font-size: clamp(20px, 5vw, 30px);
+      font-weight: 800;
+      color: #fff;
+      text-align: center;
+      letter-spacing: -.5px;
+      margin-bottom: 32px;
+    }
+    .show-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+    .show-card { position: relative; }
+    .show-tag {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--brand-light);
+      background: rgba(42,125,53,.15);
+      padding: 4px 10px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+    .show-card img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.3);
+    }
+    .show-caption {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 10px;
+      line-height: 1.4;
+    }
+
+    /* -- HOW IT WORKS -- */
+    .sec-steps { background: #fff; padding: 48px 0; }
+    .sec-steps .wrap { max-width: 720px; }
+    .steps-header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .lbl {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--brand);
+      margin-bottom: 8px;
+    }
+    h2.sh {
+      font-size: clamp(22px, 5vw, 34px);
+      font-weight: 800;
+      letter-spacing: -.5px;
+      line-height: 1.15;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .steps {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1px;
+      background: var(--bdl);
+      border-radius: var(--r);
+      overflow: hidden;
+    }
+    .step {
+      background: #fff;
+      padding: 20px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+    .step-n {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      border: 1.5px solid var(--brand);
+      border-radius: 50%;
+      color: var(--brand);
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+    }
+    .step h3 { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+    .step p  { font-size: 13px; color: var(--text2); line-height: 1.4; }
+
+    /* -- FORMULAS -- */
+    .sec-formulas { background: var(--dark); padding: 48px 0; }
+    .sec-formulas .wrap { max-width: 720px; }
+    .sec-formulas .lbl { color: var(--brand-light); text-align: center; }
+    .sec-formulas h2 {
+      font-size: clamp(22px, 5vw, 30px);
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -.5px;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .formula-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1px;
+      background: var(--bd);
+      border-radius: var(--r);
+      overflow: hidden;
+    }
+    .formula-item {
+      background: var(--dark2);
+      padding: 14px 16px;
+      display: flex;
+      gap: 12px;
+      align-items: baseline;
+      flex-wrap: wrap;
+    }
+    .formula-name {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--brand-light);
+      word-break: break-word;
+    }
+    .formula-desc {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+      flex: 1;
+      min-width: 140px;
+    }
+
+    /* -- INSTALL -- */
+    .sec-install { background: var(--light); padding: 48px 0; }
+    .sec-install .wrap { max-width: 720px; }
+    p.sub {
+      font-size: 15px;
+      color: var(--text2);
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    .i-primary {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      background: #fff;
+      border: 2px solid var(--brand);
+      border-radius: var(--r);
+      padding: 20px;
+      margin-bottom: 12px;
+    }
+    .i-primary h3 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+    .i-primary p { font-size: 14px; color: var(--text2); margin-bottom: 10px; }
+    .i-more {
+      border: 1px solid var(--bdl);
+      border-radius: var(--r);
+      background: #fff;
+      overflow: hidden;
+    }
+    .i-more summary {
+      padding: 12px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .i-more summary::-webkit-details-marker { display: none; }
+    .i-more summary::before { content: "+"; font-size: 16px; color: var(--brand); }
+    .i-more[open] summary::before { content: "-"; }
+    .i-more-inner {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 0 16px 16px;
+    }
+    .i-card { background: #f8f8f8; border: 1px solid var(--bdl); border-radius: var(--r); padding: 14px; }
+    .i-card h3 {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    pre {
+      background: var(--dark);
+      color: #a0d8a0;
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.7;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      word-break: break-all;
+      white-space: pre-wrap;
+    }
+    .i-note { font-size: 11px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
+    code {
+      background: #f0f4f0;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-family: var(--mono);
+      font-size: .85em;
+      color: var(--text);
+      word-break: break-word;
+    }
+    .after { background: #fff; border: 1px solid var(--bdl); border-radius: var(--r); padding: 16px; }
+    .after h3 {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .after ol { padding-left: 18px; }
+    .after li { font-size: 13px; color: var(--text2); line-height: 2; }
+
+    /* -- FEATURES -- */
+    .sec-features { background: #fff; padding: 48px 0; }
+    .sec-features .wrap { max-width: 720px; }
+    .feat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--bdl);
+      border-radius: var(--r);
+      overflow: hidden;
+    }
+    .feat { background: #fff; padding: 16px; }
+    .feat h3 { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+    .feat p  { font-size: 12px; color: var(--text2); line-height: 1.4; }
+
+    /* -- ENGINE -- */
+    .sec-engine { background: var(--light); padding: 48px 0; }
+    .sec-engine .wrap { max-width: 720px; }
+    .engine-note {
+      background: #fff;
+      border: 1px solid var(--bdl);
+      border-radius: var(--r);
+      padding: 20px;
+      font-size: 14px;
+      color: var(--text2);
+      line-height: 1.6;
+    }
+    .engine-note a { color: var(--brand); text-decoration: none; font-weight: 600; }
+
+    /* -- REQUIREMENTS -- */
+    .sec-req { background: #fff; padding: 48px 0; }
+    .sec-req .wrap { max-width: 720px; }
+    .req-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .req-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--light);
+      border: 1px solid var(--bdl);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .req-pill::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      background: var(--brand);
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .req-note-small {
+      font-size: 12px;
+      color: var(--text2);
+      line-height: 1.5;
+    }
+
+    /* -- COPY BUTTON -- */
+    .pre-wrap { position: relative; }
+    .copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(255,255,255,.08);
+      color: var(--muted);
+      border: 1px solid var(--bd);
+      border-radius: 5px;
+      padding: 3px 9px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      line-height: 1.6;
+    }
+    .copy-btn:hover { background: rgba(255,255,255,.14); color: #fff; }
+    .copy-btn.copied { color: var(--brand-light); border-color: var(--brand-light); }
+
+    /* -- OPEN SOURCE -- */
+    .sec-os { background: var(--dark); padding: 48px 20px; text-align: center; }
+    .sec-os h2 {
+      font-size: clamp(22px, 5vw, 32px);
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -.5px;
+      margin-bottom: 10px;
+    }
+    .sec-os p {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 20px;
+      line-height: 1.5;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .os-links { display: flex; flex-direction: column; gap: 10px; padding: 0 16px; }
+
+    /* -- FOOTER -- */
+    footer {
+      background: var(--dark2);
+      border-top: 1px solid var(--bd);
+      padding: 20px 16px;
+      text-align: center;
+    }
+    .foot-links {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+    .foot-links a { font-size: 12px; font-weight: 500; color: var(--muted); text-decoration: none; }
+    .foot-links a:hover { color: var(--brand-light); }
+    footer p { font-size: 11px; color: var(--muted); }
+    footer a { color: var(--brand-light); text-decoration: none; }
+
+    /* -- LOCAL PILL -- */
+    .local-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #f0fdf4;
+      border: 1.5px solid #bbf7d0;
+      color: #15803d;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 999px;
+      margin-bottom: 14px;
+    }
+
+    /* -- MOBILE CTA FULL-WIDTH -- */
+    @media (max-width: 759px) {
+      .hero-ctas .btn-green,
+      .hero-ctas .btn-dark,
+      .i-primary .btn-green,
+      .os-links .btn-green,
+      .os-links .btn-outline { width: 100%; }
+      .feat-grid { grid-template-columns: 1fr; }
+    }
+
+    /* -- FORMULA INLINE SPAN -- */
+    .f {
+      display: inline;
+      background: var(--light);
+      border-left: 3px solid var(--brand);
+      padding: 2px 6px;
+      font-family: var(--mono);
+      font-size: 12px;
+      border-radius: 0 4px 4px 0;
+      word-break: break-word;
+    }
+
+    /* -- DESKTOP -- */
+    @media (min-width: 760px) {
+      nav { padding: 14px 48px; }
+      .nav-gh { display: inline-flex !important; }
+
+      .btn-dark, .btn-green, .btn-outline {
+        font-size: 13px;
+        padding: 7px 14px;
+        min-height: auto;
+        width: auto;
+      }
+      .btn-outline { font-size: 14px; padding: 9px 18px; }
+
+      .wrap { max-width: 1100px; padding: 0 48px; }
+
+      .hero { padding: 64px 0 0; }
+      .hero-sub { font-size: 16px; }
+      .hero-ctas { flex-direction: row; flex-wrap: wrap; justify-content: center; }
+      .hero-screenshot img { max-width: 900px; border-radius: 16px 16px 0 0; }
+
+      .show { padding: 64px 0; }
+      .show .wrap { max-width: 1100px; }
+      .show-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+
+      .sec-steps { padding: 64px 0; }
+      .sec-steps .wrap { max-width: 1100px; }
+      .steps { grid-template-columns: repeat(3, 1fr); }
+      .step  { flex-direction: column; }
+
+      .sec-formulas { padding: 64px 0; }
+      .sec-formulas .wrap { max-width: 1100px; }
+      .formula-grid { grid-template-columns: repeat(2, 1fr); }
+      .formula-item { flex-wrap: nowrap; }
+      .formula-name { white-space: nowrap; word-break: normal; }
+
+      .sec-install { padding: 64px 0; }
+      .sec-install .wrap { max-width: 1100px; }
+      .i-primary { flex-direction: row; align-items: flex-start; }
+      .i-primary-text { flex: 1; }
+      .after { flex: 1; }
+      .i-more-inner { display: grid; grid-template-columns: repeat(3, 1fr); }
+
+      .sec-features { padding: 64px 0; }
+      .sec-features .wrap { max-width: 1100px; }
+      .feat-grid { grid-template-columns: repeat(3, 1fr); }
+
+      .sec-engine { padding: 64px 0; }
+      .sec-engine .wrap { max-width: 1100px; }
+
+      .sec-req { padding: 64px 0; }
+      .sec-req .wrap { max-width: 1100px; }
+
+      .os-links { flex-direction: row; flex-wrap: wrap; justify-content: center; padding: 0; }
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <h1>apfelpad</h1>
-      <p class="tagline">A formula notepad for thinking. On-device AI as a first-class function, like <code>=SUM</code> but for language.</p>
-      <p>
-        <a id="download-btn" class="download" href="https://github.com/Arthur-Ficial/apfelpad/releases/download/v0.2.0/apfelpad-v0.2.0-macos-arm64.zip">
-          Download for macOS
-        </a>
-        <code class="brew">brew install Arthur-Ficial/tap/apfelpad</code>
-      </p>
-    </header>
 
-    <section>
-      <img class="shot" src="img/screen-math.png" alt="apfelpad showing a =math formula rendered inline in a pale-green span">
-    </section>
-
-    <h2>What is it?</h2>
-    <p>
-      Type <span class="formula">=apfel("a love letter", 42)</span> anywhere in a markdown document. Press Return. The formula evaluates on your Mac using Foundation Models, streams the result inline in a light-green span, and caches it deterministically so re-runs return the same output. Compose with other formulas: <span class="formula">=apfel("summarize", =ref(@intro))</span>. Drop in arithmetic: <span class="formula">=math(365*24)</span>.
-    </p>
-    <p>
-      Markdown underneath. 100% local. No API keys. Nothing leaves your Mac.
-    </p>
-
-    <h2>The formulas</h2>
-    <ul class="formulas">
-      <li><strong>=apfel(prompt, seed?)</strong> — on-device LLM call, auto-scoped context</li>
-      <li><strong>=math(expression)</strong> — pure arithmetic, no model</li>
-      <li><strong>=ref(@anchor)</strong> — insert content of a named block</li>
-      <li><strong>=count(@anchor?)</strong> — word count</li>
-      <li><strong>=date(format?)</strong> — current date</li>
-      <li><strong>=clip()</strong> — current clipboard snapshot</li>
-      <li><strong>=file(path)</strong> — local file content (sandboxed)</li>
-    </ul>
-    <p>
-      Auto-quoting: type <span class="formula">=apfel(hello world)</span> and apfelpad canonicalises it to <span class="formula">=apfel("hello world")</span>. Type English. apfelpad handles the parser.
-    </p>
-
-    <h2>Requirements</h2>
-    <ul>
-      <li>macOS 26 (Tahoe) or later</li>
-      <li>Apple Silicon (M1 or later)</li>
-      <li>Apple Intelligence enabled</li>
-      <li><a href="https://github.com/Arthur-Ficial/apfel">apfel</a> on <code>PATH</code> (bundled in Homebrew builds)</li>
-    </ul>
-
-    <h2>Privacy</h2>
-    <p>
-      apfelpad makes <strong>one</strong> network call and it is not for inference: an optional check against <code>api.github.com</code> for new apfelpad releases (togglable in settings). Every language-model call goes to <code>localhost:11450</code> where <code>apfel --serve</code> runs on your machine, reading from the on-device Foundation Models framework. Documents are plain markdown files on your disk. No telemetry. No accounts. No cloud inference. Ever.
-    </p>
-
-    <footer>
-      <p>
-        Built by <a href="https://fullstackoptimization.com">Franz Enzenhofer</a>.
-        Source: <a href="https://github.com/Arthur-Ficial/apfelpad">github.com/Arthur-Ficial/apfelpad</a>.
-        Part of the <a href="https://github.com/Arthur-Ficial">apfel family</a> —
-        <a href="https://apfel.franzai.com">apfel</a>,
-        <a href="https://apfel-chat.franzai.com">apfel-chat</a>,
-        <a href="https://apfel-clip.franzai.com">apfel-clip</a>.
-        MIT licensed.
-      </p>
-    </footer>
+<!-- Nav -->
+<nav>
+  <a class="nav-brand" href="#">
+    <img src="img/icon.png" alt="" width="24" height="24">
+    <span>apfelpad</span>
+  </a>
+  <div class="nav-right">
+    <a class="btn-dark nav-gh" href="https://github.com/Arthur-Ficial/apfelpad" target="_blank" rel="noopener"><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg> GitHub</a>
+    <a class="btn-green" href="#install"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg> Download</a>
   </div>
+</nav>
 
-  <script>
-    // Fetch the latest release tag from GitHub so the download button
-    // always points at the newest versioned ZIP.
-    fetch("https://api.github.com/repos/Arthur-Ficial/apfelpad/releases/latest")
-      .then(r => r.ok ? r.json() : null)
-      .then(data => {
-        if (!data || !data.tag_name) return;
-        const tag = data.tag_name;
-        const url = `https://github.com/Arthur-Ficial/apfelpad/releases/download/${tag}/apfelpad-${tag}-macos-arm64.zip`;
-        const btn = document.getElementById("download-btn");
-        if (btn) btn.href = url;
-      })
-      .catch(() => {});
-  </script>
+<!-- Hero -->
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-eyebrow">macOS formula notepad</div>
+    <h1>Like <em>=SUM</em><br>but for language.</h1>
+    <div class="local-pill">&#x1f512; 100% on-device. Nothing leaves your Mac.</div>
+    <p class="hero-sub">Type <code class="f">=apfel("summarize this")</code> in your markdown. Watch it stream inline. No API keys. No cloud.</p>
+    <div class="hero-ctas">
+      <a class="btn-green" href="#install"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg> Download free</a>
+      <a class="btn-dark" href="https://github.com/Arthur-Ficial/apfelpad" target="_blank" rel="noopener"><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg> View on GitHub</a>
+    </div>
+    <div class="hero-meta">
+      <span>MIT Open Source</span>
+      <span>macOS 26 Tahoe</span>
+      <span>Apple Silicon</span>
+    </div>
+  </div>
+  <div class="hero-screenshot">
+    <img src="img/screen-hero.png" alt="apfelpad showing inline formulas rendered in a markdown document"
+         width="900" height="572" fetchpriority="high">
+  </div>
+</section>
+
+<!-- Show: Rendered vs Source -->
+<section class="show">
+  <div class="wrap">
+    <div class="show-label">See it in action</div>
+    <h2>Write formulas. See results inline.</h2>
+    <div class="show-grid">
+      <div class="show-card">
+        <div class="show-tag">Rendered view</div>
+        <img src="img/screen-math.png" alt="apfelpad rendered view with inline math and AI formula results"
+             width="900" height="572" loading="lazy">
+        <p class="show-caption"><code class="f" style="background:var(--dark2);color:#a0d8a0;border-color:var(--brand-light)">=math(365*24)</code> becomes <strong style="color:#fff">8760</strong>. <code class="f" style="background:var(--dark2);color:#a0d8a0;border-color:var(--brand-light)">=apfel()</code> calls stream AI text. Both render as green spans.</p>
+      </div>
+      <div class="show-card">
+        <div class="show-tag">Source view</div>
+        <img src="img/screen-source.png" alt="apfelpad source view showing raw formula syntax in markdown"
+             width="900" height="572" loading="lazy">
+        <p class="show-caption">Toggle to see raw markdown. Formula syntax is plain text. Open in any editor.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How it works -->
+<section class="sec-steps">
+  <div class="wrap">
+    <div class="steps-header">
+      <div class="lbl">How it works</div>
+      <h2 class="sh">Three steps. No setup.</h2>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-n">1</div>
+        <div>
+          <h3>Write markdown</h3>
+          <p>Headings, bold, lists &mdash; it all renders inline.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">2</div>
+        <div>
+          <h3>Drop in a formula</h3>
+          <p><code class="f">=apfel(summarize this)</code> or <code class="f">=math(365*24)</code> anywhere in your text.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">3</div>
+        <div>
+          <h3>See results inline</h3>
+          <p>Pale green spans. Cached. Reproducible via seeds.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Formulas -->
+<section class="sec-formulas" id="formulas">
+  <div class="wrap">
+    <div class="lbl">The formulas</div>
+    <h2>Seven functions. One syntax.</h2>
+    <div class="formula-grid">
+      <div class="formula-item">
+        <div class="formula-name">=apfel(prompt, seed?)</div>
+        <div class="formula-desc">On-device AI call. Seed makes output reproducible.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=math(expression)</div>
+        <div class="formula-desc">Pure arithmetic. No model. Instant.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=ref(@anchor)</div>
+        <div class="formula-desc">Insert content from a named heading or block.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=count(@anchor?)</div>
+        <div class="formula-desc">Word count of a section or full document.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=date(format?)</div>
+        <div class="formula-desc">Current date, optionally formatted.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=clip()</div>
+        <div class="formula-desc">Clipboard snapshot at evaluation time.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=file(path)</div>
+        <div class="formula-desc">Local file contents. Sandboxed.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Install -->
+<section class="sec-install" id="install">
+  <div class="wrap">
+    <div class="lbl">Install</div>
+    <h2 class="sh">Get apfelpad</h2>
+    <p class="sub">Free. Signed and notarised. Apple Silicon only.</p>
+
+    <div class="i-primary">
+      <div class="i-primary-text">
+        <h3>Download</h3>
+        <p>Unzip, drag to Applications, open.</p>
+        <a class="btn-green" id="download-btn" href="https://github.com/Arthur-Ficial/apfelpad/releases/download/v0.2.1/apfelpad-v0.2.1-macos-arm64.zip"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg> <span id="download-label">Download free (arm64)</span></a>
+        <p class="i-note" style="margin-top:8px;">Signed and notarised. SHA-256 in each <a href="https://github.com/Arthur-Ficial/apfelpad/releases" style="color:var(--brand)">release</a>.</p>
+      </div>
+      <div class="after">
+        <h3>After installing</h3>
+        <ol>
+          <li>Open <strong>apfelpad</strong> from Applications</li>
+          <li>A welcome document opens with examples</li>
+          <li>Click a green span to edit its formula</li>
+          <li>Type <code>=math(2+2)</code> and press Return</li>
+        </ol>
+      </div>
+    </div>
+
+    <details class="i-more">
+      <summary>Other install options</summary>
+      <div class="i-more-inner">
+        <div class="i-card">
+          <h3>Homebrew</h3>
+          <pre>brew install Arthur-Ficial/tap/apfelpad</pre>
+          <p class="i-note">Updates with <code>brew upgrade apfelpad</code>.</p>
+        </div>
+        <div class="i-card">
+          <h3>Curl installer</h3>
+          <pre>curl -fsSL https://raw.githubusercontent.com/Arthur-Ficial/apfelpad/main/scripts/install.sh | zsh</pre>
+        </div>
+        <div class="i-card">
+          <h3>Build from source</h3>
+          <pre>git clone https://github.com/Arthur-Ficial/apfelpad.git
+cd apfelpad &amp;&amp; make install</pre>
+        </div>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="sec-features" id="features">
+  <div class="wrap">
+    <div class="lbl" style="text-align:center">Features</div>
+    <h2 class="sh" style="text-align:center;margin-bottom:24px">A spreadsheet for prose.</h2>
+    <div class="feat-grid">
+      <div class="feat">
+        <h3>Inline rendering</h3>
+        <p>Results appear right where you type. No output pane.</p>
+      </div>
+      <div class="feat">
+        <h3>100% on-device AI</h3>
+        <p>No API keys. No cloud. Nothing leaves your Mac.</p>
+      </div>
+      <div class="feat">
+        <h3>Deterministic seeds</h3>
+        <p>=apfel("prompt", 42) gives the same output every time.</p>
+      </div>
+      <div class="feat">
+        <h3>Cached results</h3>
+        <p>Re-opening shows results instantly. Change the prompt to re-evaluate.</p>
+      </div>
+      <div class="feat">
+        <h3>Auto-quoting</h3>
+        <p>Type =apfel(hello world). The parser adds the quotes.</p>
+      </div>
+      <div class="feat">
+        <h3>Plain markdown</h3>
+        <p>.md files on disk. Open in any editor.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Engine -->
+<section class="sec-engine" id="engine">
+  <div class="wrap">
+    <div class="lbl">Under the hood</div>
+    <h2 class="sh">Powered by <a href="https://apfel.franzai.com" style="color:var(--brand);text-decoration:none">apfel</a>.</h2>
+    <div class="engine-note">
+      <p>apfelpad launches <a href="https://apfel.franzai.com">apfel</a> (an OpenAI-compatible server for on-device Foundation Models) on <code>localhost:11450</code> at startup. All AI inference stays on your Mac. apfelpad handles formula parsing, caching, context resolution, and inline rendering on top.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Requirements -->
+<section class="sec-req" id="requirements">
+  <div class="wrap">
+    <div class="lbl">Requirements</div>
+    <h2 class="sh">What you need</h2>
+    <div class="req-row">
+      <div class="req-pill">macOS 26 (Tahoe)</div>
+      <div class="req-pill">Apple Silicon (M1+)</div>
+      <div class="req-pill">Apple Intelligence enabled</div>
+      <div class="req-pill">apfel on PATH</div>
+    </div>
+    <p class="req-note-small">=math() works without AI. Only =apfel() formulas need the on-device model.</p>
+  </div>
+</section>
+
+<!-- Privacy -->
+<section class="sec-engine" id="privacy" style="background:#fff">
+  <div class="wrap">
+    <div class="lbl">Privacy</div>
+    <h2 class="sh">One network call. Not for inference.</h2>
+    <p style="font-size:14px;color:var(--text2);line-height:1.6">Optional update check via <code>api.github.com</code> (togglable in settings). Every AI call goes to <code>localhost</code>. No telemetry. No accounts. No cloud inference. Ever.</p>
+  </div>
+</section>
+
+<!-- Open Source -->
+<section class="sec-os">
+  <h2>Free and open source.</h2>
+  <p>MIT-licensed. Use it, fork it, ship it.</p>
+  <div class="os-links">
+    <a class="btn-green" href="https://github.com/Arthur-Ficial/apfelpad" target="_blank" rel="noopener"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" style="flex-shrink:0"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg> Star on GitHub</a>
+    <a class="btn-outline" href="https://github.com/Arthur-Ficial/apfelpad/issues" target="_blank" rel="noopener">Report an issue</a>
+    <a class="btn-outline" href="https://github.com/Arthur-Ficial/apfelpad/releases" target="_blank" rel="noopener">Releases</a>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="foot-links">
+    <a href="https://github.com/Arthur-Ficial/apfelpad" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://github.com/Arthur-Ficial/apfelpad/releases" target="_blank" rel="noopener">Releases</a>
+    <a href="https://github.com/Arthur-Ficial/apfelpad/issues" target="_blank" rel="noopener">Issues</a>
+    <a href="https://apfel-chat.franzai.com" target="_blank" rel="noopener">apfel-chat</a>
+    <a href="https://apfel-clip.franzai.com" target="_blank" rel="noopener">apfel-clip</a>
+    <a href="https://apfel.franzai.com" target="_blank" rel="noopener">apfel</a>
+    <a href="https://github.com/Arthur-Ficial/apfelpad/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>
+  </div>
+  <p>Made with care by <a href="https://github.com/Arthur-Ficial">Arthur Ficial</a> &middot; Powered by on-device AI &middot; <a href="https://franzai.com">franzai.com</a></p>
+</footer>
+
+<script>
+fetch('https://api.github.com/repos/Arthur-Ficial/apfelpad/releases')
+  .then(function(r) { return r.json(); })
+  .then(function(releases) {
+    if (!releases || !releases.length) return;
+    var latest = releases[0];
+    var tag = latest.tag_name;
+    if (!tag) return;
+    var url = 'https://github.com/Arthur-Ficial/apfelpad/releases/download/' + tag + '/apfelpad-' + tag + '-macos-arm64.zip';
+    var total = 0;
+    releases.forEach(function(rel) {
+      (rel.assets || []).forEach(function(a) {
+        if (a.name.indexOf('.zip') !== -1) total += (a.download_count || 0);
+      });
+    });
+    var btn = document.getElementById('download-btn');
+    var label = document.getElementById('download-label');
+    if (btn) btn.href = url;
+    var text = 'Download ' + tag + ' (arm64)';
+    if (total > 0) text += '  \u00b7  ' + total.toLocaleString() + '\u00a0downloads';
+    if (label) label.textContent = text;
+  })
+  .catch(function() {});
+
+document.querySelectorAll('pre').forEach(function(pre) {
+  var wrap = document.createElement('div');
+  wrap.className = 'pre-wrap';
+  pre.parentNode.insertBefore(wrap, pre);
+  wrap.appendChild(pre);
+  var btn = document.createElement('button');
+  btn.className = 'copy-btn';
+  btn.textContent = 'Copy';
+  btn.addEventListener('click', function() {
+    navigator.clipboard.writeText(pre.textContent.trim()).then(function() {
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(function() { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  });
+  wrap.appendChild(btn);
+});
+</script>
 </body>
 </html>

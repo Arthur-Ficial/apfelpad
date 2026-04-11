@@ -3,12 +3,14 @@ import Foundation
 import SQLite3
 #endif
 
-/// Persistent formula cache backed by raw C SQLite3.
-/// Single table keyed by `CacheKey.hash`.
 final class SQLiteFormulaCache: FormulaCache, @unchecked Sendable {
     private let db: OpaquePointer
     private let queue = DispatchQueue(label: "apfelpad.cache", qos: .userInitiated)
     private let SQLITE_TRANSIENT = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
+
+    private var selectStmt: OpaquePointer?
+    private var upsertStmt: OpaquePointer?
+    private var deleteStmt: OpaquePointer?
 
     init(path: String) throws {
         var dbPointer: OpaquePointer?
@@ -24,10 +26,17 @@ final class SQLiteFormulaCache: FormulaCache, @unchecked Sendable {
         sqlite3_exec(db, "PRAGMA synchronous=NORMAL", nil, nil, nil)
         sqlite3_exec(db, "PRAGMA cache_size=-8000", nil, nil, nil)
         sqlite3_exec(db, "PRAGMA temp_store=MEMORY", nil, nil, nil)
+        sqlite3_exec(db, "PRAGMA mmap_size=268435456", nil, nil, nil)
         try createTables()
+        try prepareStatements()
     }
 
-    deinit { sqlite3_close(db) }
+    deinit {
+        sqlite3_finalize(selectStmt)
+        sqlite3_finalize(upsertStmt)
+        sqlite3_finalize(deleteStmt)
+        sqlite3_close(db)
+    }
 
     static func defaultPath() -> String {
         let appSupport = FileManager.default.urls(
@@ -49,6 +58,28 @@ final class SQLiteFormulaCache: FormulaCache, @unchecked Sendable {
         );
         """
         guard sqlite3_exec(db, sql, nil, nil, nil) == SQLITE_OK else {
+            throw CacheError.queryFailed(String(cString: sqlite3_errmsg(db)))
+        }
+    }
+
+    private func prepareStatements() throws {
+        guard sqlite3_prepare_v2(
+            db, "SELECT value FROM formulas WHERE key = ?", -1, &selectStmt, nil
+        ) == SQLITE_OK else {
+            throw CacheError.queryFailed(String(cString: sqlite3_errmsg(db)))
+        }
+
+        let upsertSQL = """
+        INSERT INTO formulas (key, value, created_at) VALUES (?, ?, ?)
+        ON CONFLICT(key) DO UPDATE SET value = excluded.value, created_at = excluded.created_at
+        """
+        guard sqlite3_prepare_v2(db, upsertSQL, -1, &upsertStmt, nil) == SQLITE_OK else {
+            throw CacheError.queryFailed(String(cString: sqlite3_errmsg(db)))
+        }
+
+        guard sqlite3_prepare_v2(
+            db, "DELETE FROM formulas WHERE key = ?", -1, &deleteStmt, nil
+        ) == SQLITE_OK else {
             throw CacheError.queryFailed(String(cString: sqlite3_errmsg(db)))
         }
     }
@@ -87,35 +118,23 @@ final class SQLiteFormulaCache: FormulaCache, @unchecked Sendable {
         }
     }
 
-    // MARK: - Private helpers (all run on `queue`)
+    // MARK: - Reusable prepared statements
 
     private func selectValue(forKey hash: String) throws -> String? {
-        var stmt: OpaquePointer?
-        guard sqlite3_prepare_v2(db, "SELECT value FROM formulas WHERE key = ?", -1, &stmt, nil) == SQLITE_OK else {
-            throw CacheError.queryFailed(String(cString: sqlite3_errmsg(db)))
-        }
-        defer { sqlite3_finalize(stmt) }
+        guard let stmt = selectStmt else { throw CacheError.queryFailed("statement not prepared") }
+        sqlite3_reset(stmt)
         sqlite3_bind_text(stmt, 1, hash, -1, SQLITE_TRANSIENT)
         let rc = sqlite3_step(stmt)
         if rc == SQLITE_ROW {
             return String(cString: sqlite3_column_text(stmt, 0))
         }
-        if rc == SQLITE_DONE {
-            return nil
-        }
+        if rc == SQLITE_DONE { return nil }
         throw CacheError.queryFailed(String(cString: sqlite3_errmsg(db)))
     }
 
     private func upsertValue(hash: String, value: String) throws {
-        let sql = """
-        INSERT INTO formulas (key, value, created_at) VALUES (?, ?, ?)
-        ON CONFLICT(key) DO UPDATE SET value = excluded.value, created_at = excluded.created_at
-        """
-        var stmt: OpaquePointer?
-        guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else {
-            throw CacheError.queryFailed(String(cString: sqlite3_errmsg(db)))
-        }
-        defer { sqlite3_finalize(stmt) }
+        guard let stmt = upsertStmt else { throw CacheError.queryFailed("statement not prepared") }
+        sqlite3_reset(stmt)
         sqlite3_bind_text(stmt, 1, hash, -1, SQLITE_TRANSIENT)
         sqlite3_bind_text(stmt, 2, value, -1, SQLITE_TRANSIENT)
         sqlite3_bind_double(stmt, 3, Date().timeIntervalSince1970)
@@ -125,11 +144,8 @@ final class SQLiteFormulaCache: FormulaCache, @unchecked Sendable {
     }
 
     private func deleteRow(hash: String) throws {
-        var stmt: OpaquePointer?
-        guard sqlite3_prepare_v2(db, "DELETE FROM formulas WHERE key = ?", -1, &stmt, nil) == SQLITE_OK else {
-            throw CacheError.queryFailed(String(cString: sqlite3_errmsg(db)))
-        }
-        defer { sqlite3_finalize(stmt) }
+        guard let stmt = deleteStmt else { throw CacheError.queryFailed("statement not prepared") }
+        sqlite3_reset(stmt)
         sqlite3_bind_text(stmt, 1, hash, -1, SQLITE_TRANSIENT)
         guard sqlite3_step(stmt) == SQLITE_DONE else {
             throw CacheError.queryFailed(String(cString: sqlite3_errmsg(db)))

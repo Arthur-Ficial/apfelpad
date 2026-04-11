@@ -18,7 +18,7 @@ struct FormulaSpanViewTests {
             call: .math(expression: "1+1"),
             value: .idle
         )
-        #expect(FormulaSpanView.displayText(for: span) == "=math(1+1)")
+        #expect(span.displayText == "=math(1+1)")
     }
 
     @Test("displayText shows result in ready state")
@@ -29,7 +29,7 @@ struct FormulaSpanViewTests {
             call: .math(expression: "1+1"),
             value: .ready(text: "2")
         )
-        #expect(FormulaSpanView.displayText(for: span) == "2")
+        #expect(span.displayText == "2")
     }
 
     @Test("displayText shows error message in error state")
@@ -40,6 +40,6 @@ struct FormulaSpanViewTests {
             call: .math(expression: "abc"),
             value: .error(message: "bad expression")
         )
-        #expect(FormulaSpanView.displayText(for: span) == "bad expression")
+        #expect(span.displayText == "bad expression")
     }
 }

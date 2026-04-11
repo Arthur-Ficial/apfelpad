@@ -1,4 +1,6 @@
 import SwiftUI
+import AppKit
+import UniformTypeIdentifiers
 
 @main
 struct ApfelPadApp: App {
@@ -16,7 +18,7 @@ struct ApfelPadApp: App {
             cache = InMemoryFallbackCache()
         }
         self.cache = cache
-        let runtime = FormulaRuntime(cache: cache)  // no LLM yet — swapped in once server is up
+        let runtime = FormulaRuntime(cache: cache)
         _documentVM = State(initialValue: DocumentViewModel(runtime: runtime))
 
         let checker = GitHubReleaseUpdateChecker()
@@ -35,19 +37,90 @@ struct ApfelPadApp: App {
                 DocumentView(vm: documentVM, barVM: barVM)
             }
             .task {
-                let port = await serverManager.start()
-                if let port {
-                    let llm = ApfelHTTPService(port: port)
-                    let runtime = FormulaRuntime(cache: cache, llm: llm)
-                    documentVM.replaceRuntime(runtime)
+                // Start server in background — =apfel becomes available once ready
+                Task {
+                    let port = await serverManager.start()
+                    if let port {
+                        let llm = ApfelHTTPService(port: port)
+                        let runtime = FormulaRuntime(cache: cache, llm: llm)
+                        documentVM.replaceRuntime(runtime)
+                    }
                 }
-                await settingsVM.checkForUpdateIfEnabled()
-                try? documentVM.load(rawMarkdown: Self.welcomeDocument)
-                await documentVM.evaluateAll()
+
+                // Check for updates in background
+                Task { await settingsVM.checkForUpdateIfEnabled() }
+
+                // Load content immediately — math formulas work without server
+                if CommandLine.arguments.count > 1 {
+                    let path = CommandLine.arguments[1]
+                    let url = URL(fileURLWithPath: path)
+                    if FileManager.default.fileExists(atPath: url.path) {
+                        try? await documentVM.open(from: url)
+                    } else {
+                        loadWelcome()
+                    }
+                } else {
+                    loadWelcome()
+                }
+
+                documentVM.startAutosave()
+            }
+            .onOpenURL { url in
+                Task { try? await documentVM.open(from: url) }
+            }
+        }
+        .commands {
+            CommandGroup(replacing: .saveItem) {
+                Button("Save") {
+                    Task {
+                        if documentVM.fileURL != nil {
+                            try? await documentVM.save()
+                        } else {
+                            saveAs()
+                        }
+                    }
+                }
+                .keyboardShortcut("s", modifiers: .command)
+
+                Button("Save As…") {
+                    saveAs()
+                }
+                .keyboardShortcut("s", modifiers: [.command, .shift])
+            }
+
+            CommandGroup(after: .newItem) {
+                Button("Open…") {
+                    openFile()
+                }
+                .keyboardShortcut("o", modifiers: .command)
             }
         }
         Settings {
             SettingsPanel(vm: settingsVM)
+        }
+    }
+
+    private func loadWelcome() {
+        try? documentVM.load(rawMarkdown: Self.welcomeDocument)
+        Task { await documentVM.evaluateAll() }
+    }
+
+    private func saveAs() {
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [UTType.plainText]
+        panel.allowsOtherFileTypes = true
+        panel.nameFieldStringValue = documentVM.fileURL?.lastPathComponent ?? "Untitled.md"
+        if panel.runModal() == .OK, let url = panel.url {
+            Task { try? await documentVM.save(to: url) }
+        }
+    }
+
+    private func openFile() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [UTType.plainText]
+        panel.allowsMultipleSelection = false
+        if panel.runModal() == .OK, let url = panel.url {
+            Task { try? await documentVM.open(from: url) }
         }
     }
 
@@ -76,7 +149,6 @@ struct ApfelPadApp: App {
     """
 }
 
-/// Fallback used if SQLite open fails at startup.
 final actor InMemoryFallbackCache: FormulaCache {
     private var store: [String: String] = [:]
     func get(key: CacheKey) async throws -> String? { store[key.hash] }

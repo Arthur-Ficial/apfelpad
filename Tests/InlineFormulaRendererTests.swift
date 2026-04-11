@@ -38,4 +38,16 @@ struct InlineFormulaRendererTests {
         #expect(one < andR)
         #expect(andR < two)
     }
+
+    @Test("handles emoji and multi-byte characters correctly")
+    func emojiRendering() throws {
+        var doc = try Document(rawMarkdown: "\u{1F389} Result: =math(1+1) done \u{1F9EE}")
+        doc.spans[0].value = .ready(text: "2")
+        let rendered = String(InlineFormulaRenderer.render(doc).characters)
+        #expect(rendered.contains("\u{1F389}"))
+        #expect(rendered.contains("2"))
+        #expect(rendered.contains("done"))
+        #expect(rendered.contains("\u{1F9EE}"))
+        #expect(!rendered.contains("=math(1+1)"))
+    }
 }

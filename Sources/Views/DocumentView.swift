@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct DocumentView: View {
     @Bindable var vm: DocumentViewModel
@@ -14,26 +15,26 @@ struct DocumentView: View {
                 renderedView
             }
         }
+        .navigationTitle(vm.windowTitle)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button(editing ? "Render" : "Edit source") {
+                    if editing { vm.flushPendingReparse() }
                     editing.toggle()
                 }
             }
         }
         .frame(minWidth: 720, minHeight: 520)
+        .onDrop(of: [UTType.fileURL], isTargeted: nil) { providers in
+            handleDrop(providers)
+        }
     }
 
     private var editor: some View {
-        TextEditor(
-            text: Binding(
-                get: { vm.document.rawMarkdown },
-                set: { newValue in
-                    try? vm.load(rawMarkdown: newValue)
-                    Task { await vm.evaluateAll() }
-                }
-            )
-        )
+        TextEditor(text: Binding(
+            get: { vm.rawText },
+            set: { vm.textDidChange($0) }
+        ))
         .font(.system(.body, design: .monospaced))
         .padding(16)
     }
@@ -47,5 +48,19 @@ struct DocumentView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(24)
         }
+    }
+
+    private func handleDrop(_ providers: [NSItemProvider]) -> Bool {
+        guard let provider = providers.first else { return false }
+        provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { data, _ in
+            guard let data = data as? Data,
+                  let path = URL(dataRepresentation: data, relativeTo: nil) else { return }
+            let ext = path.pathExtension.lowercased()
+            guard ["md", "markdown", "txt"].contains(ext) else { return }
+            Task { @MainActor in
+                try? await vm.open(from: path)
+            }
+        }
+        return true
     }
 }

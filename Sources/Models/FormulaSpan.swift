@@ -20,4 +20,15 @@ struct FormulaSpan: Identifiable, Equatable {
         self.call = call
         self.value = value
     }
+
+    var displayText: String {
+        switch value {
+        case .idle: return source
+        case .evaluating: return "…"
+        case .streaming(let partial): return partial.isEmpty ? "…" : partial
+        case .ready(let text): return text
+        case .stale(let text): return text
+        case .error(let message): return message
+        }
+    }
 }

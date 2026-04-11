@@ -9,9 +9,9 @@
     <key>CFBundleIdentifier</key>
     <string>com.fullstackoptimization.apfelpad</string>
     <key>CFBundleVersion</key>
-    <string>0.1.0</string>
+    <string>0.2.1</string>
     <key>CFBundleShortVersionString</key>
-    <string>0.1.0</string>
+    <string>0.2.1</string>
     <key>CFBundleExecutable</key>
     <string>apfelpad</string>
     <key>CFBundlePackageType</key>
@@ -26,5 +26,27 @@
     <string>AppIcon</string>
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
+    <key>CFBundleDocumentTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleTypeExtensions</key>
+            <array>
+                <string>md</string>
+                <string>markdown</string>
+                <string>txt</string>
+            </array>
+            <key>CFBundleTypeName</key>
+            <string>Markdown Document</string>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
+            <key>LSHandlerRank</key>
+            <string>Alternate</string>
+            <key>LSItemContentTypes</key>
+            <array>
+                <string>net.daringfireball.markdown</string>
+                <string>public.plain-text</string>
+            </array>
+        </dict>
+    </array>
 </dict>
 </plist>

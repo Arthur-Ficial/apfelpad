@@ -11,7 +11,7 @@ struct FormulaSpanView: View {
             Rectangle()
                 .fill(Self.accentColour)
                 .frame(width: 3)
-            Text(Self.displayText(for: span))
+            Text(span.displayText)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
         }
@@ -28,17 +28,6 @@ struct FormulaSpanView: View {
             Rectangle().stroke(.red, lineWidth: 1)
         default:
             EmptyView()
-        }
-    }
-
-    static func displayText(for span: FormulaSpan) -> String {
-        switch span.value {
-        case .idle: return span.source
-        case .evaluating: return "…"
-        case .streaming(let partial): return partial.isEmpty ? "…" : partial
-        case .ready(let text): return text
-        case .stale(let text): return text
-        case .error(let message): return message
         }
     }
 }
