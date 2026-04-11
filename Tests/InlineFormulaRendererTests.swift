@@ -85,4 +85,33 @@ struct InlineFormulaRendererTests {
             #expect(ids.contains(link.lastPathComponent))
         }
     }
+
+    @Test("identityHash changes when span value changes")
+    func identityHashChangesOnValueUpdate() throws {
+        var doc = try Document(rawMarkdown: "=math(1+1)")
+        doc.spans[0].value = .idle
+        let idleHash = InlineFormulaRenderer.identityHash(for: doc)
+        doc.spans[0].value = .ready(text: "2")
+        let readyHash = InlineFormulaRenderer.identityHash(for: doc)
+        #expect(idleHash != readyHash)
+    }
+
+    @Test("identityHash stable for same state")
+    func identityHashStable() throws {
+        var doc = try Document(rawMarkdown: "=math(7*7)")
+        doc.spans[0].value = .ready(text: "49")
+        let h1 = InlineFormulaRenderer.identityHash(for: doc)
+        let h2 = InlineFormulaRenderer.identityHash(for: doc)
+        #expect(h1 == h2)
+    }
+
+    @Test("memoized render returns identical output for same state")
+    func memoizationWorks() throws {
+        var doc = try Document(rawMarkdown: "=math(42)")
+        doc.spans[0].value = .ready(text: "42")
+        let first = InlineFormulaRenderer.render(doc)
+        let second = InlineFormulaRenderer.render(doc)
+        // Both must be equal — cache hit or not, content matches
+        #expect(String(first.characters) == String(second.characters))
+    }
 }

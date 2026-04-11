@@ -35,6 +35,13 @@ struct DocumentView: View {
             }
             return .systemAction
         })
+        .onAppear {
+            // Wire the formula bar's commit callback to the document VM.
+            // The closure captures vm so edits to the bar become live edits.
+            barVM.onCommit = { [vm] id, newSource in
+                vm.replaceSpanSource(id: id, with: newSource)
+            }
+        }
     }
 
     private var editor: some View {

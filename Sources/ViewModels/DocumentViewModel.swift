@@ -28,6 +28,52 @@ final class DocumentViewModel {
         self.runtime = runtime
     }
 
+    /// Replace the source text of a single formula span and re-evaluate it.
+    /// Called from the formula bar's commit loop. Updates rawText so the
+    /// underlying markdown is in sync. Returns true on success.
+    @discardableResult
+    func replaceSpanSource(id: UUID, with newSource: String) -> Bool {
+        guard let index = document.spans.firstIndex(where: { $0.id == id }) else {
+            return false
+        }
+        let oldSpan = document.spans[index]
+        // Reparse the new source so the call and the raw bytes are in sync
+        guard let newCall = try? FormulaParser.parse(newSource) else { return false }
+
+        // Splice the new source into rawText at the old span's range
+        let ns = rawText as NSString
+        let oldRange = NSRange(location: oldSpan.range.lowerBound,
+                               length: oldSpan.range.upperBound - oldSpan.range.lowerBound)
+        guard oldRange.location + oldRange.length <= ns.length else { return false }
+        let newRawText = ns.replacingCharacters(in: oldRange, with: newSource)
+        rawText = newRawText
+        isDirty = true
+
+        // Rebuild Document from the new raw text. We have to do this because
+        // all subsequent span ranges shifted by the length delta.
+        guard let newDoc = try? Document(rawMarkdown: newRawText) else { return false }
+        // Preserve cached values on same-source spans; evaluate the changed one.
+        var oldValues: [String: FormulaValue] = [:]
+        for span in document.spans {
+            if case .idle = span.value { continue }
+            oldValues[span.source] = span.value
+        }
+        document = newDoc
+        for (i, span) in document.spans.enumerated() {
+            if let v = oldValues[span.source] {
+                document.spans[i].value = v
+            }
+        }
+
+        // Find the span that now matches newSource and kick off evaluation
+        // without blocking the caller.
+        if let newIndex = document.spans.firstIndex(where: { $0.source == newSource }) {
+            Task { await evaluateIndices([newIndex]) }
+        }
+        _ = newCall
+        return true
+    }
+
     // MARK: - Text editing (debounced)
 
     func textDidChange(_ newText: String) {
