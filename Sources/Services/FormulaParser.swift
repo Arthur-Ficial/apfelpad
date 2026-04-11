@@ -8,7 +8,9 @@ enum FormulaParser {
     }
 
     static func parse(_ source: String) throws -> FormulaCall {
-        let trimmed = source.trimmingCharacters(in: .whitespaces)
+        // 1. Preprocess raw user input: straighten smart quotes + expand =(…) shortcut
+        let normalised = FormulaPreprocessor.normalize(source)
+        let trimmed = normalised.trimmingCharacters(in: .whitespaces)
         guard trimmed.hasPrefix("=") else { throw Error.invalidFormula(source) }
         guard trimmed.hasSuffix(")") else { throw Error.invalidFormula(source) }
         let afterEquals = String(trimmed.dropFirst())
@@ -49,8 +51,12 @@ enum FormulaParser {
     }
 
     private static func parseApfel(_ args: [String]) throws -> FormulaCall {
-        guard (1...2).contains(args.count) else {
-            throw Error.malformedArguments("apfel expects 1 or 2 args")
+        // Allow zero args for the =() / =apfel() anonymous empty-prompt form.
+        guard args.count <= 2 else {
+            throw Error.malformedArguments("apfel expects at most 2 args")
+        }
+        if args.isEmpty {
+            return .apfel(prompt: "", seed: nil)
         }
         let prompt = parseStringLiteral(args[0])
         let seed: Int? = args.count == 2 ? try parseIntLiteral(args[1]) : nil
@@ -59,8 +65,15 @@ enum FormulaParser {
 
     private static func parseStringLiteral(_ token: String) -> String {
         let t = token.trimmingCharacters(in: .whitespaces)
-        if t.hasPrefix("\"") && t.hasSuffix("\"") && t.count >= 2 {
-            return String(t.dropFirst().dropLast())
+        // Strip matched quote pairs — both " and ' are supported so typed
+        // apostrophes (and the preprocessor's normalised curly quotes) work.
+        if t.count >= 2 {
+            if t.hasPrefix("\"") && t.hasSuffix("\"") {
+                return String(t.dropFirst().dropLast())
+            }
+            if t.hasPrefix("'") && t.hasSuffix("'") {
+                return String(t.dropFirst().dropLast())
+            }
         }
         // Auto-quote bare phrase
         return t
