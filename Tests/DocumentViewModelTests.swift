@@ -126,4 +126,33 @@ struct DocumentViewModelTests {
             Issue.record("expected 15, got \(vm.document.spans[0].value)")
         }
     }
+
+    // ── insertAtCursor for the catalogue sidebar ────────────────────────────
+
+    @Test("insertAtCursor appends formula to empty doc")
+    func insertEmpty() throws {
+        let vm = DocumentViewModel(runtime: FormulaRuntime(cache: InMemoryFormulaCache()))
+        vm.insertAtCursor("=math(1+1)")
+        #expect(vm.rawText.contains("=math(1+1)"))
+        #expect(vm.isDirty == true)
+        #expect(vm.document.spans.count == 1)
+    }
+
+    @Test("insertAtCursor appends to a non-empty doc")
+    func insertAppends() throws {
+        let vm = DocumentViewModel(runtime: FormulaRuntime(cache: InMemoryFormulaCache()))
+        try vm.load(rawMarkdown: "Some text")
+        vm.insertAtCursor("=math(2+2)")
+        #expect(vm.rawText.contains("Some text"))
+        #expect(vm.rawText.contains("=math(2+2)"))
+        #expect(vm.document.spans.count == 1)
+    }
+
+    @Test("insertAtCursor multiple times keeps all formulas")
+    func insertMultiple() throws {
+        let vm = DocumentViewModel(runtime: FormulaRuntime(cache: InMemoryFormulaCache()))
+        vm.insertAtCursor(#"=upper("hello")"#)
+        vm.insertAtCursor(#"=lower("WORLD")"#)
+        #expect(vm.document.spans.count == 2)
+    }
 }

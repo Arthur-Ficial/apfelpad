@@ -7,6 +7,7 @@ struct ApfelPadApp: App {
     @State private var serverManager = ServerManager()
     @State private var documentVM: DocumentViewModel
     @State private var barVM = FormulaBarViewModel()
+    @State private var catalogueVM = FormulaCatalogueSidebarViewModel()
     @State private var settingsVM: SettingsViewModel
     private let cache: FormulaCache
 
@@ -34,7 +35,7 @@ struct ApfelPadApp: App {
         WindowGroup("apfelpad") {
             VStack(spacing: 0) {
                 UpdateBanner(vm: settingsVM)
-                DocumentView(vm: documentVM, barVM: barVM, settingsVM: settingsVM)
+                DocumentView(vm: documentVM, barVM: barVM, catalogueVM: catalogueVM, settingsVM: settingsVM)
             }
             .task {
                 // Start server in background — =apfel becomes available once ready

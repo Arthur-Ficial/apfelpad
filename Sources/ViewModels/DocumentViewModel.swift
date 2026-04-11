@@ -48,6 +48,31 @@ final class DocumentViewModel {
 
 extension DocumentViewModel {
 
+    /// Insert formula source text at the end of the current document.
+    /// v0.3.2: we don't track the text cursor position inside SwiftUI's
+    /// TextEditor, so "at cursor" means "at end, on its own line". The
+    /// real cursor-aware insertion arrives with the custom attributed
+    /// text editor in v0.4.
+    func insertAtCursor(_ source: String) {
+        let separator: String
+        if rawText.isEmpty {
+            separator = ""
+        } else if rawText.hasSuffix("\n\n") {
+            separator = ""
+        } else if rawText.hasSuffix("\n") {
+            separator = ""
+        } else {
+            separator = "\n\n"
+        }
+        let newText = rawText + separator + source
+        rawText = newText
+        isDirty = true
+        if let doc = try? Document(rawMarkdown: newText) {
+            document = doc
+            Task { await evaluateAll() }
+        }
+    }
+
     /// Replace the source text of a single formula span and re-evaluate it.
     /// Called from the formula bar's commit loop. Updates rawText so the
     /// underlying markdown is in sync. Returns true on success.

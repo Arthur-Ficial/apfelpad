@@ -4,21 +4,30 @@ import UniformTypeIdentifiers
 struct DocumentView: View {
     @Bindable var vm: DocumentViewModel
     @Bindable var barVM: FormulaBarViewModel
+    @Bindable var catalogueVM: FormulaCatalogueSidebarViewModel
     var settingsVM: SettingsViewModel? = nil
     @State private var editing: Bool = false
 
     var body: some View {
-        VStack(spacing: 0) {
-            FormulaBarView(vm: barVM)
-            if editing {
-                editor
-            } else {
-                renderedView
+        HStack(spacing: 0) {
+            VStack(spacing: 0) {
+                FormulaBarView(vm: barVM)
+                if editing {
+                    editor
+                } else {
+                    renderedView
+                }
+                if settingsVM?.showLineCount == true {
+                    statusStrip
+                }
             }
-            if settingsVM?.showLineCount == true {
-                statusStrip
+            .frame(maxWidth: .infinity)
+            if catalogueVM.isOpen {
+                FormulaCatalogueSidebarView(vm: catalogueVM)
+                    .transition(.move(edge: .trailing))
             }
         }
+        .animation(.easeOut(duration: 0.18), value: catalogueVM.isOpen)
         .navigationTitle(vm.windowTitle)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
@@ -26,6 +35,15 @@ struct DocumentView: View {
                     if editing { vm.flushPendingReparse() }
                     editing.toggle()
                 }
+            }
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    catalogueVM.toggle()
+                } label: {
+                    Label("Formulas", systemImage: "function")
+                }
+                .help("Formula catalogue (⌘⇧F)")
+                .keyboardShortcut("f", modifiers: [.command, .shift])
             }
         }
         .frame(minWidth: 720, minHeight: 520)
@@ -41,9 +59,12 @@ struct DocumentView: View {
         })
         .onAppear {
             // Wire the formula bar's commit callback to the document VM.
-            // The closure captures vm so edits to the bar become live edits.
             barVM.onCommit = { [vm] id, newSource in
                 vm.replaceSpanSource(id: id, with: newSource)
+            }
+            // Wire the catalogue sidebar's insert callback.
+            catalogueVM.onInsert = { [vm] source in
+                vm.insertAtCursor(source)
             }
         }
     }

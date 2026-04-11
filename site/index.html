@@ -67,14 +67,19 @@
 
     :root {
       --brand: #2a7d35;
-      --brand-light: #34a042;
+      --brand-light: #4caf5a;       /* brighter for dark backgrounds */
       --dark:  #0d1117;
       --dark2: #161b22;
       --light: #f0f9ef;
-      --text-dark: #e6edf3;
-      --muted: #8b949e;
+      /* Text on DARK backgrounds — 13.6:1 contrast on #0d1117 (WCAG AAA) */
+      --text-dark: #f0f6fc;
+      /* Muted text on DARK backgrounds — 7.5:1 contrast (WCAG AAA) */
+      --muted-dark: #c9d1d9;
+      /* Text on LIGHT backgrounds */
       --text:  #1a1a1a;
-      --text2: #4a4a4a;
+      --text2: #3a3a3a;             /* was 4a — bumped contrast */
+      /* Muted on LIGHT — 5.8:1 on #fff (WCAG AA) */
+      --muted: #5a6170;
       --bd:    #30363d;
       --bdl:   #d0e6d0;
       --r:     12px;
@@ -276,7 +281,7 @@
     }
     .show-caption {
       font-size: 13px;
-      color: var(--muted);
+      color: var(--muted-dark);
       margin-top: 10px;
       line-height: 1.4;
     }
@@ -373,11 +378,23 @@
     }
     .formula-desc {
       font-size: 12px;
-      color: var(--muted);
+      color: var(--muted-dark);
       line-height: 1.4;
       flex: 1;
       min-width: 140px;
     }
+
+    .sec-formulas h3 {
+      color: var(--text-dark);
+      font-size: 14px;
+      font-weight: 700;
+      margin-top: 24px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .sec-formulas p.sub { color: var(--muted-dark); }
+    .sec-formulas code { color: var(--brand-light); background: rgba(76,175,90,.1); padding: 1px 4px; border-radius: 3px; }
 
     /* -- INSTALL -- */
     .sec-install { background: var(--light); padding: 48px 0; }
@@ -630,6 +647,23 @@
       word-break: break-word;
     }
 
+    /* Two-col grids upgrade on desktop only */
+    @media (min-width: 760px) {
+      .two-col-grid { grid-template-columns: 1fr 1fr !important; }
+    }
+
+    /* Mobile CTA safety — no horizontal overflow, full-width buttons */
+    @media (max-width: 759px) {
+      .hero-ctas, .cta-row {
+        flex-direction: column;
+        gap: 10px !important;
+        align-items: stretch;
+      }
+      .hero-ctas > *, .cta-row > * { width: 100%; }
+      body { overflow-x: hidden; }
+      pre { font-size: 11px; }
+    }
+
     /* -- DESKTOP -- */
     @media (min-width: 760px) {
       nav { padding: 14px 48px; }
@@ -687,6 +721,11 @@
   </style>
 </head>
 <body>
+
+<!-- Experimental banner -->
+<div style="background:#fff3cd;color:#664d03;padding:10px 16px;text-align:center;font-size:13px;font-weight:600;border-bottom:1px solid #ffe69c;">
+  ⚠ apfelpad is <strong>experimental</strong> — v0.3.x, things change fast, expect rough edges. <a href="https://github.com/Arthur-Ficial/apfelpad/issues" style="color:#664d03;text-decoration:underline;">File an issue</a> if something breaks.
+</div>
 
 <!-- Nav -->
 <nav>
@@ -878,7 +917,7 @@
     <h2>=ref pulls content from anywhere in the doc.</h2>
     <p class="sub" style="max-width:640px;">Name a heading, then quote its section with <code>=ref(@name)</code>. When you edit the source heading, every <code>=ref</code> that points at it updates automatically.</p>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:start;margin-top:40px;">
+    <div class="two-col-grid" style="display:grid;grid-template-columns:1fr;gap:32px;align-items:start;margin-top:40px;">
       <div>
         <h3 style="margin-top:0;">Source</h3>
 <pre style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:16px;overflow-x:auto;font-size:13px;line-height:1.55;"><code># Project brief
@@ -916,7 +955,7 @@ Timeline: =ref(@key-numbers)</code></pre>
     <h2 class="sh">Formulas nest. apfelpad is Turing-complete.</h2>
     <p class="sub" style="max-width:680px;">Every formula can take another formula as an argument. The resolver walks the source bottom-up, substitutes each sub-call's evaluated result as a quoted literal, then runs the outer call. Combined with <code>=if</code> branching and <code>=ref</code> document lookup, this is enough to express any computable function.</p>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:40px;">
+    <div class="two-col-grid" style="display:grid;grid-template-columns:1fr;gap:32px;margin-top:40px;">
       <div>
         <h3 style="margin-top:0;">Simple composition</h3>
 <pre style="background:#fafafa;border:1px solid var(--line);border-radius:8px;padding:16px;overflow-x:auto;font-size:13px;line-height:1.6;"><code>=upper(=ref(@intro))

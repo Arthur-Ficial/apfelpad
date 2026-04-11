@@ -1,5 +1,7 @@
 # apfelpad
 
+> ⚠️ **EXPERIMENTAL — v0.3.x.** apfelpad is in rapid early development. Things change fast, the feature set is still settling, rough edges expected. [File an issue](https://github.com/Arthur-Ficial/apfelpad/issues) if something breaks.
+
 **A formula notepad for thinking. On-device AI as a first-class function — Turing-complete by composition.**
 
 ![apfelpad — the big sheet rendering every formula inline](site/img/screen-big-sheet.png)
