@@ -3,7 +3,7 @@ import SwiftUI
 struct DocumentView: View {
     @Bindable var vm: DocumentViewModel
     @Bindable var barVM: FormulaBarViewModel
-    @State private var editing: Bool = true
+    @State private var editing: Bool = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -16,12 +16,12 @@ struct DocumentView: View {
         }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button(editing ? "Render" : "Edit") {
+                Button(editing ? "Render" : "Edit source") {
                     editing.toggle()
                 }
             }
         }
-        .frame(minWidth: 600, minHeight: 400)
+        .frame(minWidth: 720, minHeight: 520)
     }
 
     private var editor: some View {
@@ -40,15 +40,12 @@ struct DocumentView: View {
 
     private var renderedView: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
-                ForEach(vm.document.spans) { span in
-                    FormulaSpanView(span: span)
-                }
-                Text(vm.document.rawMarkdown)
-                    .textSelection(.enabled)
-                    .font(.body)
-            }
-            .padding(16)
+            Text(InlineFormulaRenderer.render(vm.document))
+                .font(.body)
+                .lineSpacing(6)
+                .textSelection(.enabled)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(24)
         }
     }
 }
