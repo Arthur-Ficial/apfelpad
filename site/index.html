@@ -718,8 +718,8 @@
     </div>
   </div>
   <div class="hero-screenshot">
-    <img src="img/screen-hero.png" alt="apfelpad showing inline formulas rendered in a markdown document"
-         width="900" height="572" fetchpriority="high">
+    <img src="img/screen-big-sheet.png" alt="apfelpad rendering the big sheet — every formula type evaluating inline in pale-green spans: =math with US annotation, =date, =cw, =upper, =lower, =concat, =replace, =split, =sum, =avg, =if, =ref, and nested composition"
+         width="1800" height="1144" fetchpriority="high">
   </div>
 </section>
 
@@ -782,8 +782,8 @@
 <section class="sec-formulas" id="formulas">
   <div class="wrap">
     <div class="lbl">The formulas</div>
-    <h2>Thirteen functions. One syntax.</h2>
-    <p class="sub">Every formula is pure. Every result is cached. Type <code>=name(args)</code> anywhere. Smart quotes, anonymous shortcuts, and auto-quoting all work.</p>
+    <h2>Nineteen functions. One syntax. Turing-complete.</h2>
+    <p class="sub">Every formula is pure. Every result is cached. Type <code>=name(args)</code> anywhere. Smart quotes, anonymous shortcuts, and auto-quoting all work. Formulas compose.</p>
 
     <h3 style="margin-top:36px;">On-device AI + math</h3>
     <div class="formula-grid">
@@ -797,7 +797,23 @@
       </div>
       <div class="formula-item">
         <div class="formula-name">=math(expression)</div>
-        <div class="formula-desc">Pure arithmetic with parens. No model. Instant.</div>
+        <div class="formula-desc">Arithmetic with US annotation — <code>=math($1,250 + $750)</code>, <code>=math(2m + 500k)</code>.</div>
+      </div>
+    </div>
+
+    <h3 style="margin-top:36px;">Dates and time</h3>
+    <div class="formula-grid">
+      <div class="formula-item">
+        <div class="formula-name">=date(offset?)</div>
+        <div class="formula-desc">ISO 8601. <code>=date(+4)</code> four days ahead, <code>=date(-7)</code> a week ago.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=cw(offset?)</div>
+        <div class="formula-desc">ISO calendar week. <code>=cw(-1)</code> last week, <code>=cw(+2)</code> two ahead.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=month() / =day() / =time()</div>
+        <div class="formula-desc">Locale-aware month name, weekday name, and <code>HH:mm</code> time.</div>
       </div>
     </div>
 
@@ -890,6 +906,66 @@ Timeline: =ref(@key-numbers)</code></pre>
       </div>
     </div>
     <p style="margin-top:24px;color:var(--muted);font-size:14px;">Anchor names are slugified: <code># Project brief</code> becomes <code>@project-brief</code>. Case-insensitive. Subsections scope correctly to the next heading of equal or higher level.</p>
+  </div>
+</section>
+
+<!-- Composition / Turing-complete -->
+<section class="sec-composition" style="background:#fff;padding:80px 0;border-top:1px solid var(--line);">
+  <div class="wrap">
+    <div class="lbl">Composition</div>
+    <h2 class="sh">Formulas nest. apfelpad is Turing-complete.</h2>
+    <p class="sub" style="max-width:680px;">Every formula can take another formula as an argument. The resolver walks the source bottom-up, substitutes each sub-call's evaluated result as a quoted literal, then runs the outer call. Combined with <code>=if</code> branching and <code>=ref</code> document lookup, this is enough to express any computable function.</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:40px;">
+      <div>
+        <h3 style="margin-top:0;">Simple composition</h3>
+<pre style="background:#fafafa;border:1px solid var(--line);border-radius:8px;padding:16px;overflow-x:auto;font-size:13px;line-height:1.6;"><code>=upper(=ref(@intro))
+  → upper + ref
+  → HELLO WORLD
+
+=upper(=trim(=lower("   HELLO   ")))
+  → three levels deep
+  → HELLO
+
+=concat(=upper("a"), "-", =lower("B"))
+  → siblings
+  → A-b</code></pre>
+      </div>
+      <div>
+        <h3 style="margin-top:0;">Math + branching + refs</h3>
+<pre style="background:#fafafa;border:1px solid var(--line);border-radius:8px;padding:16px;overflow-x:auto;font-size:13px;line-height:1.6;"><code>=if(=math(5*5), "big", "small")
+  → 25 is truthy
+  → big
+
+=sum(=len("abc"), =len("de"), =math(10))
+  → 3 + 2 + 10
+  → 15
+
+=apfel(=concat("summarize: ", =ref(@intro)))
+  → AI reads the intro section</code></pre>
+      </div>
+    </div>
+
+    <p style="margin-top:28px;color:var(--muted);font-size:14px;">Depth is capped at 10 levels so pathological nesting always terminates. Invalid sub-calls are left in place and surfaced as errors in the outer parse.</p>
+  </div>
+</section>
+
+<!-- The big sheet -->
+<section class="sec-big-sheet" style="background:#fafafa;padding:80px 0;border-top:1px solid var(--line);">
+  <div class="wrap">
+    <div class="lbl">The big sheet</div>
+    <h2 class="sh">Every formula, one document.</h2>
+    <p class="sub" style="max-width:680px;">This is a regression fixture that ships with apfelpad. Every pale-green span is a live formula — math with US annotation, dates, weekdays, text transforms, aggregates, document references, nested composition. The screenshot is window-only and captured directly from the running .app by <code>scripts/screenshot-big-sheet.sh</code>.</p>
+
+    <img src="img/screen-big-sheet.png" alt="apfelpad rendering the big sheet — every formula category evaluating inline: arithmetic with US annotation, date offsets, text transforms, aggregates, composition, references"
+         style="width:100%;border:1px solid var(--line);border-radius:10px;margin-top:32px;box-shadow:0 12px 36px rgba(0,0,0,0.08);">
+
+    <p style="margin-top:20px;color:var(--muted);font-size:14px;">
+      Source:
+      <a href="https://github.com/Arthur-Ficial/apfelpad/blob/main/Tests/Fixtures/20-the-big-sheet.md" style="color:var(--brand)">Tests/Fixtures/20-the-big-sheet.md</a>
+      &middot; Full reference:
+      <a href="https://github.com/Arthur-Ficial/apfelpad/blob/main/docs/formulas.md" style="color:var(--brand)">docs/formulas.md</a>
+    </p>
   </div>
 </section>
 

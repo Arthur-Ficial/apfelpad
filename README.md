@@ -1,14 +1,16 @@
 # apfelpad
 
-**A formula notepad for thinking. On-device AI as a first-class function, like `=SUM` but for language.**
+**A formula notepad for thinking. On-device AI as a first-class function — Turing-complete by composition.**
 
-Type `=apfel("a love letter")` anywhere in a document. Press Return. The formula evaluates on your Mac using Foundation Models, streams the result inline in a light-green span, and caches it deterministically so re-runs return the same output. Add a seed: `=apfel("love letter", 42)`. Compose with other formulas: `=apfel("summarize", =ref(@intro))`. Drop in arithmetic: `=math(365*24)`.
+![apfelpad — the big sheet rendering every formula inline](site/img/screen-big-sheet.png)
 
-Markdown underneath. 100% local. No API keys. Nothing leaves your Mac.
+Type `=apfel("a love letter", 42)` anywhere in a markdown document. Press Return. Foundation Models runs on your Mac, the tokens stream into a pale-green span, and the result is cached deterministically. Nest it: `=upper(=ref(@intro))`. Branch on math: `=if(=math(5*5), "big", "small")`. Sum variadic args with US annotation: `=math($1,000,000 / 12)`.
 
-**Built on [apfel](https://github.com/Arthur-Ficial/apfel)** — the CLI + OpenAI-compatible HTTP server that wraps Apple's on-device `FoundationModels` framework. All inference goes through `apfel --serve` on your machine. **Patterned after [apfel-chat](https://github.com/Arthur-Ficial/apfel-chat)** — same SwiftUI + `@Observable` MVVM + protocol-driven TDD + swift-testing + release workflow. apfelpad is the writing-tool sibling to apfel-chat's chat-client.
+Markdown underneath. 100% local. No API keys. Nothing leaves your Mac except an optional daily check to GitHub for new releases.
 
-> **Status: Pre-implementation.** This repo currently contains the design briefing only. Nothing is built yet. Star the repo to follow along, or read [BRIEFING.md](BRIEFING.md) for the full vision.
+**Built on [apfel](https://github.com/Arthur-Ficial/apfel)** — the CLI + OpenAI-compatible HTTP server wrapping Apple's on-device `FoundationModels` framework. Architecture copied 1:1 from [apfel-chat](https://github.com/Arthur-Ficial/apfel-chat): SwiftUI + `@Observable` MVVM + protocol-driven TDD with swift-testing. Release pipeline identical. Signed, notarised, shipped via Homebrew cask.
+
+> **Status: v0.3.1 shipped.** `brew install Arthur-Ficial/tap/apfelpad` · [Landing page](https://apfelpad.franzai.com) · [Latest release](https://github.com/Arthur-Ficial/apfelpad/releases/latest)
 
 ---
 
@@ -20,41 +22,66 @@ Think spreadsheets, but for text, with on-device AI as one of the functions.
 
 ### The formulas
 
-On-device AI and arithmetic:
+**Every formula has a live example you can paste into the app.** The full reference with edge cases is **[docs/formulas.md](docs/formulas.md)**.
 
-| Formula | Example | What it does |
+**On-device AI + math**
+
+| Formula | Live example | Rendered result |
 |---|---|---|
-| `=apfel(prompt, seed?)` | `=apfel("a love letter", 42)` | On-device LLM call, auto-scoped context |
-| `=(prompt, seed?)` | `=(love letter, 42)` | Anonymous shortcut for `=apfel(...)` |
-| `=math(expression)` | `=math(42+2*3)` | Pure arithmetic |
+| `=apfel(prompt, seed?)` | `=apfel("write a haiku", 42)` | *(streaming)* |
+| `=(prompt, seed?)` | `=(love letter, 42)` | *(anonymous shortcut)* |
+| `=math(expression)` | `=math($1,250 + $750)` | `2000` |
+| `=math` with US annotation | `=math(2m + 500k)` | `2500000` |
 
-Text and numeric (v0.2.2 — Google-Sheets-style, no LLM):
+**Dates and time** (v0.3.0)
 
-| Formula | Example | What it does |
+| Formula | Live example | Rendered result |
 |---|---|---|
-| `=upper(text)` | `=upper("hello")` | Uppercase |
-| `=lower(text)` | `=lower("HELLO")` | Lowercase |
-| `=trim(text)` | `=trim("  hi  ")` | Strip whitespace |
-| `=len(text)` | `=len("apfelpad")` | Character count |
-| `=concat(a, b, …)` | `=concat("Hello, ", "world")` | Join strings |
-| `=replace(t, f, r)` | `=replace("hi world", "world", "apfelpad")` | Substitute first occurrence |
-| `=split(t, d, i?)` | `=split("a,b,c", ",", 1)` | Return the *i*-th piece |
-| `=if(cond, then, else)` | `=if("yes", "go", "stop")` | Branching |
-| `=sum(n1, n2, …)` | `=sum(1, 2, 3)` | Variadic numeric sum |
-| `=avg(n1, n2, …)` | `=avg(2, 4, 6)` | Arithmetic mean |
+| `=date(offset?)` | `=date(+4)` | `2026-04-16` |
+| `=cw(offset?)` | `=cw(-1)` | `14` |
+| `=month() / =day() / =time()` | `=day() in =month()` | `Sunday in April` |
 
-Future (v0.4+ — named anchors and world hooks):
+**Text** (v0.2.2 — Google-Sheets-style, pure Swift)
 
-| Formula | Example | What it does |
+| Formula | Live example | Rendered result |
 |---|---|---|
-| `=ref(@anchor)` | `=ref(@intro)` | Insert content of a named block |
-| `=count(@anchor?)` | `=count()` | Word count of doc or block |
-| `=date(format?)` | `=date("YYYY-MM-DD")` | Current date |
-| `=clip()` | `=apfel("fix", =clip())` | Current clipboard snapshot |
-| `=file(path)` | `=apfel("summarize", =file("notes.md"))` | Local file content |
+| `=upper(text)` | `=upper("hello")` | `HELLO` |
+| `=lower(text)` | `=lower("WORLD")` | `world` |
+| `=trim(text)` | `=trim("  hi  ")` | `hi` |
+| `=len(text)` | `=len("apfelpad")` | `8` |
+| `=concat(a, b, …)` | `=concat("Hello, ", "world")` | `Hello, world` |
+| `=replace(t, f, r)` | `=replace("hi world", "world", "apfelpad")` | `hi apfelpad` |
+| `=split(t, d, i?)` | `=split("a,b,c", ",", 1)` | `b` |
+| `=if(cond, then, else)` | `=if("yes", "go", "stop")` | `go` |
+| `=sum(n1, n2, …)` | `=sum(1, 2, 3)` | `6` |
+| `=avg(n1, n2, …)` | `=avg(2, 4, 6)` | `4` |
 
-See **[docs/formulas.md](docs/formulas.md)** for the full catalogue with
-semantics, edge cases, and Google Sheets equivalents.
+**Document references** (v0.2.3)
+
+| Formula | Live example | What it does |
+|---|---|---|
+| `=ref(@anchor)` | `=ref(@intro)` | Insert the text of a named heading section, live |
+
+**Composition — Turing-complete** (v0.3.0)
+
+Every formula can take another formula as an argument. The resolver walks the source bottom-up, substitutes each sub-call's evaluated result, then runs the outer call. Combined with `=if` (branching) and `=ref` (state), this is enough to express any computable function.
+
+```
+=upper(=ref(@intro))                       → shouted section text
+=upper(=trim(=lower("   HELLO   ")))       → HELLO (three levels)
+=concat(=upper("a"), "-", =lower("B"))     → A-b (siblings)
+=if(=math(5*5), "big", "small")            → big (25 is truthy)
+=sum(=len("abc"), =len("de"), =math(10))   → 15
+=apfel(=concat("summarize: ", =ref(@intro)))  → AI reads the section
+```
+
+**v0.4 preview**
+
+| Formula | Status |
+|---|---|
+| `=recording()` | Stub — parses, placeholder UI, real recording/transcription comes in v0.4 |
+| `=count(@anchor?)` | Reserved |
+| `=clip() / =file(path)` | Reserved |
 
 ### Auto-quoting
 

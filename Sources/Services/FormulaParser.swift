@@ -24,7 +24,11 @@ enum FormulaParser {
         // =math takes the WHOLE inside as a single expression — no comma
         // splitting, so =math($1,250 + $750) parses with thousand separators.
         if name == "math" {
-            return .math(expression: inside.trimmingCharacters(in: .whitespaces))
+            let expression = inside.trimmingCharacters(in: .whitespaces)
+            guard !expression.isEmpty else {
+                throw Error.malformedArguments("math expects 1 arg")
+            }
+            return .math(expression: expression)
         }
         let rawArgs = try splitTopLevelCommas(inside)
         switch name {
