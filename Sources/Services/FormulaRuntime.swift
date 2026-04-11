@@ -153,6 +153,16 @@ final class FormulaRuntime: Sendable {
             throw RuntimeError.apfelRequiresStreamingPath
         case .ref:
             throw RuntimeError.refRequiresDocumentContext
+        case .date(let offsetDays):
+            return DateFormulaEvaluator.evaluate(offsetDays: offsetDays)
+        case .cw(let offsetWeeks):
+            return CwFormulaEvaluator.evaluate(offsetWeeks: offsetWeeks)
+        case .month:
+            return MonthFormulaEvaluator.evaluate()
+        case .day:
+            return DayFormulaEvaluator.evaluate()
+        case .time:
+            return TimeFormulaEvaluator.evaluate()
         }
     }
 

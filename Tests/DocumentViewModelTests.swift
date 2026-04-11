@@ -67,4 +67,63 @@ struct DocumentViewModelTests {
             Issue.record("expected .error, got \(vm.document.spans[0].value)")
         }
     }
+
+    // ── Turing-complete nested composition ──────────────────────────────────
+
+    @Test("composition: =upper(=ref(@intro)) yields shouted intro")
+    func composeUpperRef() async throws {
+        let vm = DocumentViewModel(runtime: FormulaRuntime(cache: InMemoryFormulaCache()))
+        try vm.load(rawMarkdown: """
+        # Intro
+
+        hello world
+
+        # Body
+
+        Shout: =upper(=ref(@intro))
+        """)
+        await vm.evaluateAll()
+        let value = vm.document.spans[0].value
+        if case .ready(let text) = value {
+            #expect(text == "HELLO WORLD")
+        } else {
+            Issue.record("expected .ready(HELLO WORLD), got \(value)")
+        }
+    }
+
+    @Test("composition: =concat with three sibling sub-calls")
+    func composeConcat() async throws {
+        let vm = DocumentViewModel(runtime: FormulaRuntime(cache: InMemoryFormulaCache()))
+        try vm.load(rawMarkdown: #"=concat(=upper("a"), "-", =lower("B"))"#)
+        await vm.evaluateAll()
+        if case .ready(let text) = vm.document.spans[0].value {
+            #expect(text == "A-b")
+        } else {
+            Issue.record("expected .ready(A-b), got \(vm.document.spans[0].value)")
+        }
+    }
+
+    @Test("composition: =if(=math(5*5), \"big\", \"small\") — truthy non-zero")
+    func composeIfMath() async throws {
+        let vm = DocumentViewModel(runtime: FormulaRuntime(cache: InMemoryFormulaCache()))
+        try vm.load(rawMarkdown: #"=if(=math(5*5), "big", "small")"#)
+        await vm.evaluateAll()
+        if case .ready(let text) = vm.document.spans[0].value {
+            #expect(text == "big")
+        } else {
+            Issue.record("expected big, got \(vm.document.spans[0].value)")
+        }
+    }
+
+    @Test("composition: =sum(=len(\"abc\"), =len(\"de\"), =math(10))")
+    func composeSumLen() async throws {
+        let vm = DocumentViewModel(runtime: FormulaRuntime(cache: InMemoryFormulaCache()))
+        try vm.load(rawMarkdown: #"=sum(=len("abc"), =len("de"), =math(10))"#)
+        await vm.evaluateAll()
+        if case .ready(let text) = vm.document.spans[0].value {
+            #expect(text == "15")
+        } else {
+            Issue.record("expected 15, got \(vm.document.spans[0].value)")
+        }
+    }
 }

@@ -79,9 +79,33 @@ enum FormulaParser {
             let raw = rawArgs[0].trimmingCharacters(in: .whitespaces)
             let anchor = raw.hasPrefix("@") ? String(raw.dropFirst()) : raw
             return .ref(anchor: anchor)
+        case "date":
+            let offset = rawArgs.isEmpty ? 0 : (try? Self.parseSignedInt(rawArgs[0])) ?? 0
+            return .date(offsetDays: offset)
+        case "cw":
+            let offset = rawArgs.isEmpty ? 0 : (try? Self.parseSignedInt(rawArgs[0])) ?? 0
+            return .cw(offsetWeeks: offset)
+        case "month":
+            guard rawArgs.isEmpty else { throw Error.malformedArguments("month takes no args") }
+            return .month
+        case "day":
+            guard rawArgs.isEmpty else { throw Error.malformedArguments("day takes no args") }
+            return .day
+        case "time":
+            guard rawArgs.isEmpty else { throw Error.malformedArguments("time takes no args") }
+            return .time
         default:
             throw Error.unknownFunction(name)
         }
+    }
+
+    /// Parse a signed integer offset like "+4", "-1", "3".
+    private static func parseSignedInt(_ token: String) throws -> Int {
+        let t = token.trimmingCharacters(in: .whitespaces)
+        guard let n = Int(t) else {
+            throw Error.malformedArguments("not a signed integer: \(t)")
+        }
+        return n
     }
 
     private static func singleStringArg(_ args: [String], name: String) throws -> String {
@@ -122,6 +146,13 @@ enum FormulaParser {
             return "=avg(\(args.joined(separator: ", ")))"
         case .ref(let anchor):
             return "=ref(@\(anchor))"
+        case .date(let offset):
+            return offset == 0 ? "=date()" : "=date(\(offset >= 0 ? "+" : "")\(offset))"
+        case .cw(let offset):
+            return offset == 0 ? "=cw()" : "=cw(\(offset >= 0 ? "+" : "")\(offset))"
+        case .month: return "=month()"
+        case .day: return "=day()"
+        case .time: return "=time()"
         }
     }
 

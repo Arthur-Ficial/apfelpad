@@ -153,17 +153,32 @@ extension DocumentViewModel {
     private func evaluateIndices(_ indices: [Int]) async {
         let snapshot = document
         let markdown = rawText
-        // Capture each span's source so late task results can be dropped
-        // if the span changed out from under us (paste, edit, reload).
-        await withTaskGroup(of: (Int, String, FormulaValue).self) { group in
-            for i in indices {
-                guard i < snapshot.spans.count else { continue }
-                let span = snapshot.spans[i]
-                let call = span.call
-                let source = span.source
 
-                // =ref(@anchor) is resolved directly against the live
-                // document text — no cache, no runtime dispatch, always fresh.
+        // Phase 1: flatten every span's source (sync, on main) so nested
+        // sub-calls are resolved into quoted literals BEFORE the runtime
+        // runs. =upper(=ref(@intro)) becomes =upper("hello world") etc.
+        var flattenedCalls: [(Int, String, FormulaCall)] = []
+        for i in indices {
+            guard i < snapshot.spans.count else { continue }
+            let span = snapshot.spans[i]
+            let rawSource = span.source
+            let flattened = await NestedFormulaResolver.flatten(
+                source: rawSource, in: markdown
+            )
+            guard let call = try? FormulaParser.parse(flattened) else {
+                if i < document.spans.count, document.spans[i].source == rawSource {
+                    document.spans[i].value = .error(message: "parse error: \(flattened)")
+                }
+                continue
+            }
+            flattenedCalls.append((i, rawSource, call))
+        }
+
+        // Phase 2: run the flattened calls through the runtime (or handle
+        // =ref standalone).
+        await withTaskGroup(of: (Int, String, FormulaValue).self) { group in
+            for (i, rawSource, call) in flattenedCalls {
+                // Standalone =ref at the top level (not inside another call)
                 if case .ref(let anchor) = call {
                     let resolved: FormulaValue
                     if let text = NamedAnchorResolver.resolve(anchor, in: markdown) {
@@ -171,9 +186,7 @@ extension DocumentViewModel {
                     } else {
                         resolved = .error(message: "ref: no heading named @\(anchor)")
                     }
-                    // Guard against stale writes: only apply if the span at
-                    // index i still has the same source.
-                    if i < document.spans.count, document.spans[i].source == source {
+                    if i < document.spans.count, document.spans[i].source == rawSource {
                         document.spans[i].value = resolved
                     }
                     continue
@@ -184,7 +197,7 @@ extension DocumentViewModel {
                     do {
                         for try await value in runtime.evaluateStreaming(
                             call: call,
-                            source: source,
+                            source: rawSource,
                             context: ""
                         ) {
                             last = value
@@ -192,12 +205,11 @@ extension DocumentViewModel {
                     } catch {
                         last = .error(message: error.localizedDescription)
                     }
-                    return (i, source, last)
+                    return (i, rawSource, last)
                 }
             }
             for await (i, originalSource, value) in group {
                 guard i < document.spans.count else { continue }
-                // Drop the result if the span changed since the task started.
                 guard document.spans[i].source == originalSource else { continue }
                 document.spans[i].value = value
             }

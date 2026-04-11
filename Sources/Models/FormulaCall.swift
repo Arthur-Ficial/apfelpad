@@ -16,4 +16,10 @@ enum FormulaCall: Equatable {
     case avg(args: [String])
     // Document reference
     case ref(anchor: String)
+    // Date / time
+    case date(offsetDays: Int)
+    case cw(offsetWeeks: Int)
+    case month
+    case day
+    case time
 }
