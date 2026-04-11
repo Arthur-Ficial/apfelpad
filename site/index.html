@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>apfelpad — a formula notepad for thinking</title>
+  <meta name="description" content="A native macOS markdown notepad where on-device AI is a first-class formula. Type =apfel(\"love letter\", 42), press Return, watch it stream inline. Reproducible, cached, 100% local.">
+
+  <meta property="og:title" content="apfelpad — a formula notepad for thinking">
+  <meta property="og:description" content="On-device AI as a first-class formula. Like =SUM but for language.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://apfelpad.franzai.com">
+  <meta property="og:image" content="https://apfelpad.franzai.com/img/social.png">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="apfelpad — a formula notepad for thinking">
+  <meta name="twitter:description" content="On-device AI as a first-class formula.">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "apfelpad",
+    "operatingSystem": "macOS 26",
+    "applicationCategory": "ProductivityApplication",
+    "softwareVersion": "0.1.0",
+    "downloadUrl": "https://github.com/Arthur-Ficial/apfelpad/releases/download/v0.1.0/apfelpad-v0.1.0-macos-arm64.zip",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    }
+  }
+  </script>
+
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #1a1a1a;
+      --muted: #666;
+      --pale: #f0f9ef;
+      --accent: #2a7d35;
+      --border: #e6e6e6;
+      --mono: ui-monospace, "SF Mono", Menlo, monospace;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, system-ui, sans-serif;
+      font-size: 17px;
+      line-height: 1.55;
+    }
+    .wrap {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 60px 24px 80px;
+    }
+    header h1 {
+      font-size: 44px;
+      line-height: 1.1;
+      margin: 0 0 16px;
+      letter-spacing: -0.02em;
+    }
+    header p.tagline {
+      font-size: 20px;
+      color: var(--muted);
+      margin: 0 0 28px;
+    }
+    .download {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--accent);
+      color: white;
+      padding: 14px 22px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      margin-right: 12px;
+    }
+    .download:hover { background: #1e5c27; }
+    code.brew {
+      display: inline-block;
+      background: var(--pale);
+      border: 1px solid var(--border);
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-family: var(--mono);
+      font-size: 15px;
+      color: var(--accent);
+    }
+    h2 {
+      font-size: 26px;
+      margin: 56px 0 14px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 6px;
+    }
+    .formula {
+      display: inline-block;
+      background: var(--pale);
+      border-left: 3px solid var(--accent);
+      padding: 2px 8px;
+      font-family: var(--mono);
+      font-size: 15px;
+    }
+    img.shot {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin: 18px 0;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+    }
+    ul.formulas {
+      list-style: none;
+      padding: 0;
+    }
+    ul.formulas li {
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-family: var(--mono);
+      font-size: 15px;
+    }
+    ul.formulas li strong {
+      color: var(--accent);
+    }
+    footer {
+      margin-top: 80px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 14px;
+    }
+    footer a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>apfelpad</h1>
+      <p class="tagline">A formula notepad for thinking. On-device AI as a first-class function, like <code>=SUM</code> but for language.</p>
+      <p>
+        <a id="download-btn" class="download" href="https://github.com/Arthur-Ficial/apfelpad/releases/download/v0.1.0/apfelpad-v0.1.0-macos-arm64.zip">
+          Download for macOS
+        </a>
+        <code class="brew">brew install Arthur-Ficial/tap/apfelpad</code>
+      </p>
+    </header>
+
+    <section>
+      <img class="shot" src="img/screen-math.png" alt="apfelpad showing a =math formula rendered inline in a pale-green span">
+    </section>
+
+    <h2>What is it?</h2>
+    <p>
+      Type <span class="formula">=apfel("a love letter", 42)</span> anywhere in a markdown document. Press Return. The formula evaluates on your Mac using Foundation Models, streams the result inline in a light-green span, and caches it deterministically so re-runs return the same output. Compose with other formulas: <span class="formula">=apfel("summarize", =ref(@intro))</span>. Drop in arithmetic: <span class="formula">=math(365*24)</span>.
+    </p>
+    <p>
+      Markdown underneath. 100% local. No API keys. Nothing leaves your Mac.
+    </p>
+
+    <h2>The formulas</h2>
+    <ul class="formulas">
+      <li><strong>=apfel(prompt, seed?)</strong> — on-device LLM call, auto-scoped context</li>
+      <li><strong>=math(expression)</strong> — pure arithmetic, no model</li>
+      <li><strong>=ref(@anchor)</strong> — insert content of a named block</li>
+      <li><strong>=count(@anchor?)</strong> — word count</li>
+      <li><strong>=date(format?)</strong> — current date</li>
+      <li><strong>=clip()</strong> — current clipboard snapshot</li>
+      <li><strong>=file(path)</strong> — local file content (sandboxed)</li>
+    </ul>
+    <p>
+      Auto-quoting: type <span class="formula">=apfel(hello world)</span> and apfelpad canonicalises it to <span class="formula">=apfel("hello world")</span>. Type English. apfelpad handles the parser.
+    </p>
+
+    <h2>Requirements</h2>
+    <ul>
+      <li>macOS 26 (Tahoe) or later</li>
+      <li>Apple Silicon (M1 or later)</li>
+      <li>Apple Intelligence enabled</li>
+      <li><a href="https://github.com/Arthur-Ficial/apfel">apfel</a> on <code>PATH</code> (bundled in Homebrew builds)</li>
+    </ul>
+
+    <h2>Privacy</h2>
+    <p>
+      apfelpad makes <strong>one</strong> network call and it is not for inference: an optional check against <code>api.github.com</code> for new apfelpad releases (togglable in settings). Every language-model call goes to <code>localhost:11450</code> where <code>apfel --serve</code> runs on your machine, reading from the on-device Foundation Models framework. Documents are plain markdown files on your disk. No telemetry. No accounts. No cloud inference. Ever.
+    </p>
+
+    <footer>
+      <p>
+        Built by <a href="https://fullstackoptimization.com">Franz Enzenhofer</a>.
+        Source: <a href="https://github.com/Arthur-Ficial/apfelpad">github.com/Arthur-Ficial/apfelpad</a>.
+        Part of the <a href="https://github.com/Arthur-Ficial">apfel family</a> —
+        <a href="https://apfel.franzai.com">apfel</a>,
+        <a href="https://apfel-chat.franzai.com">apfel-chat</a>,
+        <a href="https://apfel-clip.franzai.com">apfel-clip</a>.
+        MIT licensed.
+      </p>
+    </footer>
+  </div>
+
+  <script>
+    // Fetch the latest release tag from GitHub so the download button
+    // always points at the newest versioned ZIP.
+    fetch("https://api.github.com/repos/Arthur-Ficial/apfelpad/releases/latest")
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data || !data.tag_name) return;
+        const tag = data.tag_name;
+        const url = `https://github.com/Arthur-Ficial/apfelpad/releases/download/${tag}/apfelpad-${tag}-macos-arm64.zip`;
+        const btn = document.getElementById("download-btn");
+        if (btn) btn.href = url;
+      })
+      .catch(() => {});
+  </script>
+</body>
+</html>
