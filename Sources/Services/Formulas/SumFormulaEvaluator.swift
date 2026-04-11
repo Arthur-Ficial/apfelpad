@@ -1,8 +1,15 @@
 import Foundation
 
 enum SumFormulaEvaluator {
-    enum Error: Swift.Error, Equatable {
+    enum Error: Swift.Error, Equatable, LocalizedError {
         case notANumber(String)
+
+        var errorDescription: String? {
+            switch self {
+            case .notANumber(let raw):
+                return "sum / avg: not a number — \(raw)"
+            }
+        }
     }
 
     static func evaluate(_ args: [String]) throws -> String {

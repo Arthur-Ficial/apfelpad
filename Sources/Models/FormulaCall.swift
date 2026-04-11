@@ -14,4 +14,6 @@ enum FormulaCall: Equatable {
     case ifCall(cond: String, thenValue: String, elseValue: String)
     case sum(args: [String])
     case avg(args: [String])
+    // Document reference
+    case ref(anchor: String)
 }

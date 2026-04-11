@@ -145,6 +145,8 @@ final class FormulaRuntime: Sendable {
             return try AvgFormulaEvaluator.evaluate(args)
         case .apfel:
             throw RuntimeError.apfelRequiresStreamingPath
+        case .ref:
+            throw RuntimeError.refRequiresDocumentContext
         }
     }
 
@@ -177,6 +179,8 @@ final class FormulaRuntime: Sendable {
 enum RuntimeError: LocalizedError {
     case llmNotConfigured
     case apfelRequiresStreamingPath
+    case refRequiresDocumentContext
+    case anchorNotFound(String)
 
     var errorDescription: String? {
         switch self {
@@ -184,6 +188,10 @@ enum RuntimeError: LocalizedError {
             return "=apfel(...) needs a running apfel server. Start apfel first, then retry."
         case .apfelRequiresStreamingPath:
             return "internal error: .apfel must go through the streaming path"
+        case .refRequiresDocumentContext:
+            return "internal error: =ref must be resolved at the document layer"
+        case .anchorNotFound(let name):
+            return "ref: no heading named @\(name) in this document"
         }
     }
 }

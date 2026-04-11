@@ -27,6 +27,9 @@ final class DocumentViewModel {
     func replaceRuntime(_ runtime: FormulaRuntime) {
         self.runtime = runtime
     }
+}
+
+extension DocumentViewModel {
 
     /// Replace the source text of a single formula span and re-evaluate it.
     /// Called from the formula bar's commit loop. Updates rawText so the
@@ -132,12 +135,33 @@ final class DocumentViewModel {
 
     private func evaluateIndices(_ indices: [Int]) async {
         let snapshot = document
-        await withTaskGroup(of: (Int, FormulaValue).self) { group in
+        let markdown = rawText
+        // Capture each span's source so late task results can be dropped
+        // if the span changed out from under us (paste, edit, reload).
+        await withTaskGroup(of: (Int, String, FormulaValue).self) { group in
             for i in indices {
                 guard i < snapshot.spans.count else { continue }
                 let span = snapshot.spans[i]
                 let call = span.call
                 let source = span.source
+
+                // =ref(@anchor) is resolved directly against the live
+                // document text — no cache, no runtime dispatch, always fresh.
+                if case .ref(let anchor) = call {
+                    let resolved: FormulaValue
+                    if let text = NamedAnchorResolver.resolve(anchor, in: markdown) {
+                        resolved = .ready(text: text.trimmingCharacters(in: .whitespacesAndNewlines))
+                    } else {
+                        resolved = .error(message: "ref: no heading named @\(anchor)")
+                    }
+                    // Guard against stale writes: only apply if the span at
+                    // index i still has the same source.
+                    if i < document.spans.count, document.spans[i].source == source {
+                        document.spans[i].value = resolved
+                    }
+                    continue
+                }
+
                 group.addTask { [runtime] in
                     var last: FormulaValue = .idle
                     do {
@@ -151,11 +175,13 @@ final class DocumentViewModel {
                     } catch {
                         last = .error(message: error.localizedDescription)
                     }
-                    return (i, last)
+                    return (i, source, last)
                 }
             }
-            for await (i, value) in group {
+            for await (i, originalSource, value) in group {
                 guard i < document.spans.count else { continue }
+                // Drop the result if the span changed since the task started.
+                guard document.spans[i].source == originalSource else { continue }
                 document.spans[i].value = value
             }
         }

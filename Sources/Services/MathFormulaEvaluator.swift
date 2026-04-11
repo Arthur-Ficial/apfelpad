@@ -1,8 +1,15 @@
 import Foundation
 
 enum MathFormulaEvaluator {
-    enum Error: Swift.Error, Equatable {
+    enum Error: Swift.Error, Equatable, LocalizedError {
         case invalidExpression(String)
+
+        var errorDescription: String? {
+            switch self {
+            case .invalidExpression(let detail):
+                return "math: invalid expression — \(detail)"
+            }
+        }
     }
 
     static func evaluate(_ expression: String) throws -> String {

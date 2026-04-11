@@ -72,6 +72,13 @@ enum FormulaParser {
             return .sum(args: rawArgs.map(Self.parseStringLiteral))
         case "avg":
             return .avg(args: rawArgs.map(Self.parseStringLiteral))
+        case "ref":
+            guard rawArgs.count == 1 else {
+                throw Error.malformedArguments("ref expects 1 arg: =ref(@anchor)")
+            }
+            let raw = rawArgs[0].trimmingCharacters(in: .whitespaces)
+            let anchor = raw.hasPrefix("@") ? String(raw.dropFirst()) : raw
+            return .ref(anchor: anchor)
         default:
             throw Error.unknownFunction(name)
         }
@@ -113,6 +120,8 @@ enum FormulaParser {
             return "=sum(\(args.joined(separator: ", ")))"
         case .avg(let args):
             return "=avg(\(args.joined(separator: ", ")))"
+        case .ref(let anchor):
+            return "=ref(@\(anchor))"
         }
     }
 

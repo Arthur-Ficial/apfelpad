@@ -76,7 +76,10 @@ VERSIONED_ZIP_URL="https://github.com/Arthur-Ficial/${APP_NAME}/releases/downloa
 
 sed -i '' "s|\"softwareVersion\": \"[^\"]*\"|\"softwareVersion\": \"$VERSION\"|" "$ROOT_DIR/site/index.html"
 sed -i '' "s|\"downloadUrl\": \"[^\"]*\"|\"downloadUrl\": \"$VERSIONED_ZIP_URL\"|" "$ROOT_DIR/site/index.html"
-sed -i '' "s|id=\"download-btn\" class=\"download\" href=\"[^\"]*\"|id=\"download-btn\" class=\"download\" href=\"$VERSIONED_ZIP_URL\"|" "$ROOT_DIR/site/index.html"
+# Match any class before `id="download-btn"` — old builds used `class="download"`,
+# newer ones use `class="btn-green"`. Always update the id-tagged anchor.
+sed -i '' -E "s|href=\"[^\"]*apfelpad-v[^\"]*\\.zip\"( [^>]*id=\"download-btn\")|href=\"$VERSIONED_ZIP_URL\"\\1|" "$ROOT_DIR/site/index.html"
+sed -i '' -E "s|(id=\"download-btn\"[^>]* href=\")[^\"]*|\\1$VERSIONED_ZIP_URL|" "$ROOT_DIR/site/index.html"
 
 if ! git -C "$ROOT_DIR" diff --quiet site/index.html; then
     git -C "$ROOT_DIR" add site/index.html

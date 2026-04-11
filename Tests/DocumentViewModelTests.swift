@@ -34,4 +34,37 @@ struct DocumentViewModelTests {
             Issue.record("expected .error, got \(vm.document.spans[0].value)")
         }
     }
+
+    @Test("=ref(@anchor) resolves to the referenced section text")
+    func refResolves() async throws {
+        let vm = DocumentViewModel(runtime: FormulaRuntime(cache: InMemoryFormulaCache()))
+        try vm.load(rawMarkdown: """
+        # Intro
+
+        Hello world.
+
+        # Body
+
+        See: =ref(@intro)
+        """)
+        await vm.evaluateAll()
+        #expect(vm.document.spans.count == 1)
+        if case .ready(let text) = vm.document.spans[0].value {
+            #expect(text == "Hello world.")
+        } else {
+            Issue.record("expected .ready, got \(vm.document.spans[0].value)")
+        }
+    }
+
+    @Test("=ref to unknown anchor is an error")
+    func refMissing() async throws {
+        let vm = DocumentViewModel(runtime: FormulaRuntime(cache: InMemoryFormulaCache()))
+        try vm.load(rawMarkdown: "=ref(@nope)")
+        await vm.evaluateAll()
+        if case .error = vm.document.spans[0].value {
+            // pass
+        } else {
+            Issue.record("expected .error, got \(vm.document.spans[0].value)")
+        }
+    }
 }
