@@ -6,7 +6,7 @@ struct FormulaRuntimeTests {
     @Test("evaluates =math and caches result")
     func mathCached() async throws {
         let cache = InMemoryFormulaCache()
-        let runtime = FormulaRuntime(cache: cache)
+        let runtime = FormulaRuntime(cache: cache, modelVersion: "none")
         let call = FormulaCall.math(expression: "1+1")
         let value = try await runtime.evaluate(call: call, source: "=math(1+1)", context: "")
         #expect(value == .ready(text: "2"))
@@ -26,7 +26,7 @@ struct FormulaRuntimeTests {
     @Test("different contexts → different cache keys")
     func contextSensitive() async throws {
         let cache = InMemoryFormulaCache()
-        let runtime = FormulaRuntime(cache: cache)
+        let runtime = FormulaRuntime(cache: cache, modelVersion: "none")
         let call = FormulaCall.math(expression: "2+2")
         _ = try await runtime.evaluate(call: call, source: "=math(2+2)", context: "a")
         _ = try await runtime.evaluate(call: call, source: "=math(2+2)", context: "b")
@@ -40,7 +40,7 @@ struct FormulaRuntimeTests {
     @Test("math error bubbles up as .error value")
     func mathError() async throws {
         let cache = InMemoryFormulaCache()
-        let runtime = FormulaRuntime(cache: cache)
+        let runtime = FormulaRuntime(cache: cache, modelVersion: "none")
         let call = FormulaCall.math(expression: "abc")
         let value = try await runtime.evaluate(call: call, source: "=math(abc)", context: "")
         if case .error = value {
