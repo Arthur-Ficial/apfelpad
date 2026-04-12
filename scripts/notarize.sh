@@ -15,6 +15,7 @@ mkdir -p "$ROOT_DIR/dist"
 rm -f "$ZIP_PATH"
 COPYFILE_DISABLE=1 ditto -c -k --norsrc --keepParent "$APP_PATH" "$ZIP_PATH"
 
+NOTARY_KEYCHAIN="${NOTARY_KEYCHAIN:-$HOME/Library/Keychains/login.keychain-db}"
 if [[ -n "${NOTARIZE_APPLE_ID:-}" && -n "${NOTARIZE_PASSWORD:-}" && -n "${NOTARIZE_TEAM_ID:-}" ]]; then
     xcrun notarytool submit "$ZIP_PATH" \
         --apple-id "$NOTARIZE_APPLE_ID" \
@@ -22,7 +23,10 @@ if [[ -n "${NOTARIZE_APPLE_ID:-}" && -n "${NOTARIZE_PASSWORD:-}" && -n "${NOTARI
         --password "$NOTARIZE_PASSWORD" \
         --wait
 else
-    xcrun notarytool submit "$ZIP_PATH" --keychain-profile "$KEYCHAIN_PROFILE" --wait
+    xcrun notarytool submit "$ZIP_PATH" \
+        --keychain-profile "$KEYCHAIN_PROFILE" \
+        --keychain "$NOTARY_KEYCHAIN" \
+        --wait
 fi
 xcrun stapler staple "$APP_PATH"
 syspolicy_check distribution "$APP_PATH"
