@@ -74,7 +74,6 @@ struct EditableMarkdownView: NSViewRepresentable {
     private func applySourceState(to textView: NSTextView, coordinator: Coordinator) {
         coordinator.currentProjection = nil
         clearInputWidgets(from: textView, coordinator: coordinator)
-        textView.font = .monospacedSystemFont(ofSize: 13, weight: .regular)
         let textChanged = textView.string != text
         if textChanged {
             let selected = textView.selectedRange()
@@ -83,12 +82,12 @@ struct EditableMarkdownView: NSViewRepresentable {
             textView.setSelectedRange(clamp(selected, maxLength: (text as NSString).length))
             coordinator.isProgrammaticChange = false
         }
-        // Only re-highlight when the parsed spans change (after debounced reparse),
-        // not on every keystroke. This is the key performance optimisation: typing
-        // does NOT trigger NSTextStorage attribute rewrites until the 300ms debounce
-        // fires and reparsing produces new span ranges.
+        // Only re-highlight (and re-set font) when the parsed spans change
+        // (after debounced reparse), not on every keystroke. Setting
+        // textView.font on every update would trigger a full storage relayout.
         let fingerprint = spanFingerprint(document.spans)
         if fingerprint != coordinator.lastHighlightedSpanFingerprint || textChanged {
+            textView.font = .monospacedSystemFont(ofSize: 13, weight: .regular)
             applySourceHighlighting(to: textView)
             coordinator.lastHighlightedSpanFingerprint = fingerprint
         }
@@ -105,9 +104,18 @@ struct EditableMarkdownView: NSViewRepresentable {
     }
 
     private func applyRenderState(to textView: NSTextView, coordinator: Coordinator) {
-        textView.font = .systemFont(ofSize: 15)
+        // While the user is actively typing, NSTextView handles keystrokes
+        // natively. Skip the full rebuild until the debounce window expires
+        // (the 300ms reparse timer). This keeps typing instant.
+        let sinceLastKeystroke = CFAbsoluteTimeGetCurrent() - coordinator.lastRenderKeystroke
+        if sinceLastKeystroke < 0.28 {
+            return
+        }
+
         let previousProjection = coordinator.currentProjection
         let projection = RenderProjection(document: document)
+
+        // Full rebuild.
         let visibleSelection: NSRange
         if let pendingRawSelection = coordinator.pendingRawSelection {
             let visible = projection.visibleLocation(forRawLocation: pendingRawSelection)
@@ -133,6 +141,98 @@ struct EditableMarkdownView: NSViewRepresentable {
         coordinator.isProgrammaticChange = false
         coordinator.pendingRawSelection = nil
         syncInputWidgets(on: textView, projection: projection, coordinator: coordinator)
+    }
+
+    /// Incrementally patch the text storage by diffing old and new projections.
+    /// Returns true if the patch succeeded; false means a full rebuild is needed.
+    private func patchRenderStorage(
+        _ storage: NSTextStorage,
+        from old: RenderProjection,
+        to new: RenderProjection,
+        textView: NSTextView,
+        coordinator: Coordinator
+    ) -> Bool {
+        let oldSegs = old.segments
+        let newSegs = new.segments
+
+        // If segment count changed, the structure shifted — fall back.
+        guard oldSegs.count == newSegs.count else { return false }
+
+        // Verify segment kinds match (same formula/plain/input layout).
+        for i in 0..<oldSegs.count {
+            switch (oldSegs[i].kind, newSegs[i].kind) {
+            case (.plain, .plain): continue
+            case (.formula, .formula): continue
+            case (.input, .input): continue
+            default: return false
+            }
+        }
+
+        // Collect patches: segments whose visible text changed.
+        struct Patch {
+            let oldVisibleRange: NSRange
+            let newText: NSAttributedString
+        }
+        var patches: [Patch] = []
+
+        let newFullAS = buildRenderAttributedString(from: new)
+
+        for i in 0..<newSegs.count {
+            let oldSeg = oldSegs[i]
+            let newSeg = newSegs[i]
+            let oldVR = oldSeg.visibleRange
+            let newVR = newSeg.visibleRange
+            let oldLen = oldVR.upperBound - oldVR.lowerBound
+            let newLen = newVR.upperBound - newVR.lowerBound
+
+            // Quick check: same range extents and same raw range means
+            // the segment content is identical — skip it.
+            if oldLen == newLen && oldSeg.rawRange == newSeg.rawRange {
+                // For formula segments, also check if the display value changed.
+                if case .formula(let oldSpan) = oldSeg.kind,
+                   case .formula(let newSpan) = newSeg.kind,
+                   oldSpan.displayText != newSpan.displayText {
+                    // Value changed — need to patch
+                } else {
+                    continue
+                }
+            }
+
+            let nsRange = NSRange(location: newVR.lowerBound, length: newLen)
+            let slice = newFullAS.attributedSubstring(from: nsRange)
+            patches.append(Patch(
+                oldVisibleRange: NSRange(location: oldVR.lowerBound, length: oldLen),
+                newText: slice
+            ))
+        }
+
+        // Nothing changed — skip entirely.
+        if patches.isEmpty { return true }
+
+        // Apply patches in reverse order so earlier indices stay valid.
+        coordinator.isProgrammaticChange = true
+        let sel = textView.selectedRange()
+        storage.beginEditing()
+        for patch in patches.reversed() {
+            guard patch.oldVisibleRange.location >= 0,
+                  patch.oldVisibleRange.location + patch.oldVisibleRange.length <= storage.length else {
+                storage.endEditing()
+                coordinator.isProgrammaticChange = false
+                return false
+            }
+            storage.replaceCharacters(in: patch.oldVisibleRange, with: patch.newText)
+        }
+        storage.endEditing()
+
+        // Restore cursor — map through the new projection.
+        if let pendingRaw = coordinator.pendingRawSelection {
+            let vis = new.visibleLocation(forRawLocation: pendingRaw)
+            textView.setSelectedRange(clamp(NSRange(location: vis, length: 0), maxLength: storage.length))
+        } else {
+            textView.setSelectedRange(clamp(sel, maxLength: storage.length))
+        }
+        coordinator.isProgrammaticChange = false
+        return true
     }
 
 
@@ -373,6 +473,10 @@ struct EditableMarkdownView: NSViewRepresentable {
         var lastFocusToken: Int = .min
         var lastInputFocusToken: Int = .min
         var lastHighlightedSpanFingerprint: Int = -1
+        /// Timestamp of the last user keystroke in render mode. All
+        /// `applyRenderState` calls within the debounce window are skipped
+        /// so NSTextView's native edit stays on screen without flicker.
+        var lastRenderKeystroke: CFAbsoluteTime = 0
 
         init(parent: EditableMarkdownView) {
             self.parent = parent
@@ -438,9 +542,20 @@ struct EditableMarkdownView: NSViewRepresentable {
                 return false
             }
 
+            // Apply the edit directly to the text view's storage for instant
+            // visual feedback. Then update the raw markdown for the debounced
+            // reparse. The timestamp prevents applyRenderState from nuking the
+            // storage with a full rebuild until the debounce fires.
+            isProgrammaticChange = true
+            textView.textStorage?.replaceCharacters(in: affectedCharRange, with: replacement)
+            let newCursor = affectedCharRange.location + (replacement as NSString).length
+            textView.setSelectedRange(NSRange(location: newCursor, length: 0))
+            isProgrammaticChange = false
+
             let ns = parent.text as NSString
             let nextRaw = ns.replacingCharacters(in: rawRange, with: replacement)
             pendingRawSelection = rawRange.location + (replacement as NSString).length
+            lastRenderKeystroke = CFAbsoluteTimeGetCurrent()
             parent.text = nextRaw
             if let pendingRawSelection {
                 parent.onSelectionChange?(pendingRawSelection)

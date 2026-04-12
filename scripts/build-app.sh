@@ -59,6 +59,12 @@ cp "$BIN_PATH" "$APP_BUNDLE/Contents/MacOS/${APP_NAME}"
 chmod +x "$APP_BUNDLE/Contents/MacOS/${APP_NAME}"
 cp "$ROOT_DIR/Info.plist" "$APP_BUNDLE/Contents/Info.plist"
 
+# Copy SwiftPM resource bundle (WelcomeWorkbook.md, sample files, etc.)
+RESOURCE_BUNDLE="${BIN_DIR}/${APP_NAME}_${APP_NAME}.bundle"
+if [[ -d "$RESOURCE_BUNDLE" ]]; then
+    cp -R "$RESOURCE_BUNDLE" "$APP_BUNDLE/Contents/Resources/"
+fi
+
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${VERSION}" "$APP_BUNDLE/Contents/Info.plist" >/dev/null
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${VERSION}" "$APP_BUNDLE/Contents/Info.plist" >/dev/null
 
