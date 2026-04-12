@@ -8,15 +8,18 @@ final class FormulaRuntime: Sendable {
     private let llm: LLMService?
     private let modelVersion: String
     private let apfelEvaluator: ApfelFormulaEvaluator?
+    private let clipboard: any ClipboardReading
 
     init(
         cache: FormulaCache,
         llm: LLMService? = nil,
-        modelVersion: String = "apple-foundationmodel"
+        modelVersion: String = "apple-foundationmodel",
+        clipboard: some ClipboardReading = SystemClipboard()
     ) {
         self.cache = cache
         self.llm = llm
         self.modelVersion = modelVersion
+        self.clipboard = clipboard
         if let llm {
             self.apfelEvaluator = ApfelFormulaEvaluator(
                 llm: llm,
@@ -166,7 +169,7 @@ final class FormulaRuntime: Sendable {
         case .recording:
             return "🎙 recording UI — v0.4 (tap to record via apfel)"
         case .clip:
-            return ClipFormulaEvaluator.evaluate()
+            return ClipFormulaEvaluator.evaluate(clipboard: clipboard)
         case .file(let path):
             return try FileFormulaEvaluator.evaluate(path: path)
         case .count, .input, .show:

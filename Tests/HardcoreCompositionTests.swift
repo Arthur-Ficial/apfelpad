@@ -10,7 +10,10 @@ import Foundation
 @MainActor
 struct HardcoreCompositionTests {
     private func makeVM() -> DocumentViewModel {
-        DocumentViewModel(runtime: FormulaRuntime(cache: InMemoryFormulaCache()))
+        DocumentViewModel(runtime: FormulaRuntime(
+            cache: InMemoryFormulaCache(),
+            clipboard: MockClipboard(value: "mock clipboard")
+        ))
     }
 
     // MARK: - Every single-string function composed with every other

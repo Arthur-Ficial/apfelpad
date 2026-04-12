@@ -20,7 +20,10 @@ import Foundation
 struct ChaosRenderTests {
 
     private func makeVM() -> DocumentViewModel {
-        DocumentViewModel(runtime: FormulaRuntime(cache: InMemoryFormulaCache()))
+        DocumentViewModel(runtime: FormulaRuntime(
+            cache: InMemoryFormulaCache(),
+            clipboard: MockClipboard(value: "mock clipboard")
+        ))
     }
 
     /// For every catalogue entry: paste the example into a doc, evaluate,
