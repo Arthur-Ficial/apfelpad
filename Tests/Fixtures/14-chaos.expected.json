@@ -3,6 +3,7 @@
   "spans": [
     { "source": "=math(1+1)", "kind": "math", "expression": "1+1", "renderedValue": "2" },
     { "source": "=math(abc)", "kind": "math", "expression": "abc", "renderedValue": null, "hasError": true },
+    { "source": "=MATH(1+1)", "kind": "math", "expression": "1+1", "renderedValue": "2" },
     { "source": "=math(1+1)", "kind": "math", "expression": "1+1", "renderedValue": "2" },
     { "source": "=math(3*3)", "kind": "math", "expression": "3*3", "renderedValue": "9" },
     { "source": "=math(7*6)", "kind": "math", "expression": "7*6", "renderedValue": "42" }

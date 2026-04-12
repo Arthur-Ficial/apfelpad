@@ -80,11 +80,11 @@ struct MarkdownRenderSnapshotTests {
         #expect(out.contains(String(year)))
     }
 
-    @Test("=day() and =cw() render real values")
-    func dayAndCwRender() async {
-        let out = await renderPlainText("Today is =day(), week =cw().")
+    @Test("=day() and =weeknum() render real values")
+    func dayAndWeeknumRender() async {
+        let out = await renderPlainText("Today is =day(), week =weeknum().")
         #expect(!out.contains("=day()"))
-        #expect(!out.contains("=cw()"))
+        #expect(!out.contains("=weeknum()"))
     }
 
     @Test("welcome document renders every formula")
@@ -103,7 +103,7 @@ struct MarkdownRenderSnapshotTests {
         ## Document info
 
         This document has =count() words.
-        Today is =date() (=day(), week =cw()).
+        Today is =date() (=day(), week =weeknum()).
         """
         let out = await renderPlainText(doc)
 
@@ -117,7 +117,7 @@ struct MarkdownRenderSnapshotTests {
         #expect(!out.contains("=count("), "count sources leaked: \(out)")
         #expect(!out.contains("=date("), "date sources leaked: \(out)")
         #expect(!out.contains("=day("), "day sources leaked: \(out)")
-        #expect(!out.contains("=cw("), "cw sources leaked: \(out)")
+        #expect(!out.contains("=weeknum("), "weeknum sources leaked: \(out)")
     }
 
     @Test("text formulas render in prose")

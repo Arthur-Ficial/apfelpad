@@ -190,19 +190,19 @@ struct FormulaParserTests {
         #expect(try FormulaParser.parse(#"=len("abc")"#) == .len(text: "abc"))
     }
 
-    @Test("parses =concat(\"a\", \"b\", \"c\")")
-    func parseConcat() throws {
+    @Test("parses =concatenate(\"a\", \"b\", \"c\")")
+    func parseConcatenate() throws {
         #expect(
-            try FormulaParser.parse(#"=concat("a", "b", "c")"#)
-            == .concat(parts: ["a", "b", "c"])
+            try FormulaParser.parse(#"=concatenate("a", "b", "c")"#)
+            == .concatenate(parts: ["a", "b", "c"])
         )
     }
 
-    @Test("parses =replace(\"hi world\", \"world\", \"apfelpad\")")
-    func parseReplace() throws {
+    @Test("parses =substitute(\"hi world\", \"world\", \"apfelpad\")")
+    func parseSubstitute() throws {
         #expect(
-            try FormulaParser.parse(#"=replace("hi world", "world", "apfelpad")"#)
-            == .replace(text: "hi world", find: "world", replacement: "apfelpad")
+            try FormulaParser.parse(#"=substitute("hi world", "world", "apfelpad")"#)
+            == .substitute(text: "hi world", oldText: "world", newText: "apfelpad", occurrence: nil)
         )
     }
 
@@ -210,7 +210,7 @@ struct FormulaParserTests {
     func parseSplit() throws {
         #expect(
             try FormulaParser.parse(#"=split("a,b,c", ",", 1)"#)
-            == .splitCall(text: "a,b,c", delim: ",", index: 1)
+            == .`split`(text: "a,b,c", delim: ",", index: 1)
         )
     }
 
@@ -218,7 +218,7 @@ struct FormulaParserTests {
     func parseIf() throws {
         #expect(
             try FormulaParser.parse(#"=if("yes", "then", "else")"#)
-            == .ifCall(cond: "yes", thenValue: "then", elseValue: "else")
+            == .`if`(cond: "yes", thenValue: "then", elseValue: "else")
         )
     }
 
@@ -227,9 +227,9 @@ struct FormulaParserTests {
         #expect(try FormulaParser.parse("=sum(1, 2, 3)") == .sum(args: ["1", "2", "3"]))
     }
 
-    @Test("parses =avg(10, 20, 30)")
-    func parseAvg() throws {
-        #expect(try FormulaParser.parse("=avg(10, 20, 30)") == .avg(args: ["10", "20", "30"]))
+    @Test("parses =average(10, 20, 30)")
+    func parseAverage() throws {
+        #expect(try FormulaParser.parse("=average(10, 20, 30)") == .average(args: ["10", "20", "30"]))
     }
 
     // ── Phase 0: Case-insensitive parsing ──────────────────────────────────
@@ -258,7 +258,7 @@ struct FormulaParserTests {
     func caseInsensitiveIf() throws {
         #expect(
             try FormulaParser.parse(#"=IF("yes", "then", "else")"#)
-            == .ifCall(cond: "yes", thenValue: "then", elseValue: "else")
+            == .`if`(cond: "yes", thenValue: "then", elseValue: "else")
         )
     }
 

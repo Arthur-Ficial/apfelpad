@@ -1,6 +1,6 @@
 import Foundation
 
-enum AvgFormulaEvaluator {
+enum AverageFormulaEvaluator {
     static func evaluate(_ args: [String]) throws -> String {
         if args.isEmpty { return "0" }
         var total: Double = 0

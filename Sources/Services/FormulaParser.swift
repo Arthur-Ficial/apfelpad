@@ -50,40 +50,42 @@ enum FormulaParser {
             return .trim(text: try singleStringArg(rawArgs, name: "trim"))
         case .len:
             return .len(text: try singleStringArg(rawArgs, name: "len"))
-        case .concat:
-            return .concat(parts: rawArgs.map(Self.parseStringLiteral))
-        case .replace:
-            guard rawArgs.count == 3 else {
-                throw Error.malformedArguments("replace expects 3 args")
+        case .concatenate:
+            return .concatenate(parts: rawArgs.map(Self.parseStringLiteral))
+        case .substitute:
+            guard (3...4).contains(rawArgs.count) else {
+                throw Error.malformedArguments("substitute expects 3 or 4 args")
             }
-            return .replace(
+            let occurrence: Int? = rawArgs.count == 4 ? try Self.parseIntLiteral(rawArgs[3]) : nil
+            return .substitute(
                 text: Self.parseStringLiteral(rawArgs[0]),
-                find: Self.parseStringLiteral(rawArgs[1]),
-                replacement: Self.parseStringLiteral(rawArgs[2])
+                oldText: Self.parseStringLiteral(rawArgs[1]),
+                newText: Self.parseStringLiteral(rawArgs[2]),
+                occurrence: occurrence
             )
         case .split:
             guard (2...3).contains(rawArgs.count) else {
                 throw Error.malformedArguments("split expects 2 or 3 args")
             }
             let index = rawArgs.count == 3 ? try Self.parseIntLiteral(rawArgs[2]) : 0
-            return .splitCall(
+            return .`split`(
                 text: Self.parseStringLiteral(rawArgs[0]),
                 delim: Self.parseStringLiteral(rawArgs[1]),
                 index: index
             )
-        case .ifCall:
+        case .ifExpr:
             guard rawArgs.count == 3 else {
                 throw Error.malformedArguments("if expects 3 args")
             }
-            return .ifCall(
+            return .`if`(
                 cond: Self.parseStringLiteral(rawArgs[0]),
                 thenValue: Self.parseStringLiteral(rawArgs[1]),
                 elseValue: Self.parseStringLiteral(rawArgs[2])
             )
         case .sum:
             return .sum(args: rawArgs.map(Self.parseStringLiteral))
-        case .avg:
-            return .avg(args: rawArgs.map(Self.parseStringLiteral))
+        case .average:
+            return .average(args: rawArgs.map(Self.parseStringLiteral))
         case .ref:
             guard rawArgs.count == 1 else {
                 throw Error.malformedArguments("ref expects 1 arg: =ref(@#anchor)")
@@ -92,9 +94,12 @@ enum FormulaParser {
         case .date:
             let offset = rawArgs.isEmpty ? 0 : (try? Self.parseSignedInt(rawArgs[0])) ?? 0
             return .date(offsetDays: offset)
-        case .cw:
+        case .weeknum:
             let offset = rawArgs.isEmpty ? 0 : (try? Self.parseSignedInt(rawArgs[0])) ?? 0
-            return .cw(offsetWeeks: offset)
+            return .weeknum(offsetWeeks: offset)
+        case .today:
+            guard rawArgs.isEmpty else { throw Error.malformedArguments("today takes no args") }
+            return .today
         case .month:
             guard rawArgs.isEmpty else { throw Error.malformedArguments("month takes no args") }
             return .month
@@ -189,25 +194,30 @@ enum FormulaParser {
         case .lower(let t):   return "=lower(\"\(t)\")"
         case .trim(let t):    return "=trim(\"\(t)\")"
         case .len(let t):     return "=len(\"\(t)\")"
-        case .concat(let parts):
+        case .concatenate(let parts):
             let rendered = parts.map { "\"\($0)\"" }.joined(separator: ", ")
-            return "=concat(\(rendered))"
-        case .replace(let t, let f, let r):
-            return "=replace(\"\(t)\", \"\(f)\", \"\(r)\")"
-        case .splitCall(let t, let d, let i):
+            return "=concatenate(\(rendered))"
+        case .substitute(let t, let o, let n, let occ):
+            if let occ {
+                return "=substitute(\"\(t)\", \"\(o)\", \"\(n)\", \(occ))"
+            }
+            return "=substitute(\"\(t)\", \"\(o)\", \"\(n)\")"
+        case .`split`(let t, let d, let i):
             return "=split(\"\(t)\", \"\(d)\", \(i))"
-        case .ifCall(let c, let tv, let ev):
+        case .`if`(let c, let tv, let ev):
             return "=if(\"\(c)\", \"\(tv)\", \"\(ev)\")"
         case .sum(let args):
             return "=sum(\(args.joined(separator: ", ")))"
-        case .avg(let args):
-            return "=avg(\(args.joined(separator: ", ")))"
+        case .average(let args):
+            return "=average(\(args.joined(separator: ", ")))"
         case .ref(let anchor):
             return "=ref(@#\(anchor))"
         case .date(let offset):
             return offset == 0 ? "=date()" : "=date(\(offset >= 0 ? "+" : "")\(offset))"
-        case .cw(let offset):
-            return offset == 0 ? "=cw()" : "=cw(\(offset >= 0 ? "+" : "")\(offset))"
+        case .weeknum(let offset):
+            return offset == 0 ? "=weeknum()" : "=weeknum(\(offset >= 0 ? "+" : "")\(offset))"
+        case .today:
+            return "=today()"
         case .month: return "=month()"
         case .day: return "=day()"
         case .time: return "=time()"

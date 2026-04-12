@@ -15,7 +15,7 @@ Suffixes: =math(2m + 500k) — `m`/`k`/`b` expand to their full value.
 # Dates
 
 Today: =date() · Tomorrow: =date(+1) · A week ago: =date(-7)
-Week number: =cw() · Last week: =cw(-1) · Next week: =cw(+1)
+Week number: =weeknum() · Last week: =weeknum(-1) · Next week: =weeknum(+1)
 Today is a =day() in =month() at =time().
 
 # Text
@@ -24,14 +24,14 @@ Uppercase: =upper("hello apfelpad")
 Lowercase: =lower("WORLD")
 Trim: =trim("   padded   ")
 Length: =len("apfelpad")
-Concat: =concat("Hello, ", "world", "!")
-Replace: =replace("hello world", "world", "apfelpad")
+Concatenate: =concatenate("Hello, ", "world", "!")
+Substitute: =substitute("hello world", "world", "apfelpad")
 Split (index 1): =split("a,b,c", ",", 1)
 
 # Numeric aggregates
 
 Sum: =sum(10, 20, 30, 40)
-Average: =avg(2, 4, 6, 8, 10)
+Average: =average(2, 4, 6, 8, 10)
 If: =if("yes", "✓ confirmed", "✗ denied")
 
 # Document references
@@ -62,7 +62,7 @@ Upper ref: =upper(=ref(@goal))
 # On-device AI
 
 Ask the model: =apfel("one sentence: why is apfelpad the calmest AI writing tool", 7)
-Compose AI with context: =apfel(=concat("summarize: ", =ref(@goal)), 42)
+Compose AI with context: =apfel(=concatenate("summarize: ", =ref(@goal)), 42)
 Anonymous shortcut: =(write a haiku about formulas, 3)
 
 # v0.4 preview

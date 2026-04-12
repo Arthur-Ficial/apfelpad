@@ -30,25 +30,25 @@ struct TextFormulaEvaluatorsTests {
         #expect(try LenFormulaEvaluator.evaluate("") == "0")
     }
 
-    // MARK: - concat / replace / split
+    // MARK: - concatenate / substitute / split
 
-    @Test("concat joins any number of string args")
-    func concat() throws {
-        #expect(try ConcatFormulaEvaluator.evaluate(["a", "b", "c"]) == "abc")
-        #expect(try ConcatFormulaEvaluator.evaluate(["Hello, ", "world"]) == "Hello, world")
-        #expect(try ConcatFormulaEvaluator.evaluate([]) == "")
+    @Test("concatenate joins any number of string args")
+    func concatenate() throws {
+        #expect(try ConcatenateFormulaEvaluator.evaluate(["a", "b", "c"]) == "abc")
+        #expect(try ConcatenateFormulaEvaluator.evaluate(["Hello, ", "world"]) == "Hello, world")
+        #expect(try ConcatenateFormulaEvaluator.evaluate([]) == "")
     }
 
-    @Test("replace substitutes the first occurrence")
-    func replace() throws {
+    @Test("substitute substitutes the first occurrence")
+    func substitute() throws {
         #expect(
-            try ReplaceFormulaEvaluator.evaluate(
+            try SubstituteFormulaEvaluator.evaluate(
                 text: "hello world", find: "world", replacement: "apfelpad"
             ) == "hello apfelpad"
         )
         // No match: returns original
         #expect(
-            try ReplaceFormulaEvaluator.evaluate(
+            try SubstituteFormulaEvaluator.evaluate(
                 text: "abc", find: "xyz", replacement: "!"
             ) == "abc"
         )
@@ -82,7 +82,7 @@ struct TextFormulaEvaluatorsTests {
         #expect(try IfFormulaEvaluator.evaluate(cond: "no", thenValue: "a", elseValue: "b") == "b")
     }
 
-    // MARK: - sum / avg
+    // MARK: - sum / average
 
     @Test("sum adds variadic numeric args")
     func sum() throws {
@@ -104,14 +104,14 @@ struct TextFormulaEvaluatorsTests {
         }
     }
 
-    @Test("avg computes arithmetic mean")
-    func avg() throws {
-        #expect(try AvgFormulaEvaluator.evaluate(["2", "4", "6"]) == "4")
-        #expect(try AvgFormulaEvaluator.evaluate(["1", "2"]) == "1.5")
+    @Test("average computes arithmetic mean")
+    func average() throws {
+        #expect(try AverageFormulaEvaluator.evaluate(["2", "4", "6"]) == "4")
+        #expect(try AverageFormulaEvaluator.evaluate(["1", "2"]) == "1.5")
     }
 
-    @Test("avg of empty list returns 0")
-    func avgEmpty() throws {
-        #expect(try AvgFormulaEvaluator.evaluate([]) == "0")
+    @Test("average of empty list returns 0")
+    func averageEmpty() throws {
+        #expect(try AverageFormulaEvaluator.evaluate([]) == "0")
     }
 }

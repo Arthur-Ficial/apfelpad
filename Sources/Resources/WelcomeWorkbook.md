@@ -23,9 +23,9 @@ Grand total: $=math(@hours * @rate * (100 - @discount) / 100 * (100 + @tax) / 10
 Weekly burn at 40 hours: $=math(@rate * 40)
 Working days: =math(@hours / 8)
 Working weeks: =math(@hours / 40)
-Average of hours, rate, and tax: =avg(@hours, @rate, @tax)
+Average of hours, rate, and tax: =average(@hours, @rate, @tax)
 Combined headline number: =sum(@hours, @rate, @tax)
-Summary line: =concat("Quote for ", @client, " totals $", =math(@hours * @rate * (100 - @discount) / 100 * (100 + @tax) / 100), ".")
+Summary line: =concatenate("Quote for ", @client, " totals $", =math(@hours * @rate * (100 - @discount) / 100 * (100 + @tax) / 100), ".")
 
 ## Text Workshop
 
@@ -33,17 +33,17 @@ Trimmed project name: =trim("   Acme Launch Sprint   ")
 Uppercase title: =upper(=trim("   launch sprint   "))
 Lowercase shout: =lower("LOUD WORDS")
 Length of the client name: =len(=show(@client))
-Replaced tagline: =replace("ship the draft today", "draft", "calculator")
+Replaced tagline: =substitute("ship the draft today", "draft", "calculator")
 Second CSV part: =split("design,build,ship", ",", 1)
-Nested text combo: =upper(=replace(=trim("  calm docs win  "), "docs", "systems"))
+Nested text combo: =upper(=substitute(=trim("  calm docs win  "), "docs", "systems"))
 
 ## Calendar And Planning
 
-Today: =date()
+Today: =today()
 Tomorrow: =date(+1)
 Weekday: =day()
-Calendar week: =cw()
-Next week: =cw(+1)
+Calendar week: =weeknum()
+Next week: =weeknum(+1)
 Month: =month()
 Current time: =time()
 
@@ -67,4 +67,4 @@ Clipboard snapshot: =clip()
 
 Seeded local response: =apfel("Write one calm sentence explaining why formulas make this note dependable.", 7)
 Anonymous shortcut: =(write a five-word tagline for this workbook, 3)
-Prompt built from the document: =apfel(=concat("Summarize this quote for ", =show(@client), ". Total is $", =math(@hours * @rate * (100 - @discount) / 100 * (100 + @tax) / 100), ". Brief: ", =ref(@#project-brief)), 11)
+Prompt built from the document: =apfel(=concatenate("Summarize this quote for ", =show(@client), ". Total is $", =math(@hours * @rate * (100 - @discount) / 100 * (100 + @tax) / 100), ". Brief: ", =ref(@#project-brief)), 11)

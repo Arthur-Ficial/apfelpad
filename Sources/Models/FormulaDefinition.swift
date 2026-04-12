@@ -10,15 +10,16 @@ struct FormulaDefinition: Identifiable, Equatable, Hashable {
         case lower
         case trim
         case len
-        case concat
-        case replace
+        case concatenate
+        case substitute
         case split
-        case ifCall
+        case ifExpr
         case sum
-        case avg
+        case average
         case ref
+        case today
         case date
-        case cw
+        case weeknum
         case month
         case day
         case time
@@ -164,26 +165,26 @@ enum FormulaRegistry {
             parserKind: .len
         ),
         FormulaDefinition(
-            functionName: "concat",
-            displayName: "=concat",
+            functionName: "concatenate",
+            displayName: "=concatenate",
             category: .text,
-            signature: "=concat(a, b, c, …)",
+            signature: "=concatenate(a, b, c, …)",
             description: "Join any number of strings",
-            example: #"=concat("Hello, ", "world", "!")"#,
+            example: #"=concatenate("Hello, ", "world", "!")"#,
             exampleResult: "Hello, world!",
-            keywords: ["join", "string", "combine", "append"],
-            parserKind: .concat
+            keywords: ["join", "string", "combine", "append", "concat"],
+            parserKind: .concatenate
         ),
         FormulaDefinition(
-            functionName: "replace",
-            displayName: "=replace",
+            functionName: "substitute",
+            displayName: "=substitute",
             category: .text,
-            signature: "=replace(text, find, replacement)",
-            description: "Substitute the first occurrence",
-            example: #"=replace("hello world", "world", "apfelpad")"#,
+            signature: "=substitute(text, old_text, new_text, [occurrence])",
+            description: "Substitute the first occurrence (or nth if occurrence given)",
+            example: #"=substitute("hello world", "world", "apfelpad")"#,
             exampleResult: "hello apfelpad",
-            keywords: ["substitute", "swap", "find", "rewrite"],
-            parserKind: .replace
+            keywords: ["replace", "swap", "find", "rewrite"],
+            parserKind: .substitute
         ),
         FormulaDefinition(
             functionName: "split",
@@ -208,15 +209,15 @@ enum FormulaRegistry {
             parserKind: .sum
         ),
         FormulaDefinition(
-            functionName: "avg",
-            displayName: "=avg",
+            functionName: "average",
+            displayName: "=average",
             category: .aggregate,
-            signature: "=avg(n1, n2, …)",
+            signature: "=average(n1, n2, …)",
             description: "Arithmetic mean",
-            example: "=avg(2, 4, 6)",
+            example: "=average(2, 4, 6)",
             exampleResult: "4",
-            keywords: ["average", "mean", "numbers"],
-            parserKind: .avg
+            keywords: ["avg", "mean", "numbers"],
+            parserKind: .average
         ),
         FormulaDefinition(
             functionName: "if",
@@ -227,7 +228,18 @@ enum FormulaRegistry {
             example: #"=if("yes", "go", "stop")"#,
             exampleResult: "go",
             keywords: ["branch", "conditional", "if", "then", "else"],
-            parserKind: .ifCall
+            parserKind: .ifExpr
+        ),
+        FormulaDefinition(
+            functionName: "today",
+            displayName: "=today",
+            category: .date,
+            signature: "=today()",
+            description: "Today's date in ISO 8601",
+            example: "=today()",
+            exampleResult: "(today's date)",
+            keywords: ["today", "date", "iso", "now"],
+            parserKind: .today
         ),
         FormulaDefinition(
             functionName: "date",
@@ -241,15 +253,15 @@ enum FormulaRegistry {
             parserKind: .date
         ),
         FormulaDefinition(
-            functionName: "cw",
-            displayName: "=cw",
+            functionName: "weeknum",
+            displayName: "=weeknum",
             category: .date,
-            signature: "=cw(offset?)",
+            signature: "=weeknum(offset?)",
             description: "ISO calendar week with optional offset",
-            example: "=cw(-1)",
+            example: "=weeknum(-1)",
             exampleResult: "(last week's number)",
-            keywords: ["week", "calendar", "iso", "kw"],
-            parserKind: .cw
+            keywords: ["week", "calendar", "iso", "kw", "cw"],
+            parserKind: .weeknum
         ),
         FormulaDefinition(
             functionName: "month",

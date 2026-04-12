@@ -61,8 +61,8 @@ struct InputBindingsTests {
     func bindingsCaseInsensitive() {
         let bindings = InputBindings()
         bindings.set("Client", to: "Acme")
-        let result = bindings.substitute(in: #"=concat("Hello, ", @client)"#)
-        #expect(result == #"=concat("Hello, ", Acme)"#)
+        let result = bindings.substitute(in: #"=concatenate("Hello, ", @client)"#)
+        #expect(result == #"=concatenate("Hello, ", Acme)"#)
     }
 
     @Test("InputBindings substitute handles multiple refs in one formula")

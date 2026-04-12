@@ -847,8 +847,8 @@
         <div class="formula-desc">ISO 8601. <code>=date(+4)</code> four days ahead, <code>=date(-7)</code> a week ago.</div>
       </div>
       <div class="formula-item">
-        <div class="formula-name">=cw(offset?)</div>
-        <div class="formula-desc">ISO calendar week. <code>=cw(-1)</code> last week, <code>=cw(+2)</code> two ahead.</div>
+        <div class="formula-name">=weeknum(offset?)</div>
+        <div class="formula-desc">ISO calendar week. <code>=weeknum(-1)</code> last week, <code>=weeknum(+2)</code> two ahead.</div>
       </div>
       <div class="formula-item">
         <div class="formula-name">=month() / =day() / =time()</div>
@@ -875,11 +875,11 @@
         <div class="formula-desc">Grapheme count — <code>=len("🎉")</code> → <code>1</code></div>
       </div>
       <div class="formula-item">
-        <div class="formula-name">=concat(a, b, …)</div>
+        <div class="formula-name">=concatenate(a, b, …)</div>
         <div class="formula-desc">Variadic string join.</div>
       </div>
       <div class="formula-item">
-        <div class="formula-name">=replace(t, f, r)</div>
+        <div class="formula-name">=substitute(t, f, r)</div>
         <div class="formula-desc">First-occurrence substitution.</div>
       </div>
       <div class="formula-item">
@@ -895,7 +895,7 @@
         <div class="formula-desc">Variadic numeric sum.</div>
       </div>
       <div class="formula-item">
-        <div class="formula-name">=avg(n1, n2, …)</div>
+        <div class="formula-name">=average(n1, n2, …)</div>
         <div class="formula-desc">Arithmetic mean.</div>
       </div>
     </div>
@@ -986,7 +986,7 @@ Timeline: =ref(@#key-numbers)</code></pre>
   → three levels deep
   → HELLO
 
-=concat(=upper("a"), "-", =lower("B"))
+=concatenate(=upper("a"), "-", =lower("B"))
   → siblings
   → A-b</code></pre>
       </div>
@@ -1000,7 +1000,7 @@ Timeline: =ref(@#key-numbers)</code></pre>
   → 3 + 2 + 10
   → 15
 
-=apfel(=concat("summarize: ", =ref(@#intro)))
+=apfel(=concatenate("summarize: ", =ref(@#intro)))
   → AI reads the intro section</code></pre>
       </div>
     </div>
@@ -1055,11 +1055,11 @@ Timeline: =ref(@#key-numbers)</code></pre>
 | Item | Value |
 |------|-------|
 | Hours | =show(@hours) |
-| Subtotal | =concat("$", =math(@hours * @rate)) |
-| Discount | =concat(@discount, "%") |
-| After discount | =concat("$", =math(@hours * @rate * (100 - @discount) / 100)) |
-| Tax | =concat("$", =math(@hours * @rate * @tax_rate / 100)) |
-| **Total** | =concat("$", =math(@hours * @rate * (100 + @tax_rate) / 100)) |
+| Subtotal | =concatenate("$", =math(@hours * @rate)) |
+| Discount | =concatenate(@discount, "%") |
+| After discount | =concatenate("$", =math(@hours * @rate * (100 - @discount) / 100)) |
+| Tax | =concatenate("$", =math(@hours * @rate * @tax_rate / 100)) |
+| **Total** | =concatenate("$", =math(@hours * @rate * (100 + @tax_rate) / 100)) |
 
 ## Document stats
 

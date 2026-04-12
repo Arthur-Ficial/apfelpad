@@ -1,8 +1,8 @@
 import Foundation
 
-/// =cw() returns the current ISO calendar week (1–53).
-/// =cw(+N) / =cw(-N) offsets by N weeks.
-enum CwFormulaEvaluator {
+/// =weeknum() returns the current ISO calendar week (1–53).
+/// =weeknum(+N) / =weeknum(-N) offsets by N weeks.
+enum WeeknumFormulaEvaluator {
     static func evaluate(offsetWeeks: Int, now: Date = Date()) -> String {
         var calendar = Calendar(identifier: .iso8601)
         calendar.firstWeekday = 2 // Monday — ISO standard

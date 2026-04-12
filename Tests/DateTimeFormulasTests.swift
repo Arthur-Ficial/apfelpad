@@ -44,23 +44,23 @@ struct DateTimeFormulasTests {
         #expect(out == "2026-05-15")
     }
 
-    // MARK: - =cw
+    // MARK: - =weeknum
 
-    @Test("=cw() returns current ISO calendar week")
-    func cwCurrent() {
-        let out = CwFormulaEvaluator.evaluate(offsetWeeks: 0, now: Self.referenceDate)
+    @Test("=weeknum() returns current ISO calendar week")
+    func weeknumCurrent() {
+        let out = WeeknumFormulaEvaluator.evaluate(offsetWeeks: 0, now: Self.referenceDate)
         #expect(out == "16")
     }
 
-    @Test("=cw(-1) returns previous week")
-    func cwPrev() {
-        let out = CwFormulaEvaluator.evaluate(offsetWeeks: -1, now: Self.referenceDate)
+    @Test("=weeknum(-1) returns previous week")
+    func weeknumPrev() {
+        let out = WeeknumFormulaEvaluator.evaluate(offsetWeeks: -1, now: Self.referenceDate)
         #expect(out == "15")
     }
 
-    @Test("=cw(+2) returns two weeks ahead")
-    func cwNext() {
-        let out = CwFormulaEvaluator.evaluate(offsetWeeks: 2, now: Self.referenceDate)
+    @Test("=weeknum(+2) returns two weeks ahead")
+    func weeknumNext() {
+        let out = WeeknumFormulaEvaluator.evaluate(offsetWeeks: 2, now: Self.referenceDate)
         #expect(out == "18")
     }
 

@@ -22,12 +22,12 @@ Division: =math(100/4)
 =lower("HELLO")
 =trim("   padded   ")
 =len("apfelpad")
-=concat("Hello, ", "world", "!")
-=replace("hello world", "world", "apfelpad")
+=concatenate("Hello, ", "world", "!")
+=substitute("hello world", "world", "apfelpad")
 =split("a,b,c,d", ",", 2)
 =if("yes", "go", "stop")
 =sum(1, 2, 3, 4, 5)
-=avg(10, 20, 30)
+=average(10, 20, 30)
 
 ## 5. Backtick-escaped code spans — MUST NOT EVALUATE
 Use `=apfel(ghost)` and `=math(ghost)` in prose without them running.
@@ -57,7 +57,7 @@ Timeline: =ref(@3-nested-and-deep-math)
 漢字 before =math(8*8) after 日本語
 
 ## 12. Chaos monkey — random invalid junk mixed with valid
-=MATH(1+1) — uppercase name, skipped
+=MATH(1+1) — uppercase name, now discovered (case-insensitive)
 = math(1+1) — space after =, skipped
 =unknown(foo) — unknown function, skipped
 =math(abc) — garbage expression, evaluates to .error

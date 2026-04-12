@@ -91,10 +91,10 @@ struct DocumentViewModelTests {
         }
     }
 
-    @Test("composition: =concat with three sibling sub-calls")
-    func composeConcat() async throws {
+    @Test("composition: =concatenate with three sibling sub-calls")
+    func composeConcatenate() async throws {
         let vm = DocumentViewModel(runtime: FormulaRuntime(cache: InMemoryFormulaCache()))
-        try vm.load(rawMarkdown: #"=concat(=upper("a"), "-", =lower("B"))"#)
+        try vm.load(rawMarkdown: #"=concatenate(=upper("a"), "-", =lower("B"))"#)
         await vm.evaluateAll()
         if case .ready(let text) = vm.document.spans[0].value {
             #expect(text == "A-b")

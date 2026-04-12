@@ -8,17 +8,18 @@ enum FormulaCall: Equatable {
     case lower(text: String)
     case trim(text: String)
     case len(text: String)
-    case concat(parts: [String])
-    case replace(text: String, find: String, replacement: String)
-    case splitCall(text: String, delim: String, index: Int)
-    case ifCall(cond: String, thenValue: String, elseValue: String)
+    case concatenate(parts: [String])
+    case substitute(text: String, oldText: String, newText: String, occurrence: Int?)
+    case split(text: String, delim: String, index: Int)
+    case `if`(cond: String, thenValue: String, elseValue: String)
     case sum(args: [String])
-    case avg(args: [String])
+    case average(args: [String])
     // Document reference
     case ref(anchor: String)
     // Date / time
+    case today
     case date(offsetDays: Int)
-    case cw(offsetWeeks: Int)
+    case weeknum(offsetWeeks: Int)
     case month
     case day
     case time

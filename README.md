@@ -39,8 +39,9 @@ Think spreadsheets, but for text, with on-device AI as one of the functions.
 
 | Formula | Live example | Rendered result |
 |---|---|---|
+| `=today()` | `=today()` | `2026-04-12` |
 | `=date(offset?)` | `=date(+4)` | `2026-04-16` |
-| `=cw(offset?)` | `=cw(-1)` | `14` |
+| `=weeknum(offset?)` | `=weeknum(-1)` | `14` |
 | `=month() / =day() / =time()` | `=day() in =month()` | `Sunday in April` |
 
 **Text** (v0.2.2 — Google-Sheets-style, pure Swift)
@@ -51,12 +52,12 @@ Think spreadsheets, but for text, with on-device AI as one of the functions.
 | `=lower(text)` | `=lower("WORLD")` | `world` |
 | `=trim(text)` | `=trim("  hi  ")` | `hi` |
 | `=len(text)` | `=len("apfelpad")` | `8` |
-| `=concat(a, b, …)` | `=concat("Hello, ", "world")` | `Hello, world` |
-| `=replace(t, f, r)` | `=replace("hi world", "world", "apfelpad")` | `hi apfelpad` |
+| `=concatenate(a, b, …)` | `=concatenate("Hello, ", "world")` | `Hello, world` |
+| `=substitute(t, f, r)` | `=substitute("hi world", "world", "apfelpad")` | `hi apfelpad` |
 | `=split(t, d, i?)` | `=split("a,b,c", ",", 1)` | `b` |
 | `=if(cond, then, else)` | `=if("yes", "go", "stop")` | `go` |
 | `=sum(n1, n2, …)` | `=sum(1, 2, 3)` | `6` |
-| `=avg(n1, n2, …)` | `=avg(2, 4, 6)` | `4` |
+| `=average(n1, n2, …)` | `=average(2, 4, 6)` | `4` |
 
 **Document references** (v0.2.3+)
 
@@ -76,10 +77,10 @@ Every formula can take another formula as an argument. The resolver walks the so
 ```
 =upper(=ref(@#intro))                       → shouted section text
 =upper(=trim(=lower("   HELLO   ")))        → HELLO (three levels)
-=concat(=upper("a"), "-", =lower("B"))     → A-b (siblings)
+=concatenate(=upper("a"), "-", =lower("B"))     → A-b (siblings)
 =if(=math(5*5), "big", "small")            → big (25 is truthy)
 =sum(=len("abc"), =len("de"), =math(10))   → 15
-=apfel(=concat("summarize: ", =ref(@#intro)))  → AI reads the section
+=apfel(=concatenate("summarize: ", =ref(@#intro)))  → AI reads the section
 ```
 
 **Reactive variables** (v0.3.4)
@@ -89,7 +90,7 @@ Every formula can take another formula as an argument. The resolver walks the so
 | `=input(name, type, default?)` | `=input("hours", number, "40")` | Declare a reactive variable |
 | `=show(@name)` | `=show(@hours)` | Echo the current value of a bound variable |
 
-Typing a value into any `=input` re-evaluates every formula that references `@name` in real time. Combined with `=math`, `=if`, `=concat`, and `=apfel`, this turns any markdown document into an interactive calculator / form / AI-augmented proposal.
+Typing a value into any `=input` re-evaluates every formula that references `@name` in real time. Combined with `=math`, `=if`, `=concatenate`, and `=apfel`, this turns any markdown document into an interactive calculator / form / AI-augmented proposal.
 
 ### Auto-quoting
 

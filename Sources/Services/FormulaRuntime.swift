@@ -134,32 +134,34 @@ final class FormulaRuntime: Sendable {
             return try TrimFormulaEvaluator.evaluate(t)
         case .len(let t):
             return try LenFormulaEvaluator.evaluate(t)
-        case .concat(let parts):
-            return try ConcatFormulaEvaluator.evaluate(parts)
-        case .replace(let text, let find, let replacement):
-            return try ReplaceFormulaEvaluator.evaluate(
-                text: text, find: find, replacement: replacement
+        case .concatenate(let parts):
+            return try ConcatenateFormulaEvaluator.evaluate(parts)
+        case .substitute(let text, let oldText, let newText, let occurrence):
+            return try SubstituteFormulaEvaluator.evaluate(
+                text: text, find: oldText, replacement: newText, occurrence: occurrence
             )
-        case .splitCall(let text, let delim, let index):
+        case .`split`(let text, let delim, let index):
             return try SplitFormulaEvaluator.evaluate(
                 text: text, delim: delim, index: index
             )
-        case .ifCall(let cond, let thenValue, let elseValue):
+        case .`if`(let cond, let thenValue, let elseValue):
             return try IfFormulaEvaluator.evaluate(
                 cond: cond, thenValue: thenValue, elseValue: elseValue
             )
         case .sum(let args):
             return try SumFormulaEvaluator.evaluate(args)
-        case .avg(let args):
-            return try AvgFormulaEvaluator.evaluate(args)
+        case .average(let args):
+            return try AverageFormulaEvaluator.evaluate(args)
         case .apfel:
             throw RuntimeError.apfelRequiresStreamingPath
         case .ref:
             throw RuntimeError.refRequiresDocumentContext
         case .date(let offsetDays):
             return DateFormulaEvaluator.evaluate(offsetDays: offsetDays)
-        case .cw(let offsetWeeks):
-            return CwFormulaEvaluator.evaluate(offsetWeeks: offsetWeeks)
+        case .weeknum(let offsetWeeks):
+            return WeeknumFormulaEvaluator.evaluate(offsetWeeks: offsetWeeks)
+        case .today:
+            return DateFormulaEvaluator.evaluate(offsetDays: 0)
         case .month:
             return MonthFormulaEvaluator.evaluate()
         case .day:

@@ -45,40 +45,40 @@ struct HardcoreCompositionTests {
         } else { Issue.record("not ready") }
     }
 
-    @Test("len(concat(a, b, c))")
-    func lenConcat() async throws {
+    @Test("len(concatenate(a, b, c))")
+    func lenConcatenate() async throws {
         let vm = makeVM()
-        try vm.load(rawMarkdown: #"=len(=concat("Hello, ", "world"))"#)
+        try vm.load(rawMarkdown: #"=len(=concatenate("Hello, ", "world"))"#)
         await vm.evaluateAll()
         if case .ready(let text) = vm.document.spans[0].value {
             #expect(text == "12")
         } else { Issue.record("not ready") }
     }
 
-    @Test("upper(concat(a, b, c))")
-    func upperConcat() async throws {
+    @Test("upper(concatenate(a, b, c))")
+    func upperConcatenate() async throws {
         let vm = makeVM()
-        try vm.load(rawMarkdown: #"=upper(=concat("hello ", "world"))"#)
+        try vm.load(rawMarkdown: #"=upper(=concatenate("hello ", "world"))"#)
         await vm.evaluateAll()
         if case .ready(let text) = vm.document.spans[0].value {
             #expect(text == "HELLO WORLD")
         } else { Issue.record("not ready") }
     }
 
-    @Test("concat of two uppers")
-    func concatUppers() async throws {
+    @Test("concatenate of two uppers")
+    func concatenateUppers() async throws {
         let vm = makeVM()
-        try vm.load(rawMarkdown: #"=concat(=upper("a"), =upper("b"))"#)
+        try vm.load(rawMarkdown: #"=concatenate(=upper("a"), =upper("b"))"#)
         await vm.evaluateAll()
         if case .ready(let text) = vm.document.spans[0].value {
             #expect(text == "AB")
         } else { Issue.record("not ready") }
     }
 
-    @Test("replace(upper(X), A, B)")
-    func replaceUpper() async throws {
+    @Test("substitute(upper(X), A, B)")
+    func substituteUpper() async throws {
         let vm = makeVM()
-        try vm.load(rawMarkdown: #"=replace(=upper("hello world"), "WORLD", "APFELPAD")"#)
+        try vm.load(rawMarkdown: #"=substitute(=upper("hello world"), "WORLD", "APFELPAD")"#)
         await vm.evaluateAll()
         if case .ready(let text) = vm.document.spans[0].value {
             #expect(text == "HELLO APFELPAD")
@@ -129,10 +129,10 @@ struct HardcoreCompositionTests {
         } else { Issue.record("not ready") }
     }
 
-    @Test("concat of deeply nested pieces")
-    func concatDeep() async throws {
+    @Test("concatenate of deeply nested pieces")
+    func concatenateDeep() async throws {
         let vm = makeVM()
-        try vm.load(rawMarkdown: #"=concat(=upper(=trim("  a  ")), "-", =lower(=trim("  B  ")))"#)
+        try vm.load(rawMarkdown: #"=concatenate(=upper(=trim("  a  ")), "-", =lower(=trim("  B  ")))"#)
         await vm.evaluateAll()
         if case .ready(let text) = vm.document.spans[0].value {
             #expect(text == "A-b")
@@ -173,10 +173,10 @@ struct HardcoreCompositionTests {
         } else { Issue.record("not ready") }
     }
 
-    @Test("avg of nested lens")
-    func avgNestedLens() async throws {
+    @Test("average of nested lens")
+    func averageNestedLens() async throws {
         let vm = makeVM()
-        try vm.load(rawMarkdown: #"=avg(=len("ab"), =len("abcd"), =len("abcdef"))"#)
+        try vm.load(rawMarkdown: #"=average(=len("ab"), =len("abcd"), =len("abcdef"))"#)
         await vm.evaluateAll()
         if case .ready(let text) = vm.document.spans[0].value {
             #expect(text == "4")

@@ -85,23 +85,23 @@ All text formulas are **pure Swift** and never touch the LLM.
 
 `=len` counts grapheme clusters, so emoji count as 1.
 
-### `=concat(a, b, c, …)`
+### `=concatenate(a, b, c, …)`
 
 Variadic string concatenation. Joins any number of string args with no
-separator — use `=concat("Hello, ", "world", "!")` for a separator pattern.
+separator — use `=concatenate("Hello, ", "world", "!")` for a separator pattern.
 
 ```
-=concat("Hello, ", "world", "!")   → Hello, world!
-=concat("a", "b", "c")             → abc
+=concatenate("Hello, ", "world", "!")   → Hello, world!
+=concatenate("a", "b", "c")             → abc
 ```
 
-### `=replace(text, find, replacement)`
+### `=substitute(text, find, replacement)`
 
 First-occurrence substitution. Returns `text` unchanged if no match.
 
 ```
-=replace("hello world", "world", "apfelpad")  → hello apfelpad
-=replace("abc", "xyz", "!")                   → abc
+=substitute("hello world", "world", "apfelpad")  → hello apfelpad
+=substitute("abc", "xyz", "!")                   → abc
 ```
 
 ### `=split(text, delim, index?)`
@@ -118,7 +118,7 @@ Return the `index`-th piece (default 0). Out-of-range returns `""`.
 
 ## Numeric aggregates
 
-### `=sum(n1, n2, …)` / `=avg(n1, n2, …)`
+### `=sum(n1, n2, …)` / `=average(n1, n2, …)`
 
 Variadic sum and arithmetic mean. Each argument is parsed as a number.
 Throws on non-numeric input.
@@ -127,8 +127,8 @@ Throws on non-numeric input.
 =sum(1, 2, 3)             → 6
 =sum(10, -5)              → 5
 =sum(1.5, 2.5)            → 4
-=avg(2, 4, 6)             → 4
-=avg(1, 2)                → 1.5
+=average(2, 4, 6)             → 4
+=average(1, 2)                → 1.5
 ```
 
 ---
@@ -159,23 +159,31 @@ Combine with nested `=math` to make numeric conditionals work:
 ## Dates and time
 
 All date/time formulas read the user's locale by default. `=date` returns
-ISO 8601, `=time` returns 24-hour `HH:mm`, `=cw` returns the ISO calendar
+ISO 8601, `=time` returns 24-hour `HH:mm`, `=weeknum` returns the ISO calendar
 week (Monday start).
+
+### `=today()`
+
+```
+=today()      → 2026-04-12
+```
+
+Returns today's date in ISO 8601 format (YYYY-MM-DD). No arguments.
 
 ### `=date(offset?)`
 
 ```
-=date()       → 2026-04-12
 =date(+1)     → 2026-04-13
 =date(-7)     → 2026-04-05
+=date(+30)    → 2026-05-12
 ```
 
-### `=cw(offset?)`
+### `=weeknum(offset?)`
 
 ```
-=cw()         → 15
-=cw(-1)       → 14
-=cw(+1)       → 16
+=weeknum()         → 15
+=weeknum(-1)       → 14
+=weeknum(+1)       → 16
 ```
 
 ### `=month()` / `=day()` / `=time()`
@@ -228,10 +236,10 @@ this is enough to express any computable function on strings and numbers.
 ```
 =upper(=ref(@intro))                          → shouted intro
 =upper(=trim(=lower("   HELLO   ")))          → HELLO
-=concat(=upper("hello "), =lower("WORLD"))    → HELLO world
+=concatenate(=upper("hello "), =lower("WORLD"))    → HELLO world
 =if(=math(5*5), "big", "small")               → big
 =sum(=len("abc"), =len("de"), =math(10))      → 15
-=apfel(=concat("summarize: ", =ref(@intro))) → streaming AI summary
+=apfel(=concatenate("summarize: ", =ref(@intro))) → streaming AI summary
 ```
 
 The resolver is depth-capped so any pathological recursion terminates

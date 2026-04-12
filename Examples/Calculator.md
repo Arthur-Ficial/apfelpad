@@ -14,19 +14,19 @@ A practical calculator for estimating project costs, built entirely with apfelpa
 | Item | Value |
 |------|-------|
 | Hours | =show(@hours) |
-| Hourly rate | =concat("$", @rate) |
-| Subtotal | =concat("$", =math(@hours * @rate)) |
-| Discount | =concat(@discount, "%") |
-| After discount | =concat("$", =math(@hours * @rate * (100 - @discount) / 100)) |
-| Tax (=concat(@tax_rate, "%")) | =concat("$", =math(@hours * @rate * (100 - @discount) / 100 * @tax_rate / 100)) |
-| **Total** | =concat("$", =math(@hours * @rate * (100 - @discount) / 100 * (100 + @tax_rate) / 100)) |
+| Hourly rate | =concatenate("$", @rate) |
+| Subtotal | =concatenate("$", =math(@hours * @rate)) |
+| Discount | =concatenate(@discount, "%") |
+| After discount | =concatenate("$", =math(@hours * @rate * (100 - @discount) / 100)) |
+| Tax (=concatenate(@tax_rate, "%")) | =concatenate("$", =math(@hours * @rate * (100 - @discount) / 100 * @tax_rate / 100)) |
+| **Total** | =concatenate("$", =math(@hours * @rate * (100 - @discount) / 100 * (100 + @tax_rate) / 100)) |
 
 ## Weekly breakdown
 
 If the project runs =math(@hours / 40) weeks at 40 hours/week:
 
-- Per week: =concat("$", =math(@rate * 40))
-- Per day: =concat("$", =math(@rate * 8))
+- Per week: =concatenate("$", =math(@rate * 40))
+- Per day: =concatenate("$", =math(@rate * 8))
 
 ## Unit conversions
 
@@ -40,7 +40,7 @@ Quick reference:
 
 - Today: =date()
 - Weekday: =day()
-- Calendar week: =cw()
+- Calendar week: =weeknum()
 - This month: =month()
 
 ## Document stats

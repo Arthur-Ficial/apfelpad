@@ -15,10 +15,10 @@ struct NestedFormulaResolverTests {
     @Test("flattens two sibling sub-calls")
     func twoSiblings() async throws {
         let resolved = await NestedFormulaResolver.flatten(
-            source: #"=concat(=upper("a"), =lower("B"))"#,
+            source: #"=concatenate(=upper("a"), =lower("B"))"#,
             in: ""
         )
-        #expect(resolved == #"=concat("A", "b")"#)
+        #expect(resolved == #"=concatenate("A", "b")"#)
     }
 
     @Test("flattens =ref against a source document")
