@@ -3,58 +3,41 @@ import Foundation
 enum WelcomeWorkbook {
     static let sampleFilePlaceholder = "__WELCOME_SAMPLE_FILE__"
 
-    /// Safe accessor for the SwiftPM resource bundle.
-    /// - In SPM test/debug builds: `Bundle.module` works (has hardcoded path).
-    /// - In production .app: resource bundle must be in Contents/Resources/.
-    /// - If missing in production: returns nil (fallback welcome text).
-    static let resourceBundle: Bundle? = {
+    /// The SwiftPM resource bundle. In production, build-app.sh copies it to
+    /// Contents/Resources/. In SPM test/debug builds, Bundle.module resolves
+    /// via a hardcoded build-dir path. If the bundle is missing, the build is
+    /// broken — this is intentionally not guarded.
+    static let resourceBundle: Bundle = {
         let bundleName = "apfelpad_apfelpad"
 
-        // Production: look inside the app bundle.
+        // Production .app: resource bundle lives in Contents/Resources/.
         let appPath = Bundle.main.bundleURL
             .appendingPathComponent("Contents/Resources/\(bundleName).bundle")
-        if FileManager.default.fileExists(atPath: appPath.path) {
-            return Bundle(url: appPath)
+        if let bundle = Bundle(url: appPath) {
+            return bundle
         }
 
-        // SPM debug/test: Bundle.module uses a hardcoded build-dir path.
-        // Only safe to call when we're NOT a production .app bundle
-        // (production apps have a bundle identifier; test runners don't).
-        if Bundle.main.bundleIdentifier == nil {
-            return Bundle.module
-        }
-
-        return nil
+        // SPM debug/test: Bundle.module has a hardcoded build-dir path.
+        return Bundle.module
     }()
 
     static func template() -> String {
-        guard let bundle = resourceBundle,
-              let url = bundle.url(forResource: "WelcomeWorkbook", withExtension: "md"),
+        guard let url = resourceBundle.url(forResource: "WelcomeWorkbook", withExtension: "md"),
               let text = try? String(contentsOf: url, encoding: .utf8) else {
-            return fallbackWelcome
+            preconditionFailure("WelcomeWorkbook.md missing from resource bundle")
         }
         return text
     }
 
     static func document() -> String {
-        template().replacingOccurrences(
-            of: sampleFilePlaceholder,
-            with: sampleFileURL()?.path ?? "~/welcome-sample-file.txt"
-        )
+        let samplePath = sampleFileURL().path
+        return template().replacingOccurrences(of: sampleFilePlaceholder, with: samplePath)
     }
 
-    static func sampleFileURL() -> URL? {
-        resourceBundle?.url(forResource: "welcome-sample-file", withExtension: "txt")
+    static func sampleFileURL() -> URL {
+        guard let url = resourceBundle.url(forResource: "welcome-sample-file", withExtension: "txt") else {
+            preconditionFailure("welcome-sample-file.txt missing from resource bundle")
+        }
+        return url
     }
-
-    private static let fallbackWelcome = """
-    # Welcome to apfelpad
-
-    Type here to get started. Insert formulas from the sidebar (Cmd+Shift+F) or type them directly:
-
-    Simple math: =math(2 + 2)
-    Today's date: =date()
-    """
 }
-
-private final class BundleToken {}

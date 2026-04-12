@@ -86,6 +86,7 @@ struct DocumentView: View {
                 set: { vm.textDidChange($0) }
             ),
             document: vm.document,
+            documentGeneration: vm.documentGeneration,
             mode: .render,
             focusToken: vm.editorFocusToken,
             focusedInputName: vm.focusedInputName,
@@ -109,6 +110,7 @@ struct DocumentView: View {
                 set: { vm.textDidChange($0) }
             ),
             document: vm.document,
+            documentGeneration: vm.documentGeneration,
             mode: .source,
             focusToken: vm.editorFocusToken,
             focusedInputName: nil,

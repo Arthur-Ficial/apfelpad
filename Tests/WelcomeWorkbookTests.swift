@@ -22,11 +22,10 @@ struct WelcomeWorkbookTests {
     }
 
     @Test("document interpolates bundled sample file path")
-    func interpolatesBundledFilePath() throws {
+    func interpolatesBundledFilePath() {
         let rendered = WelcomeWorkbook.document()
         #expect(!rendered.contains(WelcomeWorkbook.sampleFilePlaceholder))
-        let samplePath = try #require(WelcomeWorkbook.sampleFileURL()?.path)
-        #expect(rendered.contains(samplePath))
+        #expect(rendered.contains(WelcomeWorkbook.sampleFileURL().path))
     }
 
     @Test("workbook evaluates core calculator and stub AI sections")

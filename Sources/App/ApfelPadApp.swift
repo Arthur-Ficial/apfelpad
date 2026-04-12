@@ -12,13 +12,11 @@ struct ApfelPadApp: App {
     private let cache: FormulaCache
 
     init() {
-        let cache: FormulaCache
-        if let sqlCache = try? SQLiteFormulaCache(path: SQLiteFormulaCache.defaultPath()) {
-            cache = sqlCache
-        } else {
-            cache = InMemoryFallbackCache()
+        do {
+            self.cache = try SQLiteFormulaCache(path: SQLiteFormulaCache.defaultPath())
+        } catch {
+            fatalError("SQLite cache init failed: \(error)")
         }
-        self.cache = cache
         let runtime = FormulaRuntime(
             cache: cache,
             llm: Self.shouldUseStubLLM ? DeterministicStubLLMService() : nil
@@ -182,11 +180,4 @@ struct ApfelPadApp: App {
     static var shouldSkipServer: Bool {
         ProcessInfo.processInfo.environment["APFELPAD_SKIP_SERVER"] == "1"
     }
-}
-
-final actor InMemoryFallbackCache: FormulaCache {
-    private var store: [String: String] = [:]
-    func get(key: CacheKey) async throws -> String? { store[key.hash] }
-    func set(key: CacheKey, value: String) async throws { store[key.hash] = value }
-    func delete(key: CacheKey) async throws { store.removeValue(forKey: key.hash) }
 }

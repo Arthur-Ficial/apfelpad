@@ -9,8 +9,11 @@ final class DocumentViewModel {
     var isDirty: Bool = false
     private(set) var rawText: String = ""
     private(set) var insertionLocation: Int = 0
-    var editingMode: EditingMode = .render
+    private(set) var editingMode: EditingMode = .render
     private(set) var editorFocusToken: Int = 0
+    /// Incremented on every reparse. The view uses this to know when a
+    /// full render rebuild is warranted vs. when it can skip (user typing).
+    private(set) var documentGeneration: Int = 0
     private(set) var focusedInputName: String?
     private(set) var inputFocusToken: Int = 0
 
@@ -245,6 +248,7 @@ extension DocumentViewModel {
         rawText = rawMarkdown
         insertionLocation = (rawMarkdown as NSString).length
         self.document = try Document(rawMarkdown: rawMarkdown)
+        documentGeneration += 1
         requestEditorFocus()
     }
 
@@ -261,6 +265,7 @@ extension DocumentViewModel {
 
         guard let newDoc = try? Document(rawMarkdown: rawText) else { return }
         document = newDoc
+        documentGeneration += 1
 
         var indicesToEvaluate: [Int] = []
         for (i, span) in document.spans.enumerated() {
@@ -450,6 +455,7 @@ extension DocumentViewModel {
                 document.spans[i].value = value
             }
         }
+        documentGeneration += 1
     }
 
     // MARK: - File operations

@@ -1,6 +1,11 @@
 import Testing
 @testable import apfelpad
 
+struct MockClipboard: ClipboardReading {
+    let value: String?
+    func currentString() -> String? { value }
+}
+
 @Suite("ClipFormula")
 struct ClipFormulaTests {
     @Test("parser recognises =clip()")
@@ -28,8 +33,15 @@ struct ClipFormulaTests {
         #expect(canonical == "=clip()")
     }
 
-    @Test("evaluator stays total in the test host")
-    func evaluateInTests() {
-        #expect(ClipFormulaEvaluator.evaluate() == "")
+    @Test("evaluator returns clipboard content")
+    func evaluateWithContent() {
+        let clip = MockClipboard(value: "hello from clipboard")
+        #expect(ClipFormulaEvaluator.evaluate(clipboard: clip) == "hello from clipboard")
+    }
+
+    @Test("evaluator returns empty string when clipboard is nil")
+    func evaluateEmpty() {
+        let clip = MockClipboard(value: nil)
+        #expect(ClipFormulaEvaluator.evaluate(clipboard: clip) == "")
     }
 }
