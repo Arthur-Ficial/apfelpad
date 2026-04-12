@@ -84,7 +84,17 @@ struct DocumentView: View {
         }
     }
 
+    /// Markdown mode renders evaluated values + real form widgets for
+    /// =input spans. Prose paragraphs show `8760` instead of `=math(365*24)`.
+    /// Use Source mode when you need to edit prose or formula source text.
     private var markdownEditor: some View {
+        DocumentBodyView(vm: vm)
+    }
+
+    /// Source mode is the editable surface — an NSTextView wrapper that
+    /// highlights every formula span in pale green while letting the user
+    /// freely type, paste, and drag text.
+    private var sourceEditor: some View {
         EditableMarkdownView(
             text: Binding(
                 get: { vm.rawText },
@@ -96,15 +106,6 @@ struct DocumentView: View {
             for item in items { vm.insertAtCursor(item) }
             return !items.isEmpty
         }
-    }
-
-    private var sourceEditor: some View {
-        TextEditor(text: Binding(
-            get: { vm.rawText },
-            set: { vm.textDidChange($0) }
-        ))
-        .font(.system(.body, design: .monospaced))
-        .padding(16)
     }
 
     private var statusStrip: some View {
