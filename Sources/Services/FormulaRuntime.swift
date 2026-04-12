@@ -165,7 +165,11 @@ final class FormulaRuntime: Sendable {
             return TimeFormulaEvaluator.evaluate()
         case .recording:
             return "🎙 recording UI — v0.4 (tap to record via apfel)"
-        case .input, .show:
+        case .clip:
+            return ClipFormulaEvaluator.evaluate()
+        case .file(let path):
+            return try FileFormulaEvaluator.evaluate(path: path)
+        case .count, .input, .show:
             throw RuntimeError.inputRequiresDocumentContext
         }
     }

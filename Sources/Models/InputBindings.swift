@@ -35,9 +35,37 @@ final class InputBindings: @unchecked Sendable {
         return Set(store.keys)
     }
 
+    /// A valid `@name` reference at position `i` requires that the
+    /// character immediately before `@` is NOT alphanumeric (or `.`) —
+    /// this filters out email addresses like `test@test.com` and
+    /// file-like tokens `foo.@bar`.
+    private static func isReferenceStart(chars: [Character], at i: Int) -> Bool {
+        guard i > 0 else { return true }
+        let prev = chars[i - 1]
+        if prev.isLetter || prev.isNumber { return false }
+        if prev == "." { return false }
+        return true
+    }
+
+    /// `@#name` is a section reference (for =ref), not an input variable.
+    private static func isSectionRef(chars: [Character], at i: Int) -> Bool {
+        i + 1 < chars.count && chars[i + 1] == "#"
+    }
+
+    /// Read a `[A-Za-z0-9_-]+` identifier starting at position `after` and
+    /// return the new index (exclusive end).
+    private static func readIdentifier(chars: [Character], after: Int) -> Int {
+        var j = after
+        while j < chars.count, chars[j].isLetter || chars[j].isNumber || chars[j] == "_" || chars[j] == "-" {
+            j += 1
+        }
+        return j
+    }
+
     /// Substitute every `@name` token in `source` with its bound value.
-    /// Unknown names are left unchanged. `@` followed by non-identifier
-    /// characters is left alone. Matching is case-insensitive.
+    /// Unknown names are left unchanged. Skips:
+    ///   - `@#name`   — section references
+    ///   - `word@word`— email-like tokens (alphanumeric or `.` before `@`)
     func substitute(in source: String) -> String {
         lock.lock()
         let snapshot = store
@@ -49,11 +77,17 @@ final class InputBindings: @unchecked Sendable {
         var i = 0
         while i < chars.count {
             if chars[i] == "@" {
-                // Read an identifier: [a-zA-Z_][a-zA-Z0-9_-]*
-                var j = i + 1
-                while j < chars.count, (chars[j].isLetter || chars[j].isNumber || chars[j] == "_" || chars[j] == "-") {
-                    j += 1
+                if Self.isSectionRef(chars: chars, at: i) {
+                    out.append(chars[i])
+                    i += 1
+                    continue
                 }
+                if !Self.isReferenceStart(chars: chars, at: i) {
+                    out.append(chars[i])
+                    i += 1
+                    continue
+                }
+                let j = Self.readIdentifier(chars: chars, after: i + 1)
                 let name = String(chars[(i+1)..<j]).lowercased()
                 if !name.isEmpty, let value = snapshot[name] {
                     out.append(value)
@@ -68,16 +102,22 @@ final class InputBindings: @unchecked Sendable {
     }
 
     /// Return the set of `@name` references in a formula source (lowercased).
+    /// Applies the same skip rules as `substitute`.
     static func references(in source: String) -> Set<String> {
         var out: Set<String> = []
         let chars = Array(source)
         var i = 0
         while i < chars.count {
             if chars[i] == "@" {
-                var j = i + 1
-                while j < chars.count, (chars[j].isLetter || chars[j].isNumber || chars[j] == "_" || chars[j] == "-") {
-                    j += 1
+                if isSectionRef(chars: chars, at: i) {
+                    i += 2
+                    continue
                 }
+                if !isReferenceStart(chars: chars, at: i) {
+                    i += 1
+                    continue
+                }
+                let j = readIdentifier(chars: chars, after: i + 1)
                 let name = String(chars[(i+1)..<j]).lowercased()
                 if !name.isEmpty { out.insert(name) }
                 i = j

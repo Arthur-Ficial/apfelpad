@@ -1,22 +1,23 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
+enum EditingMode: String, CaseIterable {
+    case markdown = "Markdown"
+    case source = "Source"
+}
+
 struct DocumentView: View {
     @Bindable var vm: DocumentViewModel
     @Bindable var barVM: FormulaBarViewModel
     @Bindable var catalogueVM: FormulaCatalogueSidebarViewModel
     var settingsVM: SettingsViewModel? = nil
-    @State private var editing: Bool = false
+    @State private var mode: EditingMode = .markdown
 
     var body: some View {
         HStack(spacing: 0) {
             VStack(spacing: 0) {
                 FormulaBarView(vm: barVM)
-                if editing {
-                    editor
-                } else {
-                    renderedView
-                }
+                editorArea
                 if settingsVM?.showLineCount == true {
                     statusStrip
                 }
@@ -30,10 +31,16 @@ struct DocumentView: View {
         .animation(.easeOut(duration: 0.18), value: catalogueVM.isOpen)
         .navigationTitle(vm.windowTitle)
         .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button(editing ? "Render" : "Edit source") {
-                    if editing { vm.flushPendingReparse() }
-                    editing.toggle()
+            ToolbarItem(placement: .principal) {
+                Picker("Mode", selection: $mode) {
+                    ForEach(EditingMode.allCases, id: \.self) { m in
+                        Text(m.rawValue).tag(m)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .frame(width: 200)
+                .onChange(of: mode) { _, _ in
+                    vm.flushPendingReparse()
                 }
             }
             ToolbarItem(placement: .primaryAction) {
@@ -42,7 +49,7 @@ struct DocumentView: View {
                 } label: {
                     Label("Formulas", systemImage: "function")
                 }
-                .help("Formula catalogue (⌘⇧F)")
+                .help("Formula catalogue (\u{2318}\u{21E7}F)")
                 .keyboardShortcut("f", modifiers: [.command, .shift])
             }
         }
@@ -58,18 +65,40 @@ struct DocumentView: View {
             return .systemAction
         })
         .onAppear {
-            // Wire the formula bar's commit callback to the document VM.
             barVM.onCommit = { [vm] id, newSource in
                 vm.replaceSpanSource(id: id, with: newSource)
             }
-            // Wire the catalogue sidebar's insert callback.
             catalogueVM.onInsert = { [vm] source in
                 vm.insertAtCursor(source)
             }
         }
     }
 
-    private var editor: some View {
+    @ViewBuilder
+    private var editorArea: some View {
+        switch mode {
+        case .markdown:
+            markdownEditor
+        case .source:
+            sourceEditor
+        }
+    }
+
+    private var markdownEditor: some View {
+        EditableMarkdownView(
+            text: Binding(
+                get: { vm.rawText },
+                set: { vm.textDidChange($0) }
+            ),
+            document: vm.document
+        )
+        .dropDestination(for: String.self) { items, _ in
+            for item in items { vm.insertAtCursor(item) }
+            return !items.isEmpty
+        }
+    }
+
+    private var sourceEditor: some View {
         TextEditor(text: Binding(
             get: { vm.rawText },
             set: { vm.textDidChange($0) }
@@ -78,45 +107,15 @@ struct DocumentView: View {
         .padding(16)
     }
 
-    private var renderedView: some View {
-        ScrollView {
-            Text(InlineFormulaRenderer.render(vm.document))
-                .font(.body)
-                .lineSpacing(6)
-                .textSelection(.enabled)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(24)
-        }
-        .dropDestination(for: String.self) { items, _ in
-            for item in items { vm.insertAtCursor(item) }
-            return !items.isEmpty
-        }
-        .overlay(alignment: .bottomTrailing) {
-            if !editing {
-                Button {
-                    editing = true
-                } label: {
-                    Label("Edit source", systemImage: "pencil")
-                        .font(.caption)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(.regularMaterial)
-                        .clipShape(Capsule())
-                }
-                .buttonStyle(.plain)
-                .padding(16)
-                .help("Edit the markdown source (⌘E)")
-                .keyboardShortcut("e", modifiers: [.command])
-            }
-        }
-    }
-
     private var statusStrip: some View {
         HStack {
-            Text("\(lineCount) lines · \(wordCount) words · \(vm.document.spans.count) formulas")
+            Text("\(lineCount) lines \u{00B7} \(wordCount) words \u{00B7} \(vm.document.spans.count) formulas")
                 .font(.caption)
                 .foregroundStyle(.secondary)
             Spacer()
+            Text(mode.rawValue)
+                .font(.caption)
+                .foregroundStyle(.tertiary)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 4)

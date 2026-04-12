@@ -1,18 +1,18 @@
 # apfelpad
 
-> ⚠️ **EXPERIMENTAL — v0.3.x.** apfelpad is in rapid early development. Things change fast, the feature set is still settling, rough edges expected. [File an issue](https://github.com/Arthur-Ficial/apfelpad/issues) if something breaks.
+> **v0.5.x.** apfelpad is in active development. Stable enough for daily use. [File an issue](https://github.com/Arthur-Ficial/apfelpad/issues) if something breaks.
 
 **A formula notepad for thinking. On-device AI as a first-class function — Turing-complete by composition.**
 
 ![apfelpad — the big sheet rendering every formula inline](site/img/screen-big-sheet.png)
 
-Type `=apfel("a love letter", 42)` anywhere in a markdown document. Press Return. Foundation Models runs on your Mac, the tokens stream into a pale-green span, and the result is cached deterministically. Nest it: `=upper(=ref(@intro))`. Branch on math: `=if(=math(5*5), "big", "small")`. Sum variadic args with US annotation: `=math($1,000,000 / 12)`.
+Type `=apfel("a love letter", 42)` anywhere in a markdown document. Press Return. Foundation Models runs on your Mac, the tokens stream into a pale-green span, and the result is cached deterministically. Nest it: `=upper(=ref(@#intro))`. Branch on math: `=if(=math(5*5), "big", "small")`. Sum variadic args with US annotation: `=math($1,000,000 / 12)`.
 
 Markdown underneath. 100% local. No API keys. Nothing leaves your Mac except an optional daily check to GitHub for new releases.
 
 **Built on [apfel](https://github.com/Arthur-Ficial/apfel)** — the CLI + OpenAI-compatible HTTP server wrapping Apple's on-device `FoundationModels` framework. Architecture copied 1:1 from [apfel-chat](https://github.com/Arthur-Ficial/apfel-chat): SwiftUI + `@Observable` MVVM + protocol-driven TDD with swift-testing. Release pipeline identical. Signed, notarised, shipped via Homebrew cask.
 
-> **Status: v0.3.1 shipped.** `brew install Arthur-Ficial/tap/apfelpad` · [Landing page](https://apfelpad.franzai.com) · [Latest release](https://github.com/Arthur-Ficial/apfelpad/releases/latest)
+> **Status: v0.5.0 shipped.** `brew install Arthur-Ficial/tap/apfelpad` · [Landing page](https://apfelpad.franzai.com) · [Latest release](https://github.com/Arthur-Ficial/apfelpad/releases/latest)
 
 ---
 
@@ -58,23 +58,28 @@ Think spreadsheets, but for text, with on-device AI as one of the functions.
 | `=sum(n1, n2, …)` | `=sum(1, 2, 3)` | `6` |
 | `=avg(n1, n2, …)` | `=avg(2, 4, 6)` | `4` |
 
-**Document references** (v0.2.3)
+**Document references** (v0.2.3+)
 
 | Formula | Live example | What it does |
 |---|---|---|
-| `=ref(@anchor)` | `=ref(@intro)` | Insert the text of a named heading section, live |
+| `=ref(@#anchor)` | `=ref(@#intro)` | Insert the text of a named heading section, live |
+| `=count(@#anchor?)` | `=count(@#intro)` | Word count of doc or a named section |
+| `=clip()` | `=clip()` | Current clipboard contents (text only) |
+| `=file(path)` | `=file("~/notes.txt")` | Read a local text file (max 1 MB) |
+
+**Syntax note:** `@name` = input variable, `@#name` = section reference. This prevents collisions.
 
 **Composition — Turing-complete** (v0.3.0)
 
 Every formula can take another formula as an argument. The resolver walks the source bottom-up, substitutes each sub-call's evaluated result, then runs the outer call. Combined with `=if` (branching) and `=ref` (state), this is enough to express any computable function.
 
 ```
-=upper(=ref(@intro))                       → shouted section text
-=upper(=trim(=lower("   HELLO   ")))       → HELLO (three levels)
+=upper(=ref(@#intro))                       → shouted section text
+=upper(=trim(=lower("   HELLO   ")))        → HELLO (three levels)
 =concat(=upper("a"), "-", =lower("B"))     → A-b (siblings)
 =if(=math(5*5), "big", "small")            → big (25 is truthy)
 =sum(=len("abc"), =len("de"), =math(10))   → 15
-=apfel(=concat("summarize: ", =ref(@intro)))  → AI reads the section
+=apfel(=concat("summarize: ", =ref(@#intro)))  → AI reads the section
 ```
 
 **Reactive variables** (v0.3.4)
@@ -91,8 +96,6 @@ Typing a value into any `=input` re-evaluates every formula that references `@na
 | Formula | Status |
 |---|---|
 | `=recording()` | Stub — parses, placeholder UI, real recording/transcription comes in v0.4 |
-| `=count(@anchor?)` | Reserved |
-| `=clip() / =file(path)` | Reserved |
 
 ### Auto-quoting
 

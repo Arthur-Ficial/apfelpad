@@ -35,7 +35,7 @@ struct Document: Equatable {
             "upper", "lower", "trim", "len", "concat", "replace",
             "if", "sum", "avg", "split",
             "cw", "month", "day", "time", "recording",
-            "input", "show"
+            "input", "show",
         ]
         var i = 0
         while i < n {

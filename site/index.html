@@ -903,8 +903,12 @@
     <h3 style="margin-top:36px;">Document references and reactive variables</h3>
     <div class="formula-grid">
       <div class="formula-item">
-        <div class="formula-name">=ref(@anchor)</div>
-        <div class="formula-desc">Insert the text of a named heading section. Live — updates as the document changes.</div>
+        <div class="formula-name">=ref(@#anchor)</div>
+        <div class="formula-desc">Insert the text of a named heading section. <code>@#</code> = section reference.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=count(@#anchor?)</div>
+        <div class="formula-desc">Word count of the whole document or a named section.</div>
       </div>
       <div class="formula-item">
         <div class="formula-name">=input(name, type, default?)</div>
@@ -913,6 +917,14 @@
       <div class="formula-item">
         <div class="formula-name">=show(@name)</div>
         <div class="formula-desc">Echo the current value of a bound variable.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=clip()</div>
+        <div class="formula-desc">Current clipboard contents (text only).</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=file(path)</div>
+        <div class="formula-desc">Read a local text file (max 1 MB).</div>
       </div>
     </div>
   </div>
@@ -923,7 +935,7 @@
   <div class="wrap">
     <div class="lbl">Document references</div>
     <h2>=ref pulls content from anywhere in the doc.</h2>
-    <p class="sub" style="max-width:640px;">Name a heading, then quote its section with <code>=ref(@name)</code>. When you edit the source heading, every <code>=ref</code> that points at it updates automatically.</p>
+    <p class="sub" style="max-width:640px;">Name a heading, then quote its section with <code>=ref(@#name)</code>. When you edit the source heading, every <code>=ref</code> that points at it updates automatically. Use <code>@#</code> for section references, <code>@</code> for input variables.</p>
 
     <div class="two-col-grid" style="display:grid;grid-template-columns:1fr;gap:32px;align-items:start;margin-top:40px;">
       <div>
@@ -943,9 +955,9 @@ Budget: =math(40*12*150) dollars.
 
 # Summary
 
-Goal: =ref(@project-brief)
+Goal: =ref(@#project-brief)
 
-Timeline: =ref(@key-numbers)</code></pre>
+Timeline: =ref(@#key-numbers)</code></pre>
       </div>
       <div>
         <h3 style="margin-top:0;">Rendered</h3>
@@ -966,7 +978,7 @@ Timeline: =ref(@key-numbers)</code></pre>
     <div class="two-col-grid" style="display:grid;grid-template-columns:1fr;gap:32px;margin-top:40px;">
       <div>
         <h3 style="margin-top:0;">Simple composition</h3>
-<pre style="background:#fafafa;border:1px solid var(--line);border-radius:8px;padding:16px;overflow-x:auto;font-size:13px;line-height:1.6;"><code>=upper(=ref(@intro))
+<pre style="background:#fafafa;border:1px solid var(--line);border-radius:8px;padding:16px;overflow-x:auto;font-size:13px;line-height:1.6;"><code>=upper(=ref(@#intro))
   → upper + ref
   → HELLO WORLD
 
@@ -988,7 +1000,7 @@ Timeline: =ref(@key-numbers)</code></pre>
   → 3 + 2 + 10
   → 15
 
-=apfel(=concat("summarize: ", =ref(@intro)))
+=apfel(=concat("summarize: ", =ref(@#intro)))
   → AI reads the intro section</code></pre>
       </div>
     </div>
@@ -1025,44 +1037,47 @@ Timeline: =ref(@key-numbers)</code></pre>
       <code>=input(name, type)</code> declares a document-level variable. <code>=show(@name)</code> echoes it. Any formula that references <code>@name</code> recomputes in real time when the value changes. Spreadsheet semantics, inside prose.
     </p>
 
+    <div style="margin-top:40px;">
+      <img src="img/screen-calculator.png" alt="apfelpad calculator example with reactive input variables and live math formulas" style="width:100%;max-width:800px;border-radius:12px;border:1px solid var(--line);box-shadow:0 4px 24px rgba(0,0,0,0.08);display:block;margin:0 auto 40px;">
+    </div>
     <div class="two-col-grid" style="display:grid;grid-template-columns:1fr;gap:32px;align-items:start;margin-top:40px;">
       <div>
         <h3 style="margin-top:0;">Source</h3>
-<pre style="background:#fafafa;border:1px solid var(--line);border-radius:8px;padding:16px;overflow-x:auto;font-size:13px;line-height:1.6;"><code># Quote calculator
+<pre style="background:#fafafa;border:1px solid var(--line);border-radius:8px;padding:16px;overflow-x:auto;font-size:13px;line-height:1.6;"><code># Freelance Project Calculator
 
-Client name: =input("client", text, "Acme Corp")
-Project hours: =input("hours", number, "40")
-Hourly rate: =input("rate", number, "150")
+=input("hours", number, "120")
+=input("rate", number, "95")
+=input("tax_rate", number, "20")
+=input("discount", number, "0")
 
-## Calculations
+## Project Estimate
 
-Subtotal: $=math(@hours * @rate)
-Tax (20%): $=math(@hours * @rate * 0.2)
-Total: $=math(@hours * @rate * 1.2)
+| Item | Value |
+|------|-------|
+| Hours | =show(@hours) |
+| Subtotal | =concat("$", =math(@hours * @rate)) |
+| Discount | =concat(@discount, "%") |
+| After discount | =concat("$", =math(@hours * @rate * (100 - @discount) / 100)) |
+| Tax | =concat("$", =math(@hours * @rate * @tax_rate / 100)) |
+| **Total** | =concat("$", =math(@hours * @rate * (100 + @tax_rate) / 100)) |
 
-## Summary
+## Document stats
 
-You're quoting =show(@client) for =show(@hours) hours
-at $=show(@rate) per hour.
-
-## AI proposal
-
-=apfel(=concat("Write a two-sentence project pitch for ",
-  @client, " — a ", @hours, "-hour engagement at $",
-  @rate, "/hour"))</code></pre>
+This document has =count() words.</code></pre>
       </div>
       <div>
         <h3 style="margin-top:0;">What it does</h3>
         <ul style="color:var(--text2);line-height:1.7;">
           <li>Each <code>=input</code> span renders as an inline form field (text, number, boolean, or date)</li>
-          <li>Typing a value into the hours input instantly re-evaluates the Subtotal, Tax, Total, and the <code>=show</code> echoes</li>
-          <li>The AI proposal recomposes live as you tweak the client name and rate — because the <code>=apfel</code> call wraps the bindings in <code>=concat</code></li>
-          <li>Cache keys use the substituted source, so rebinding never returns a stale value</li>
-          <li>Dependencies are discovered by walking <code>@name</code> references — O(spans) per keystroke, no explicit graph construction</li>
-          <li>The document is plain markdown. Save it, send it to a client, they open it in apfelpad, tweak the inputs. No cloud, no sign-in, no JavaScript.</li>
+          <li>Typing a value into the hours input instantly re-evaluates Subtotal, Tax, Total, and <code>=show</code> echoes</li>
+          <li><code>@name</code> = input variable, <code>@#section</code> = heading reference — clean separation</li>
+          <li><code>=count()</code> counts words in the whole document; <code>=count(@#section)</code> counts a specific section</li>
+          <li><code>=clip()</code> snapshots the clipboard; <code>=file(path)</code> reads a local text file</li>
+          <li>Dual editing: Markdown mode (editable with formula highlighting) and Source mode (raw text)</li>
+          <li>The document is plain markdown. Save it, send it, open it in apfelpad. No cloud, no sign-in.</li>
         </ul>
         <p style="margin-top:18px;color:var(--muted);font-size:13px;">
-          Fixture: <a href="https://github.com/Arthur-Ficial/apfelpad/blob/main/Tests/Fixtures/21-calculator.md" style="color:var(--brand)">Tests/Fixtures/21-calculator.md</a>
+          Example: <a href="https://github.com/Arthur-Ficial/apfelpad/blob/main/Examples/Calculator.md" style="color:var(--brand)">Examples/Calculator.md</a>
         </p>
       </div>
     </div>

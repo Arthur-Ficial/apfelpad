@@ -83,10 +83,17 @@ enum FormulaParser {
             return .avg(args: rawArgs.map(Self.parseStringLiteral))
         case "ref":
             guard rawArgs.count == 1 else {
-                throw Error.malformedArguments("ref expects 1 arg: =ref(@anchor)")
+                throw Error.malformedArguments("ref expects 1 arg: =ref(@#anchor)")
             }
             let raw = rawArgs[0].trimmingCharacters(in: .whitespaces)
-            let anchor = raw.hasPrefix("@") ? String(raw.dropFirst()) : raw
+            let anchor: String
+            if raw.hasPrefix("@#") {
+                anchor = String(raw.dropFirst(2))
+            } else if raw.hasPrefix("@") {
+                anchor = String(raw.dropFirst())
+            } else {
+                anchor = raw
+            }
             return .ref(anchor: anchor)
         case "date":
             let offset = rawArgs.isEmpty ? 0 : (try? Self.parseSignedInt(rawArgs[0])) ?? 0
@@ -126,6 +133,31 @@ enum FormulaParser {
             let raw = rawArgs[0].trimmingCharacters(in: .whitespaces)
             let name = raw.hasPrefix("@") ? String(raw.dropFirst()) : raw
             return .show(name: name)
+        case "count":
+            if rawArgs.isEmpty {
+                return .count(anchor: nil)
+            }
+            guard rawArgs.count == 1 else {
+                throw Error.malformedArguments("count expects 0 or 1 arg: =count(@#anchor?)")
+            }
+            let raw = rawArgs[0].trimmingCharacters(in: .whitespaces)
+            let anchor: String
+            if raw.hasPrefix("@#") {
+                anchor = String(raw.dropFirst(2))
+            } else if raw.hasPrefix("@") {
+                anchor = String(raw.dropFirst())
+            } else {
+                anchor = raw
+            }
+            return .count(anchor: anchor)
+        case "clip":
+            guard rawArgs.isEmpty else { throw Error.malformedArguments("clip takes no args") }
+            return .clip
+        case "file":
+            guard rawArgs.count == 1 else {
+                throw Error.malformedArguments("file expects 1 arg: =file(path)")
+            }
+            return .file(path: Self.parseStringLiteral(rawArgs[0]))
         default:
             throw Error.unknownFunction(name)
         }
@@ -177,7 +209,7 @@ enum FormulaParser {
         case .avg(let args):
             return "=avg(\(args.joined(separator: ", ")))"
         case .ref(let anchor):
-            return "=ref(@\(anchor))"
+            return "=ref(@#\(anchor))"
         case .date(let offset):
             return offset == 0 ? "=date()" : "=date(\(offset >= 0 ? "+" : "")\(offset))"
         case .cw(let offset):
@@ -193,6 +225,14 @@ enum FormulaParser {
             return "=input(\"\(name)\", \(type.rawValue))"
         case .show(let name):
             return "=show(@\(name))"
+        case .count(nil):
+            return "=count()"
+        case .count(let anchor?):
+            return "=count(@#\(anchor))"
+        case .clip:
+            return "=clip()"
+        case .file(let path):
+            return "=file(\"\(path)\")"
         }
     }
 

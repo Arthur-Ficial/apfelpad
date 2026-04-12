@@ -75,6 +75,45 @@ struct InputBindingsTests {
         #expect(result == "=sum(1, 2, 3)")
     }
 
+    @Test("InputBindings substitute inside string literals")
+    func bindingsInsideString() {
+        let bindings = InputBindings()
+        bindings.set("client", to: "Acme")
+        let result = bindings.substitute(in: #"=apfel("Hello @client, welcome!")"#)
+        #expect(result == #"=apfel("Hello Acme, welcome!")"#)
+    }
+
+    @Test("InputBindings substitute leaves email addresses alone")
+    func bindingsSkipEmails() {
+        let bindings = InputBindings()
+        bindings.set("test", to: "REPLACED")
+        // test@test.com is an email — @test inside it must NOT substitute
+        let result = bindings.substitute(in: "Contact test@test.com about @test")
+        #expect(result == "Contact test@test.com about REPLACED")
+    }
+
+    @Test("InputBindings substitute skips @#section references")
+    func bindingsSkipSections() {
+        let bindings = InputBindings()
+        bindings.set("intro", to: "SHOULD NOT APPEAR")
+        let result = bindings.substitute(in: "=ref(@#intro)")
+        #expect(result == "=ref(@#intro)")
+    }
+
+    @Test("references() ignores email addresses")
+    func referencesIgnoreEmails() {
+        let refs = InputBindings.references(in: "Email: admin@example.com and @hours")
+        #expect(refs.contains("hours"))
+        #expect(!refs.contains("example"))
+    }
+
+    @Test("references() ignores @#section refs")
+    func referencesIgnoreSections() {
+        let refs = InputBindings.references(in: "=ref(@#intro) and @hours")
+        #expect(refs.contains("hours"))
+        #expect(!refs.contains("intro"))
+    }
+
     // MARK: - =show for echoing a variable
 
     @Test("parser recognises =show(@name)")

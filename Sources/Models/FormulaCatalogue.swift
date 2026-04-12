@@ -184,11 +184,42 @@ enum FormulaCatalogue {
         FormulaCatalogueEntry(
             name: "=ref",
             category: .reference,
-            signature: "=ref(@anchor)",
+            signature: "=ref(@#anchor)",
             description: "Insert the text of a named heading section (live)",
-            example: "=ref(@intro)",
+            example: "=ref(@#intro)",
             exampleResult: "(contents of the 'Intro' section)",
             keywords: ["reference", "section", "anchor", "heading", "link"]
+        ),
+
+        // Document introspection
+        FormulaCatalogueEntry(
+            name: "=count",
+            category: .reference,
+            signature: "=count(@#anchor?)",
+            description: "Word count of the whole document or a named section",
+            example: "=count(@#intro)",
+            exampleResult: "42",
+            keywords: ["word", "count", "length", "section", "words", "statistics"]
+        ),
+
+        // System access
+        FormulaCatalogueEntry(
+            name: "=clip",
+            category: .text,
+            signature: "=clip()",
+            description: "Current clipboard contents (text only)",
+            example: "=clip()",
+            exampleResult: "(clipboard text)",
+            keywords: ["clipboard", "paste", "copy", "pasteboard"]
+        ),
+        FormulaCatalogueEntry(
+            name: "=file",
+            category: .reference,
+            signature: "=file(path)",
+            description: "Read a local text file (max 1 MB)",
+            example: #"=file("~/notes.txt")"#,
+            exampleResult: "(file contents)",
+            keywords: ["file", "read", "local", "include", "import", "text"]
         ),
 
         // v0.4 preview

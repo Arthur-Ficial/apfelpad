@@ -45,6 +45,26 @@ struct FormulaParserTests {
         #expect(result == .math(expression: "$1,250 + $750"))
     }
 
+    @Test("=ref accepts @#name (section) syntax")
+    func refWithHashPrefix() throws {
+        let call = try FormulaParser.parse("=ref(@#intro)")
+        if case .ref(let anchor) = call {
+            #expect(anchor == "intro")
+        } else {
+            Issue.record("not ref")
+        }
+    }
+
+    @Test("=ref still accepts legacy @name syntax")
+    func refLegacyAt() throws {
+        let call = try FormulaParser.parse("=ref(@intro)")
+        if case .ref(let anchor) = call {
+            #expect(anchor == "intro")
+        } else {
+            Issue.record("not ref")
+        }
+    }
+
     @Test("parses =math(42+2*3)")
     func mathCall() throws {
         let result = try FormulaParser.parse("=math(42+2*3)")

@@ -179,6 +179,12 @@ enum NestedFormulaResolver {
             return TimeFormulaEvaluator.evaluate()
         case .recording:
             return "🎙 recording"
+        case .count(let anchor):
+            return String(CountFormulaEvaluator.evaluate(anchor: anchor, in: markdown))
+        case .clip:
+            return ClipFormulaEvaluator.evaluate()
+        case .file(let path):
+            return try FileFormulaEvaluator.evaluate(path: path)
         case .input, .show:
             // Resolved at the document layer against InputBindings.
             throw RuntimeError.inputRequiresDocumentContext

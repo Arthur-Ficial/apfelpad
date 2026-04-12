@@ -147,6 +147,11 @@ struct ApfelPadApp: App {
     The source travels with the file.
 
     =apfel("one sentence — why formulas beat chat for writing", 7)
+
+    ## Document info
+
+    This document has =count() words.
+    Today is =date() (=day(), week =cw()).
     """
 }
 

@@ -24,7 +24,12 @@ enum FormulaCall: Equatable {
     case time
     // v0.4 preview — placeholder that renders a "coming soon" message.
     case recording
+    // v0.4 — document introspection
+    case count(anchor: String?)
     // v0.5 — reactive input variables + echo
     case input(name: String, type: InputType, defaultValue: String?)
     case show(name: String)
+    // v0.5 — system access
+    case clip
+    case file(path: String)
 }

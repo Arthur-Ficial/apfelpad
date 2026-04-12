@@ -254,8 +254,21 @@ extension DocumentViewModel {
                     }
                     continue
                 }
-                if case .show(let name) = call {
-                    let current = bindings.value(for: name) ?? "(no value)"
+                if case .show = call {
+                    // Extract variable name from the RAW source (before @name
+                    // substitution), not from the parsed call — otherwise
+                    // =show(@hours) becomes =show(120) after substitution and
+                    // we'd look up "120" instead of "hours".
+                    let showName: String
+                    if let rawCall = try? FormulaParser.parse(rawSource),
+                       case .show(let n) = rawCall {
+                        showName = n
+                    } else if case .show(let n) = call {
+                        showName = n
+                    } else {
+                        continue
+                    }
+                    let current = bindings.value(for: showName) ?? "(no value)"
                     if i < document.spans.count, document.spans[i].source == rawSource {
                         document.spans[i].value = .ready(text: current)
                     }
@@ -266,10 +279,17 @@ extension DocumentViewModel {
                     if let text = NamedAnchorResolver.resolve(anchor, in: markdown) {
                         resolved = .ready(text: text.trimmingCharacters(in: .whitespacesAndNewlines))
                     } else {
-                        resolved = .error(message: "ref: no heading named @\(anchor)")
+                        resolved = .error(message: "ref: no heading named @#\(anchor)")
                     }
                     if i < document.spans.count, document.spans[i].source == rawSource {
                         document.spans[i].value = resolved
+                    }
+                    continue
+                }
+                if case .count(let anchor) = call {
+                    let text = CountFormulaEvaluator.evaluate(anchor: anchor, in: markdown)
+                    if i < document.spans.count, document.spans[i].source == rawSource {
+                        document.spans[i].value = .ready(text: text)
                     }
                     continue
                 }
