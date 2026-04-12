@@ -7,8 +7,31 @@ import Foundation
 ///
 /// Kept tiny and pure so it can be unit-tested in isolation.
 enum FormulaPreprocessor {
+    private static let aliases: [String: String] = [
+        "ai": "apfel",
+        "apple": "apfel",
+    ]
+
     static func normalize(_ source: String) -> String {
-        straightenQuotes(expandAnonymous(source))
+        straightenQuotes(expandAnonymous(expandAliases(source)))
+    }
+
+    /// Expand known aliases: `=AI(...)` → `=apfel(...)`, `=APPLE(...)` → `=apfel(...)`.
+    /// Case-insensitive. Only rewrites the top-level function name.
+    static func expandAliases(_ source: String) -> String {
+        let trimmed = source.trimmingCharacters(in: .whitespaces)
+        guard trimmed.hasPrefix("=") else { return source }
+        let afterEquals = trimmed.dropFirst()
+        // Extract function name
+        var nameEnd = afterEquals.startIndex
+        while nameEnd < afterEquals.endIndex, afterEquals[nameEnd].isLetter {
+            nameEnd = afterEquals.index(after: nameEnd)
+        }
+        guard nameEnd < afterEquals.endIndex, afterEquals[nameEnd] == "(" else { return source }
+        let name = String(afterEquals[afterEquals.startIndex..<nameEnd]).lowercased()
+        guard let canonical = aliases[name] else { return source }
+        let rest = afterEquals[nameEnd...]
+        return "=\(canonical)\(rest)"
     }
 
     /// Replace curly/smart quotes with their ASCII equivalents so the parser's

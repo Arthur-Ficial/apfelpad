@@ -9,21 +9,23 @@ struct FormulaCatalogueEntry: Identifiable, Equatable, Hashable {
         case math
         case text
         case aggregate
-        case control
+        case logical
         case date
         case reference
+        case info
         case preview
 
         var title: String {
             switch self {
-            case .ai:        return "On-device AI"
-            case .math:      return "Arithmetic"
-            case .text:      return "Text"
-            case .aggregate: return "Aggregates"
-            case .control:   return "Control flow"
-            case .date:      return "Dates & time"
-            case .reference: return "Document references"
-            case .preview:   return "v0.4 preview"
+            case .ai:        return "ON-DEVICE AI"
+            case .math:      return "ARITHMETIC"
+            case .text:      return "TEXT"
+            case .aggregate: return "AGGREGATES"
+            case .logical:   return "LOGICAL"
+            case .date:      return "DATES & TIME"
+            case .reference: return "DOCUMENT"
+            case .info:      return "INFO"
+            case .preview:   return "PREVIEW"
             }
         }
 
@@ -34,10 +36,11 @@ struct FormulaCatalogueEntry: Identifiable, Equatable, Hashable {
             case .math:      return 1
             case .text:      return 2
             case .aggregate: return 3
-            case .control:   return 4
+            case .logical:   return 4
             case .date:      return 5
             case .reference: return 6
-            case .preview:   return 7
+            case .info:      return 7
+            case .preview:   return 8
             }
         }
     }

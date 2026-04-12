@@ -221,7 +221,7 @@ enum FormulaRegistry {
         FormulaDefinition(
             functionName: "if",
             displayName: "=if",
-            category: .control,
+            category: .logical,
             signature: "=if(cond, then, else)",
             description: "Branch on a truthy condition",
             example: #"=if("yes", "go", "stop")"#,
@@ -365,7 +365,7 @@ enum FormulaRegistry {
     ]
 
     static var discoverableFunctionNames: Set<String> {
-        Set(all.filter(\.isDiscoverable).map(\.functionName).filter { !$0.isEmpty })
+        Set(all.filter(\.isDiscoverable).map { $0.functionName.lowercased() }.filter { !$0.isEmpty })
     }
 
     static var publicDefinitions: [FormulaDefinition] {
@@ -377,6 +377,7 @@ enum FormulaRegistry {
     }
 
     static func definition(forFunctionName name: String) -> FormulaDefinition? {
-        all.first { $0.functionName == name }
+        let lower = name.lowercased()
+        return all.first { $0.functionName == lower }
     }
 }

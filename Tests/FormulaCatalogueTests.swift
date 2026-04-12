@@ -23,7 +23,7 @@ struct FormulaCatalogueTests {
     @Test("every entry belongs to a known category")
     func categories() {
         let known: Set<FormulaCatalogueEntry.Category> = [
-            .ai, .math, .text, .aggregate, .control, .date, .reference, .preview
+            .ai, .math, .text, .aggregate, .logical, .date, .reference, .info, .preview
         ]
         for entry in FormulaCatalogue.all {
             #expect(known.contains(entry.category))

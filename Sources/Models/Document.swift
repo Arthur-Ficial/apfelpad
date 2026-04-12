@@ -46,7 +46,7 @@ struct Document: Equatable {
             }
             // Accept either `=name(` (with a known name) or `=(` (anonymous apfel)
             let isAnonymous = (name.isEmpty && j < n && chars[j] == "(")
-            let isNamed = (!name.isEmpty && knownNames.contains(name) && j < n && chars[j] == "(")
+            let isNamed = (!name.isEmpty && knownNames.contains(name.lowercased()) && j < n && chars[j] == "(")
             guard isAnonymous || isNamed else {
                 i += 1
                 continue

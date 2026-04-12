@@ -231,4 +231,62 @@ struct FormulaParserTests {
     func parseAvg() throws {
         #expect(try FormulaParser.parse("=avg(10, 20, 30)") == .avg(args: ["10", "20", "30"]))
     }
+
+    // ── Phase 0: Case-insensitive parsing ──────────────────────────────────
+
+    @Test("case-insensitive: =UPPER parses like =upper")
+    func caseInsensitiveUpper() throws {
+        #expect(try FormulaParser.parse(#"=UPPER("hello")"#) == .upper(text: "hello"))
+    }
+
+    @Test("case-insensitive: =Upper parses like =upper")
+    func caseInsensitiveMixed() throws {
+        #expect(try FormulaParser.parse(#"=Upper("hello")"#) == .upper(text: "hello"))
+    }
+
+    @Test("case-insensitive: =MATH parses like =math")
+    func caseInsensitiveMath() throws {
+        #expect(try FormulaParser.parse("=MATH(1+1)") == .math(expression: "1+1"))
+    }
+
+    @Test("case-insensitive: =SUM parses like =sum")
+    func caseInsensitiveSum() throws {
+        #expect(try FormulaParser.parse("=SUM(1, 2, 3)") == .sum(args: ["1", "2", "3"]))
+    }
+
+    @Test("case-insensitive: =IF parses like =if")
+    func caseInsensitiveIf() throws {
+        #expect(
+            try FormulaParser.parse(#"=IF("yes", "then", "else")"#)
+            == .ifCall(cond: "yes", thenValue: "then", elseValue: "else")
+        )
+    }
+
+    // ── Phase 0: =AI() and =APPLE() aliases ───────────────────────────────
+
+    @Test("=AI() is alias for =apfel()")
+    func aiAlias() throws {
+        #expect(try FormulaParser.parse(#"=AI("hello")"#) == .apfel(prompt: "hello", seed: nil))
+    }
+
+    @Test("=ai() lowercase alias")
+    func aiLowercase() throws {
+        #expect(try FormulaParser.parse(#"=ai("hello")"#) == .apfel(prompt: "hello", seed: nil))
+    }
+
+    @Test("=APPLE() is alias for =apfel()")
+    func appleAlias() throws {
+        #expect(try FormulaParser.parse(#"=APPLE("hello", 42)"#) == .apfel(prompt: "hello", seed: 42))
+    }
+
+    @Test("=apple() lowercase alias")
+    func appleLowercase() throws {
+        #expect(try FormulaParser.parse(#"=apple("hello")"#) == .apfel(prompt: "hello", seed: nil))
+    }
+
+    @Test("=AI canonicalises to =apfel")
+    func aiCanonicalises() throws {
+        let canonical = try FormulaParser.canonicalise(#"=AI("hi")"#)
+        #expect(canonical == #"=apfel("hi")"#)
+    }
 }
