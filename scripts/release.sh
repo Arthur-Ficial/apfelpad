@@ -63,7 +63,7 @@ print "==> Notarisation ticket verified."
 # ── Regenerate screenshots (window-only) ────────────────────────────────────
 print ""
 print "==> Regenerating screenshots..."
-"$ROOT_DIR/scripts/screenshot.sh"
+"$ROOT_DIR/scripts/screenshot.sh" || print "    (screenshot step failed — continuing, will use existing)"
 if ! git -C "$ROOT_DIR" diff --quiet site/img/; then
     git -C "$ROOT_DIR" add site/img/
     git -C "$ROOT_DIR" commit -m "chore: regenerate screenshots for $TAG"
