@@ -164,10 +164,9 @@ final class FormulaRuntime: Sendable {
         case .time:
             return TimeFormulaEvaluator.evaluate()
         case .recording:
-            // v0.4 preview: the span renders a placeholder message.
-            // The real implementation will show an inline record button
-            // that captures audio via apfel and transcribes on stop.
             return "🎙 recording UI — v0.4 (tap to record via apfel)"
+        case .input, .show:
+            throw RuntimeError.inputRequiresDocumentContext
         }
     }
 
@@ -201,6 +200,7 @@ enum RuntimeError: LocalizedError {
     case llmNotConfigured
     case apfelRequiresStreamingPath
     case refRequiresDocumentContext
+    case inputRequiresDocumentContext
     case anchorNotFound(String)
 
     var errorDescription: String? {
@@ -211,6 +211,8 @@ enum RuntimeError: LocalizedError {
             return "internal error: .apfel must go through the streaming path"
         case .refRequiresDocumentContext:
             return "internal error: =ref must be resolved at the document layer"
+        case .inputRequiresDocumentContext:
+            return "internal error: =input / =show must be resolved at the document layer"
         case .anchorNotFound(let name):
             return "ref: no heading named @\(name) in this document"
         }

@@ -87,6 +87,28 @@ struct DocumentView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(24)
         }
+        .dropDestination(for: String.self) { items, _ in
+            for item in items { vm.insertAtCursor(item) }
+            return !items.isEmpty
+        }
+        .overlay(alignment: .bottomTrailing) {
+            if !editing {
+                Button {
+                    editing = true
+                } label: {
+                    Label("Edit source", systemImage: "pencil")
+                        .font(.caption)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(.regularMaterial)
+                        .clipShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                .padding(16)
+                .help("Edit the markdown source (⌘E)")
+                .keyboardShortcut("e", modifiers: [.command])
+            }
+        }
     }
 
     private var statusStrip: some View {

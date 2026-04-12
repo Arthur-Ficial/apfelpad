@@ -179,6 +179,9 @@ enum NestedFormulaResolver {
             return TimeFormulaEvaluator.evaluate()
         case .recording:
             return "🎙 recording"
+        case .input, .show:
+            // Resolved at the document layer against InputBindings.
+            throw RuntimeError.inputRequiresDocumentContext
         case .apfel:
             // =apfel is async — not supported inside nested composition
             // at this depth. The outer evaluator will handle a standalone

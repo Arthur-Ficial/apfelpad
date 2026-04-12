@@ -13,6 +13,8 @@ final class DocumentViewModel {
     private let store: DocumentPersistence
     private var debounceTask: Task<Void, Never>?
     private var autosaveTask: Task<Void, Never>?
+    /// Document-level input variable bindings for =input / @name / =show.
+    let bindings = InputBindings()
 
     var windowTitle: String {
         let name = fileURL?.lastPathComponent ?? "Untitled"
@@ -70,6 +72,26 @@ extension DocumentViewModel {
         if let doc = try? Document(rawMarkdown: newText) {
             document = doc
             Task { await evaluateAll() }
+        }
+    }
+
+    /// Set a named input binding and re-evaluate every span that references
+    /// it. This is the reactive state primitive: typing into an =input widget
+    /// triggers a single call here which walks the document for @name
+    /// mentions and re-runs only the dependent formulas.
+    func setInputBinding(_ name: String, to value: String) {
+        bindings.set(name, to: value)
+        // Collect indices of spans whose source references @name
+        var dependents: [Int] = []
+        let lowered = name.lowercased()
+        for (i, span) in document.spans.enumerated() {
+            let refs = InputBindings.references(in: span.source)
+            if refs.contains(lowered) {
+                dependents.append(i)
+            }
+        }
+        if !dependents.isEmpty {
+            Task { await evaluateIndices(dependents) }
         }
     }
 
@@ -179,16 +201,31 @@ extension DocumentViewModel {
         let snapshot = document
         let markdown = rawText
 
-        // Phase 1: flatten every span's source (sync, on main) so nested
-        // sub-calls are resolved into quoted literals BEFORE the runtime
-        // runs. =upper(=ref(@intro)) becomes =upper("hello world") etc.
-        var flattenedCalls: [(Int, String, FormulaCall)] = []
+        // Phase 0: seed bindings from =input defaults BEFORE any dependent
+        // formulas try to substitute @names. Otherwise a formula like
+        // =math(@hours * 150) would see an empty @hours on first evaluation.
+        for i in indices {
+            guard i < snapshot.spans.count else { continue }
+            let span = snapshot.spans[i]
+            if let call = try? FormulaParser.parse(span.source),
+               case .input(let name, _, let defaultValue) = call {
+                if bindings.value(for: name) == nil, let def = defaultValue {
+                    bindings.set(name, to: def)
+                }
+            }
+        }
+
+        // Phase 1: for each span, substitute @name bindings, then flatten
+        // nested sub-calls, then parse.
+        var flattenedCalls: [(Int, String, FormulaCall, String)] = []
         for i in indices {
             guard i < snapshot.spans.count else { continue }
             let span = snapshot.spans[i]
             let rawSource = span.source
+            let refs = InputBindings.references(in: rawSource)
+            let withBindings = bindings.substitute(in: rawSource)
             let flattened = await NestedFormulaResolver.flatten(
-                source: rawSource, in: markdown
+                source: withBindings, in: markdown
             )
             guard let call = try? FormulaParser.parse(flattened) else {
                 if i < document.spans.count, document.spans[i].source == rawSource {
@@ -196,14 +233,34 @@ extension DocumentViewModel {
                 }
                 continue
             }
-            flattenedCalls.append((i, rawSource, call))
+            // Cache key source: the substituted form so changing bindings
+            // invalidates. Fall back to raw source when no @ refs exist.
+            let runtimeSource = refs.isEmpty ? rawSource : withBindings
+            flattenedCalls.append((i, rawSource, call, runtimeSource))
         }
 
         // Phase 2: run the flattened calls through the runtime (or handle
-        // =ref standalone).
+        // =ref / =input / =show directly at the document layer).
         await withTaskGroup(of: (Int, String, FormulaValue).self) { group in
-            for (i, rawSource, call) in flattenedCalls {
-                // Standalone =ref at the top level (not inside another call)
+            for (i, rawSource, call, runtimeSource) in flattenedCalls {
+                // =input — render the current binding value (or the default)
+                if case .input(let name, _, let defaultValue) = call {
+                    let current = bindings.value(for: name) ?? defaultValue ?? ""
+                    if bindings.value(for: name) == nil, let def = defaultValue {
+                        bindings.set(name, to: def)
+                    }
+                    if i < document.spans.count, document.spans[i].source == rawSource {
+                        document.spans[i].value = .ready(text: current)
+                    }
+                    continue
+                }
+                if case .show(let name) = call {
+                    let current = bindings.value(for: name) ?? "(no value)"
+                    if i < document.spans.count, document.spans[i].source == rawSource {
+                        document.spans[i].value = .ready(text: current)
+                    }
+                    continue
+                }
                 if case .ref(let anchor) = call {
                     let resolved: FormulaValue
                     if let text = NamedAnchorResolver.resolve(anchor, in: markdown) {
@@ -217,12 +274,15 @@ extension DocumentViewModel {
                     continue
                 }
 
+                // Use the substituted source as the cache key so rebinding
+                // an @name invalidates the previous cached result.
+                let cacheKeySource = runtimeSource
                 group.addTask { [runtime] in
                     var last: FormulaValue = .idle
                     do {
                         for try await value in runtime.evaluateStreaming(
                             call: call,
-                            source: rawSource,
+                            source: cacheKeySource,
                             context: ""
                         ) {
                             last = value

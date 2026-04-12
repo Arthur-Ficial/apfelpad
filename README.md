@@ -77,6 +77,15 @@ Every formula can take another formula as an argument. The resolver walks the so
 =apfel(=concat("summarize: ", =ref(@intro)))  → AI reads the section
 ```
 
+**Reactive variables** (v0.3.4)
+
+| Formula | Live example | What it does |
+|---|---|---|
+| `=input(name, type, default?)` | `=input("hours", number, "40")` | Declare a reactive variable |
+| `=show(@name)` | `=show(@hours)` | Echo the current value of a bound variable |
+
+Typing a value into any `=input` re-evaluates every formula that references `@name` in real time. Combined with `=math`, `=if`, `=concat`, and `=apfel`, this turns any markdown document into an interactive calculator / form / AI-augmented proposal.
+
 **v0.4 preview**
 
 | Formula | Status |

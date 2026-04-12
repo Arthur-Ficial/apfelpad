@@ -106,6 +106,26 @@ enum FormulaParser {
         case "recording":
             guard rawArgs.isEmpty else { throw Error.malformedArguments("recording takes no args") }
             return .recording
+        case "input":
+            guard (2...3).contains(rawArgs.count) else {
+                throw Error.malformedArguments("input expects: name, type, default?")
+            }
+            let name = Self.parseStringLiteral(rawArgs[0])
+            let typeRaw = rawArgs[1].trimmingCharacters(in: .whitespaces).lowercased()
+            guard let type = InputType(rawValue: typeRaw) else {
+                throw Error.malformedArguments("unknown input type: \(typeRaw) — must be text|number|boolean|date")
+            }
+            let defaultValue: String? = rawArgs.count == 3
+                ? Self.parseStringLiteral(rawArgs[2])
+                : nil
+            return .input(name: name, type: type, defaultValue: defaultValue)
+        case "show":
+            guard rawArgs.count == 1 else {
+                throw Error.malformedArguments("show expects 1 arg: =show(@name)")
+            }
+            let raw = rawArgs[0].trimmingCharacters(in: .whitespaces)
+            let name = raw.hasPrefix("@") ? String(raw.dropFirst()) : raw
+            return .show(name: name)
         default:
             throw Error.unknownFunction(name)
         }
@@ -166,6 +186,13 @@ enum FormulaParser {
         case .day: return "=day()"
         case .time: return "=time()"
         case .recording: return "=recording()"
+        case .input(let name, let type, let def):
+            if let d = def {
+                return "=input(\"\(name)\", \(type.rawValue), \"\(d)\")"
+            }
+            return "=input(\"\(name)\", \(type.rawValue))"
+        case .show(let name):
+            return "=show(@\(name))"
         }
     }
 

@@ -201,6 +201,26 @@ enum FormulaCatalogue {
             exampleResult: "🎙 recording UI — v0.4",
             keywords: ["record", "audio", "transcribe", "voice", "microphone", "v0.4"]
         ),
+
+        // v0.5 — reactive input variables
+        FormulaCatalogueEntry(
+            name: "=input",
+            category: .reference,
+            signature: "=input(name, type, default?)",
+            description: "Declare a reactive variable. Reference with @name in other formulas.",
+            example: #"=input("hours", number, "40")"#,
+            exampleResult: "40",
+            keywords: ["variable", "input", "form", "reactive", "bind", "value"]
+        ),
+        FormulaCatalogueEntry(
+            name: "=show",
+            category: .reference,
+            signature: "=show(@name)",
+            description: "Echo the current value of a bound variable",
+            example: "=show(@hours)",
+            exampleResult: "(current value)",
+            keywords: ["echo", "show", "print", "variable", "display"]
+        ),
     ]
 
     // MARK: - Search
