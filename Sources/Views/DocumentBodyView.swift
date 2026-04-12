@@ -1,17 +1,23 @@
 import SwiftUI
+import MarkdownUI
 
-/// Renders a Document as a flow of paragraphs where:
-///   - Non-formula prose is a Text view with inline formula spans rendered
-///     in pale green (via InlineFormulaRenderer)
-///   - Every =input span becomes a live InputFieldView — typing into it
-///     calls DocumentViewModel.setInputBinding which re-evaluates every
-///     formula that references @name
+/// Renders a Document in "form mode":
+///   - Non-formula prose is rendered as full markdown via MarkdownUI —
+///     headings, tables, lists, code blocks, quotes, horizontal rules.
+///   - Every =input span becomes a live InputFieldView that re-evaluates
+///     every dependent formula (@name references) as the user types.
 ///
-/// This is the "form mode" of Markdown editing — users see and interact
-/// with real form fields inline, and every dependent formula recomputes
-/// live.
+/// Formula values are spliced into the raw markdown before it hits MarkdownUI:
+/// `=math(365*24)` becomes `` `8760` `` — an inline-code span. The
+/// `formulaTheme` then styles inline code in pale green so the spans keep
+/// their signature look even though the surrounding prose now flows through
+/// a real markdown renderer.
 struct DocumentBodyView: View {
     @Bindable var vm: DocumentViewModel
+
+    private static let paleGreen = Color(red: 0.94, green: 0.98, blue: 0.93)
+    private static let darkGreen = Color(red: 0.16, green: 0.49, blue: 0.22)
+    private static let errorBg   = Color(red: 0.99, green: 0.93, blue: 0.93)
 
     var body: some View {
         ScrollView {
@@ -31,20 +37,16 @@ struct DocumentBodyView: View {
 
     // MARK: - Paragraph decomposition
 
-    /// One visual line/paragraph in the body. Either plain prose (possibly
-    /// containing non-input formula spans) or an =input declaration.
     private struct Paragraph: Identifiable {
         let id: Int
-        enum Kind { case prose(range: Range<Int>), input(span: FormulaSpan, range: Range<Int>) }
+        enum Kind { case prose(text: String), input(span: FormulaSpan) }
         let kind: Kind
     }
 
-    /// Walk the document, splitting on =input spans. Each =input span
-    /// becomes its own paragraph; everything else is grouped into the
-    /// surrounding prose paragraphs.
+    /// Walk the document, splitting on =input spans. Prose chunks get the
+    /// evaluated-value substitution applied before MarkdownUI renders them.
     private var paragraphs: [Paragraph] {
-        let raw = vm.rawText
-        let ns = raw as NSString
+        let ns = vm.rawText as NSString
         let total = ns.length
         var out: [Paragraph] = []
         var cursor = 0
@@ -55,44 +57,45 @@ struct DocumentBodyView: View {
             return false
         }.sorted { $0.range.lowerBound < $1.range.lowerBound }
 
+        func appendProse(_ upper: Int) {
+            guard upper > cursor else { return }
+            let loc = cursor
+            let len = upper - cursor
+            guard loc >= 0, loc + len <= ns.length else { return }
+            let slice = ns.substring(with: NSRange(location: loc, length: len))
+            let substituted = DocumentBodySubstitution.substitute(
+                slice: slice,
+                sliceStart: loc,
+                spans: vm.document.spans
+            )
+            out.append(Paragraph(id: nextID, kind: .prose(text: substituted)))
+            nextID += 1
+        }
+
         for span in inputSpans {
-            if span.range.lowerBound > cursor {
-                out.append(Paragraph(
-                    id: nextID,
-                    kind: .prose(range: cursor..<span.range.lowerBound)
-                ))
-                nextID += 1
-            }
-            out.append(Paragraph(
-                id: nextID,
-                kind: .input(span: span, range: span.range)
-            ))
+            appendProse(span.range.lowerBound)
+            out.append(Paragraph(id: nextID, kind: .input(span: span)))
             nextID += 1
             cursor = span.range.upperBound
         }
-        if cursor < total {
-            out.append(Paragraph(
-                id: nextID,
-                kind: .prose(range: cursor..<total)
-            ))
-        }
+        appendProse(total)
         if out.isEmpty {
-            out.append(Paragraph(id: 0, kind: .prose(range: 0..<0)))
+            out.append(Paragraph(id: 0, kind: .prose(text: "")))
         }
         return out
     }
 
+    // MARK: - Rows
+
     @ViewBuilder
     private func row(for paragraph: Paragraph) -> some View {
         switch paragraph.kind {
-        case .prose(let range):
-            let sub = proseDocument(slicing: range)
-            Text(InlineFormulaRenderer.render(sub))
-                .font(.body)
-                .lineSpacing(6)
+        case .prose(let text):
+            Markdown(text)
+                .markdownTheme(Self.formulaTheme)
                 .textSelection(.enabled)
                 .frame(maxWidth: .infinity, alignment: .leading)
-        case .input(let span, _):
+        case .input(let span):
             inputRow(span)
         }
     }
@@ -111,34 +114,33 @@ struct DocumentBodyView: View {
         )
     }
 
-    /// Build a mini-document covering a sub-range of the raw text so the
-    /// InlineFormulaRenderer can render inline formula spans correctly
-    /// within a single paragraph.
-    private func proseDocument(slicing range: Range<Int>) -> Document {
-        let ns = vm.rawText as NSString
-        let loc = max(0, range.lowerBound)
-        let len = max(0, range.upperBound - range.lowerBound)
-        let safeLen = max(0, min(ns.length - loc, len))
-        let sub = ns.substring(with: NSRange(location: loc, length: safeLen))
-        // Build a fresh Document from the sub-text. Span indices are
-        // relative to the sub-text, which is what we want.
-        let doc = (try? Document(rawMarkdown: sub)) ?? .empty
-        // Carry over evaluated values from the parent document so the
-        // prose rows show "8760" instead of "=math(365*24)". If the same
-        // formula appears twice in the same paragraph, keep the most
-        // recent successful value — never crash on duplicates.
-        let parentBySource = Dictionary(
-            vm.document.spans.map { ($0.source, $0.value) },
-            uniquingKeysWith: { _, b in b }
-        )
-        var merged = doc
-        for i in merged.spans.indices {
-            if let v = parentBySource[merged.spans[i].source] {
-                merged.spans[i].value = v
-            }
+    // MARK: - Theme
+
+    /// MarkdownUI theme that paints inline code spans pale green / dark green
+    /// and removes the default link underline so clickable formulas keep
+    /// their signature look. Everything else inherits default MarkdownUI
+    /// styling (headings, tables, lists, blockquotes, code blocks).
+    private static let formulaTheme: Theme = Theme()
+        .text {
+            FontSize(14)
         }
-        return merged
-    }
+        .code {
+            FontFamilyVariant(.monospaced)
+            FontSize(.em(0.95))
+            ForegroundColor(darkGreen)
+            BackgroundColor(paleGreen)
+        }
+        .link {
+            ForegroundColor(darkGreen)
+            UnderlineStyle(.init(pattern: .solid, color: .clear))
+        }
+        .table { configuration in
+            configuration.label
+                .markdownTableBorderStyle(.init(color: Color(white: 0.85)))
+                .markdownTableBackgroundStyle(
+                    .alternatingRows(Color.white, Color(white: 0.97))
+                )
+        }
 }
 
 /// One live input row. Owns its own @State text so typing doesn't thrash

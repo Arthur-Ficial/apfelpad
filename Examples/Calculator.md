@@ -56,3 +56,4 @@ This document has =count() words.
 | =math(2 * 2 * 2 * 2) | 2^4 |
 | =math($1,250 + $3,750) | US currency |
 | =math(1.5k + 500) | k notation |
+=(write a haiku, 3)
