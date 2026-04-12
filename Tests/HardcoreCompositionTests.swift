@@ -10,10 +10,7 @@ import Foundation
 @MainActor
 struct HardcoreCompositionTests {
     private func makeVM() -> DocumentViewModel {
-        DocumentViewModel(runtime: FormulaRuntime(
-            cache: InMemoryFormulaCache(),
-            clipboard: MockClipboard(value: "mock clipboard")
-        ))
+        DocumentViewModel(runtime: FormulaRuntime(cache: InMemoryFormulaCache()))
     }
 
     // MARK: - Every single-string function composed with every other
@@ -274,6 +271,44 @@ struct HardcoreCompositionTests {
             if case .error(let msg) = first.value {
                 Issue.record("ref example failed: \(msg)")
             }
+        }
+    }
+
+    @Test("upper(ref) with welcome workbook content does not double-quote")
+    func upperRefWelcomeWorkbook() async throws {
+        let md = WelcomeWorkbook.document()
+        let vm = makeVM()
+        try vm.load(rawMarkdown: md)
+        await vm.evaluateAll()
+
+        let span = vm.document.spans.first!
+        // Find the "Shouted brief" span — =upper(=ref(@#project-brief))
+        let shoutedSpan = vm.document.spans.first { $0.source == "=upper(=ref(@#project-brief))" }!
+        switch shoutedSpan.value {
+        case .error(let msg):
+            Issue.record("Shouted brief got error: \(msg)")
+        case .ready(let text):
+            #expect(text.hasPrefix("APFELPAD IS A SPREADSHEET"))
+        default:
+            Issue.record("Expected .ready, got \(shoutedSpan.value)")
+        }
+    }
+
+    @Test("upper(ref) does not double-quote the resolved text")
+    func upperRefNoDoubleQuotes() async throws {
+        let md = "## Intro\n\nHello world.\n\n## Body\n\n=upper(=ref(@#intro))"
+        let vm = makeVM()
+        try vm.load(rawMarkdown: md)
+        await vm.evaluateAll()
+
+        let span = vm.document.spans.first!
+        switch span.value {
+        case .error(let msg):
+            Issue.record("Expected .ready, got error: \(msg)")
+        case .ready(let text):
+            #expect(text == "HELLO WORLD.")
+        default:
+            Issue.record("Expected .ready, got \(span.value)")
         }
     }
 }

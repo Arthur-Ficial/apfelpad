@@ -11,6 +11,8 @@ struct DocumentView: View {
     @Bindable var barVM: FormulaBarViewModel
     @Bindable var catalogueVM: FormulaCatalogueSidebarViewModel
     var settingsVM: SettingsViewModel? = nil
+    var onNew: (() -> Void)? = nil
+    var onSave: (() -> Void)? = nil
 
     var body: some View {
         HStack(spacing: 0) {
@@ -30,6 +32,23 @@ struct DocumentView: View {
         .animation(.easeOut(duration: 0.18), value: catalogueVM.isOpen)
         .navigationTitle(vm.windowTitle)
         .toolbar {
+            ToolbarItem(placement: .navigation) {
+                Button {
+                    onNew?()
+                } label: {
+                    Label("New", systemImage: "doc")
+                }
+                .help("New document (\u{2318}N)")
+            }
+            ToolbarItem(placement: .navigation) {
+                Button {
+                    onSave?()
+                } label: {
+                    Label("Save", systemImage: "square.and.arrow.down")
+                }
+                .help("Save (\u{2318}S)")
+                .disabled(!vm.isDirty)
+            }
             ToolbarItem(placement: .principal) {
                 Picker("Mode", selection: Binding(
                     get: { vm.editingMode },

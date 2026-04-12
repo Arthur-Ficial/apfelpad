@@ -402,6 +402,27 @@ struct EditableMarkdownView: NSViewRepresentable {
             parent.onSelectionChange?(textView.selectedRange().location)
         }
 
+        func repositionInputWidgets() {
+            guard let textView,
+                  let projection = currentProjection else { return }
+            for segment in projection.inputSegments() {
+                guard case .input(let spec) = segment.kind,
+                      let host = inputHosts[spec.span.id] else { continue }
+                guard let frame = parent.inputFrame(for: segment, in: textView) else {
+                    host.isHidden = true
+                    continue
+                }
+                let fitting = host.fittingSize
+                host.frame = NSRect(
+                    x: frame.minX,
+                    y: frame.minY,
+                    width: max(frame.width, fitting.width),
+                    height: max(frame.height, fitting.height)
+                )
+                host.isHidden = false
+            }
+        }
+
         func textViewDidChangeSelection(_ notification: Notification) {
             guard !isProgrammaticChange,
                   let textView = notification.object as? NSTextView else {
@@ -492,7 +513,10 @@ struct EditableMarkdownView: NSViewRepresentable {
         coordinator.lastFocusToken = focusToken
         DispatchQueue.main.async {
             guard let window = textView.window else { return }
+            window.makeKeyAndOrderFront(nil)
             window.makeFirstResponder(textView)
+            textView.setSelectedRange(NSRange(location: 0, length: 0))
+            textView.scrollRangeToVisible(NSRange(location: 0, length: 0))
         }
     }
 
@@ -574,6 +598,13 @@ final class FormulaTextView: NSTextView {
 
         scrollView.documentView = textView
         return scrollView
+    }
+
+    // MARK: - Reflow input widgets on resize
+
+    override func layout() {
+        super.layout()
+        formulaCoordinator?.repositionInputWidgets()
     }
 
     // MARK: - Right-click context menu

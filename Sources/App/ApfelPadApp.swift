@@ -36,25 +36,24 @@ struct ApfelPadApp: App {
         WindowGroup("apfelpad") {
             VStack(spacing: 0) {
                 UpdateBanner(vm: settingsVM)
-                DocumentView(vm: documentVM, barVM: barVM, catalogueVM: catalogueVM, settingsVM: settingsVM)
+                DocumentView(
+                    vm: documentVM,
+                    barVM: barVM,
+                    catalogueVM: catalogueVM,
+                    settingsVM: settingsVM,
+                    onNew: { documentVM.newDocument() },
+                    onSave: { Task {
+                        if documentVM.fileURL != nil {
+                            try? await documentVM.save()
+                        } else {
+                            saveAs()
+                        }
+                    }}
+                )
             }
             .task {
-                // Start server in background — =apfel becomes available once ready
-                if !Self.shouldUseStubLLM, !Self.shouldSkipServer {
-                    Task {
-                        let port = await serverManager.start()
-                        if let port {
-                            let llm = ApfelHTTPService(port: port)
-                            let runtime = FormulaRuntime(cache: cache, llm: llm)
-                            documentVM.replaceRuntime(runtime)
-                        }
-                    }
-                }
-
-                // Check for updates in background
-                Task { await settingsVM.checkForUpdateIfEnabled() }
-
-                // Load content immediately — math formulas work without server
+                // Load content first — math/text/date formulas work without server.
+                // =apfel formulas stay in .idle until the server connects.
                 if CommandLine.arguments.count > 1 {
                     let path = CommandLine.arguments[1]
                     let url = URL(fileURLWithPath: path)
@@ -68,6 +67,20 @@ struct ApfelPadApp: App {
                 }
 
                 documentVM.startAutosave()
+
+                // Start server — once ready, swap in the real LLM and
+                // re-evaluate any =apfel spans that were left idle.
+                if !Self.shouldUseStubLLM, !Self.shouldSkipServer {
+                    let port = await serverManager.start()
+                    if let port {
+                        let llm = ApfelHTTPService(port: port)
+                        let runtime = FormulaRuntime(cache: cache, llm: llm)
+                        documentVM.replaceRuntime(runtime)
+                    }
+                }
+
+                // Check for updates in background
+                Task { await settingsVM.checkForUpdateIfEnabled() }
             }
             .onOpenURL { url in
                 Task { try? await documentVM.open(from: url) }
