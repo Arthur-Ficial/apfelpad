@@ -71,13 +71,22 @@ final class FormulaBarViewModel {
         }
         // Pre-validate by parsing. If parsing fails, we mark invalid but do
         // not touch the document — so partial typing never destroys text.
+        let canonicalSource: String
         do {
             _ = try FormulaParser.parse(sourceText)
+            canonicalSource = try FormulaParser.canonicalise(sourceText)
         } catch {
             editState = .invalid(message: "\(error)")
             return
         }
-        let applied = onCommit?(id, sourceText) ?? false
-        editState = applied ? .valid : .invalid(message: "span not found")
+        let applied = onCommit?(id, canonicalSource) ?? false
+        if applied {
+            applyingSelection = true
+            sourceText = canonicalSource
+            applyingSelection = false
+            editState = .valid
+        } else {
+            editState = .invalid(message: "span not found")
+        }
     }
 }

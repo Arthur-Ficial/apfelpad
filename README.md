@@ -91,12 +91,6 @@ Every formula can take another formula as an argument. The resolver walks the so
 
 Typing a value into any `=input` re-evaluates every formula that references `@name` in real time. Combined with `=math`, `=if`, `=concat`, and `=apfel`, this turns any markdown document into an interactive calculator / form / AI-augmented proposal.
 
-**v0.4 preview**
-
-| Formula | Status |
-|---|---|
-| `=recording()` | Stub — parses, placeholder UI, real recording/transcription comes in v0.4 |
-
 ### Auto-quoting
 
 You never have to remember quote syntax. If you type `=apfel(hello world)`, apfelpad canonicalizes it to `=apfel("hello world")` for you. Type English. apfelpad handles the parser.

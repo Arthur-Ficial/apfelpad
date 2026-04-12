@@ -49,6 +49,27 @@ struct FormulaBarViewModelTests {
         #expect(committed?.1 == "=math(2+2)")
     }
 
+    @Test("commitNow canonicalises the source before commit")
+    func commitCanonicalises() {
+        let vm = FormulaBarViewModel()
+        var committed: String?
+        vm.onCommit = { _, src in
+            committed = src
+            return true
+        }
+        let span = FormulaSpan(
+            range: 0..<12,
+            source: "=upper(\"hi\")",
+            call: .upper(text: "hi"),
+            value: .ready(text: "HI")
+        )
+        vm.select(span)
+        vm.sourceText = "=upper(hi)"
+        vm.commitNow()
+        #expect(committed == #"=upper("hi")"#)
+        #expect(vm.sourceText == #"=upper("hi")"#)
+    }
+
     @Test("invalid source sets editState to invalid and does not commit")
     func invalidCommit() {
         let vm = FormulaBarViewModel()
@@ -100,6 +121,16 @@ struct DocumentReplaceSpanTests {
         // Wait for async evaluation
         try await Task.sleep(for: .milliseconds(50))
         #expect(vm.document.spans[0].call == .math(expression: "40+2"))
+    }
+
+    @Test("replaceSpanSource canonicalises bare strings before splicing")
+    func replaceCanonicalises() async throws {
+        let vm = DocumentViewModel(runtime: FormulaRuntime(cache: InMemoryFormulaCache()))
+        try vm.load(rawMarkdown: "=upper(\"hello\")")
+        let id = vm.document.spans[0].id
+        let ok = vm.replaceSpanSource(id: id, with: "=upper(hi there)")
+        #expect(ok == true)
+        #expect(vm.rawText == #"=upper("hi there")"#)
     }
 
     @Test("fails gracefully on unknown span id")

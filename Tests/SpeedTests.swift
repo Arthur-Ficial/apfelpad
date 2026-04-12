@@ -5,6 +5,22 @@ import Foundation
 @Suite("Speed: debounce and incremental evaluation")
 @MainActor
 struct SpeedTests {
+    @MainActor
+    private func waitUntil(
+        timeout: Duration = .seconds(2),
+        step: Duration = .milliseconds(25),
+        _ condition: () -> Bool
+    ) async throws {
+        let clock = ContinuousClock()
+        let deadline = clock.now + timeout
+        while !condition() {
+            if clock.now >= deadline {
+                Issue.record("timed out waiting for condition")
+                return
+            }
+            try await Task.sleep(for: step)
+        }
+    }
 
     @Test("debounced reparse — multiple rapid changes coalesce into one parse")
     func debouncedReparse() async throws {
@@ -19,11 +35,13 @@ struct SpeedTests {
         // Debounce has not fired yet — document should still be empty
         #expect(vm.document.spans.isEmpty)
 
-        // Wait for debounce (300ms) + margin
-        try await Task.sleep(for: .milliseconds(500))
+        try await waitUntil {
+            vm.document.spans.count == 1
+        }
 
+        let span = try #require(vm.document.spans.first)
         #expect(vm.document.spans.count == 1)
-        #expect(vm.document.spans[0].source == "=math(1+2)")
+        #expect(span.source == "=math(1+2)")
     }
 
     @Test("debounce timer resets on each keystroke")
@@ -45,12 +63,14 @@ struct SpeedTests {
         // Still not fired (only 100ms since last change)
         #expect(vm.document.spans.isEmpty)
 
-        // Wait for debounce to complete (300ms from last change)
-        try await Task.sleep(for: .milliseconds(400))
+        try await waitUntil {
+            vm.document.spans.count == 1
+        }
 
         // Now fired — with the LAST text
+        let span = try #require(vm.document.spans.first)
         #expect(vm.document.spans.count == 1)
-        #expect(vm.document.spans[0].source == "=math(2+2)")
+        #expect(span.source == "=math(2+2)")
     }
 
     @Test("flushPendingReparse forces immediate parse")

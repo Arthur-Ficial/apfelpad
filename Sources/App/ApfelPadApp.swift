@@ -19,7 +19,10 @@ struct ApfelPadApp: App {
             cache = InMemoryFallbackCache()
         }
         self.cache = cache
-        let runtime = FormulaRuntime(cache: cache)
+        let runtime = FormulaRuntime(
+            cache: cache,
+            llm: Self.shouldUseStubLLM ? DeterministicStubLLMService() : nil
+        )
         _documentVM = State(initialValue: DocumentViewModel(runtime: runtime))
 
         let checker = GitHubReleaseUpdateChecker()
@@ -39,12 +42,14 @@ struct ApfelPadApp: App {
             }
             .task {
                 // Start server in background — =apfel becomes available once ready
-                Task {
-                    let port = await serverManager.start()
-                    if let port {
-                        let llm = ApfelHTTPService(port: port)
-                        let runtime = FormulaRuntime(cache: cache, llm: llm)
-                        documentVM.replaceRuntime(runtime)
+                if !Self.shouldUseStubLLM, !Self.shouldSkipServer {
+                    Task {
+                        let port = await serverManager.start()
+                        if let port {
+                            let llm = ApfelHTTPService(port: port)
+                            let runtime = FormulaRuntime(cache: cache, llm: llm)
+                            documentVM.replaceRuntime(runtime)
+                        }
                     }
                 }
 
@@ -71,6 +76,18 @@ struct ApfelPadApp: App {
             }
         }
         .commands {
+            CommandGroup(replacing: .newItem) {
+                Button("New") {
+                    documentVM.newDocument()
+                }
+                .keyboardShortcut("n", modifiers: .command)
+
+                Button("Open…") {
+                    openFile()
+                }
+                .keyboardShortcut("o", modifiers: .command)
+            }
+
             CommandGroup(replacing: .saveItem) {
                 Button("Save") {
                     Task {
@@ -89,11 +106,40 @@ struct ApfelPadApp: App {
                 .keyboardShortcut("s", modifiers: [.command, .shift])
             }
 
-            CommandGroup(after: .newItem) {
-                Button("Open…") {
-                    openFile()
+            CommandMenu("View") {
+                Button("Render Mode") {
+                    documentVM.setEditingMode(.render)
                 }
-                .keyboardShortcut("o", modifiers: .command)
+                .keyboardShortcut("1", modifiers: .command)
+
+                Button("Source Mode") {
+                    documentVM.setEditingMode(.source)
+                }
+                .keyboardShortcut("2", modifiers: .command)
+
+                Divider()
+
+                Button("Focus Editor") {
+                    documentVM.requestEditorFocus()
+                }
+                .keyboardShortcut("e", modifiers: [.command, .shift])
+
+                Divider()
+
+                Button("Focus First Input") {
+                    documentVM.focusFirstInput()
+                }
+                .keyboardShortcut("i", modifiers: [.command, .option])
+
+                Button("Focus Next Input") {
+                    documentVM.focusNextInput()
+                }
+                .keyboardShortcut("]", modifiers: [.command, .option])
+
+                Button("Focus Previous Input") {
+                    documentVM.focusPreviousInput()
+                }
+                .keyboardShortcut("[", modifiers: [.command, .option])
             }
         }
         Settings {
@@ -102,7 +148,7 @@ struct ApfelPadApp: App {
     }
 
     private func loadWelcome() {
-        try? documentVM.load(rawMarkdown: Self.welcomeDocument)
+        try? documentVM.load(rawMarkdown: WelcomeWorkbook.document())
         Task { await documentVM.evaluateAll() }
     }
 
@@ -129,30 +175,13 @@ struct ApfelPadApp: App {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.0.0"
     }
 
-    static let welcomeDocument: String = """
-    # Welcome to apfelpad
+    static var shouldUseStubLLM: Bool {
+        ProcessInfo.processInfo.environment["APFELPAD_USE_STUB_LLM"] == "1"
+    }
 
-    A formula notepad for thinking. On-device AI as a first-class function.
-
-    ## Arithmetic
-
-    There are =math(365*24) hours in a year.
-    That's =math(365*8) working hours.
-    And =math((365-104-10)*8) hours after weekends and holidays.
-
-    ## On-device AI
-
-    Every `=apfel(...)` formula runs entirely on your Mac via Foundation
-    Models. The prompt is visible. The output is reproducible via seed.
-    The source travels with the file.
-
-    =apfel("one sentence — why formulas beat chat for writing", 7)
-
-    ## Document info
-
-    This document has =count() words.
-    Today is =date() (=day(), week =cw()).
-    """
+    static var shouldSkipServer: Bool {
+        ProcessInfo.processInfo.environment["APFELPAD_SKIP_SERVER"] == "1"
+    }
 }
 
 final actor InMemoryFallbackCache: FormulaCache {

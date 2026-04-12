@@ -155,4 +155,42 @@ struct DocumentViewModelTests {
         vm.insertAtCursor(#"=lower("WORLD")"#)
         #expect(vm.document.spans.count == 2)
     }
+
+    @Test("insertAtCursor uses the tracked insertion location")
+    func insertAtTrackedLocation() throws {
+        let vm = DocumentViewModel(runtime: FormulaRuntime(cache: InMemoryFormulaCache()))
+        try vm.load(rawMarkdown: "Top\n\nBottom")
+        vm.setInsertionLocation(3)
+        vm.insertAtCursor("=math(2+2)")
+        #expect(vm.rawText == "Top\n\n=math(2+2)\n\nBottom")
+    }
+
+    @Test("focusFirstInput selects the first render input")
+    func focusFirstInputSelectsFirstInput() throws {
+        let vm = DocumentViewModel(runtime: FormulaRuntime(cache: InMemoryFormulaCache()))
+        try vm.load(rawMarkdown: """
+        Client: =input("client", text, "Acme")
+        Rate: =input("rate", number, "125")
+        """)
+        vm.focusFirstInput()
+        #expect(vm.editingMode == .render)
+        #expect(vm.focusedInputName == "client")
+    }
+
+    @Test("focusNextInput cycles through document inputs")
+    func focusNextInputCycles() throws {
+        let vm = DocumentViewModel(runtime: FormulaRuntime(cache: InMemoryFormulaCache()))
+        try vm.load(rawMarkdown: """
+        Client: =input("client", text, "Acme")
+        Rate: =input("rate", number, "125")
+        Tax: =input("tax", percent, "20")
+        """)
+        vm.focusFirstInput()
+        vm.focusNextInput()
+        #expect(vm.focusedInputName == "rate")
+        vm.focusNextInput()
+        #expect(vm.focusedInputName == "tax")
+        vm.focusNextInput()
+        #expect(vm.focusedInputName == "client")
+    }
 }

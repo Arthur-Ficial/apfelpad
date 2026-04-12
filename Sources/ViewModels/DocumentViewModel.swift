@@ -8,6 +8,11 @@ final class DocumentViewModel {
     var fileURL: URL?
     var isDirty: Bool = false
     private(set) var rawText: String = ""
+    private(set) var insertionLocation: Int = 0
+    var editingMode: EditingMode = .render
+    private(set) var editorFocusToken: Int = 0
+    private(set) var focusedInputName: String?
+    private(set) var inputFocusToken: Int = 0
 
     private var runtime: FormulaRuntime
     private let store: DocumentPersistence
@@ -56,18 +61,24 @@ extension DocumentViewModel {
     /// real cursor-aware insertion arrives with the custom attributed
     /// text editor in v0.4.
     func insertAtCursor(_ source: String) {
-        let separator: String
-        if rawText.isEmpty {
-            separator = ""
-        } else if rawText.hasSuffix("\n\n") {
-            separator = ""
-        } else if rawText.hasSuffix("\n") {
-            separator = ""
-        } else {
-            separator = "\n\n"
-        }
-        let newText = rawText + separator + source
+        insert(source, at: insertionLocation)
+    }
+
+    /// Insert source text at a specific UTF-16 offset in the raw markdown,
+    /// keeping the inserted snippet separated as its own block.
+    func insert(_ source: String, at location: Int) {
+        let insertedSource = (try? FormulaParser.canonicalise(source)) ?? source
+        let clampedLocation = max(0, min(location, (rawText as NSString).length))
+        let prefix = prefixSeparator(forInsertionAt: clampedLocation)
+        let suffix = suffixSeparator(forInsertionAt: clampedLocation)
+        let replacement = prefix + insertedSource + suffix
+        let ns = rawText as NSString
+        let newText = ns.replacingCharacters(
+            in: NSRange(location: clampedLocation, length: 0),
+            with: replacement
+        )
         rawText = newText
+        insertionLocation = clampedLocation + (replacement as NSString).length
         isDirty = true
         if let doc = try? Document(rawMarkdown: newText) {
             document = doc
@@ -95,6 +106,73 @@ extension DocumentViewModel {
         }
     }
 
+    func setInsertionLocation(_ location: Int) {
+        insertionLocation = max(0, min(location, (rawText as NSString).length))
+    }
+
+    func setEditingMode(_ mode: EditingMode) {
+        guard editingMode != mode else {
+            requestEditorFocus()
+            return
+        }
+        editingMode = mode
+        flushPendingReparse()
+        requestEditorFocus()
+    }
+
+    func requestEditorFocus() {
+        editorFocusToken &+= 1
+    }
+
+    func focusFirstInput() {
+        guard let first = inputNames.first else { return }
+        focusInput(named: first)
+    }
+
+    func focusNextInput() {
+        guard !inputNames.isEmpty else { return }
+        guard let focusedInputName,
+              let currentIndex = inputNames.firstIndex(of: focusedInputName) else {
+            focusInput(named: inputNames[0])
+            return
+        }
+        let nextIndex = (currentIndex + 1) % inputNames.count
+        focusInput(named: inputNames[nextIndex])
+    }
+
+    func focusPreviousInput() {
+        guard !inputNames.isEmpty else { return }
+        guard let focusedInputName,
+              let currentIndex = inputNames.firstIndex(of: focusedInputName) else {
+            focusInput(named: inputNames[inputNames.count - 1])
+            return
+        }
+        let previousIndex = (currentIndex - 1 + inputNames.count) % inputNames.count
+        focusInput(named: inputNames[previousIndex])
+    }
+
+    func focusInput(named name: String) {
+        focusedInputName = name.lowercased()
+        editingMode = .render
+        inputFocusToken &+= 1
+    }
+
+    func replaceText(in range: Range<Int>, with newText: String) {
+        let ns = rawText as NSString
+        let replacementRange = NSRange(
+            location: range.lowerBound,
+            length: range.upperBound - range.lowerBound
+        )
+        guard replacementRange.location >= 0,
+              replacementRange.location + replacementRange.length <= ns.length else {
+            return
+        }
+        rawText = ns.replacingCharacters(in: replacementRange, with: newText)
+        insertionLocation = range.lowerBound + (newText as NSString).length
+        isDirty = true
+        reparseAndEvaluateChanged()
+    }
+
     /// Replace the source text of a single formula span and re-evaluate it.
     /// Called from the formula bar's commit loop. Updates rawText so the
     /// underlying markdown is in sync. Returns true on success.
@@ -104,15 +182,17 @@ extension DocumentViewModel {
             return false
         }
         let oldSpan = document.spans[index]
+        let canonicalSource: String
         // Reparse the new source so the call and the raw bytes are in sync
-        guard let newCall = try? FormulaParser.parse(newSource) else { return false }
+        guard (try? FormulaParser.parse(newSource)) != nil else { return false }
+        canonicalSource = (try? FormulaParser.canonicalise(newSource)) ?? newSource
 
         // Splice the new source into rawText at the old span's range
         let ns = rawText as NSString
         let oldRange = NSRange(location: oldSpan.range.lowerBound,
                                length: oldSpan.range.upperBound - oldSpan.range.lowerBound)
         guard oldRange.location + oldRange.length <= ns.length else { return false }
-        let newRawText = ns.replacingCharacters(in: oldRange, with: newSource)
+        let newRawText = ns.replacingCharacters(in: oldRange, with: canonicalSource)
         rawText = newRawText
         isDirty = true
 
@@ -134,10 +214,9 @@ extension DocumentViewModel {
 
         // Find the span that now matches newSource and kick off evaluation
         // without blocking the caller.
-        if let newIndex = document.spans.firstIndex(where: { $0.source == newSource }) {
+        if let newIndex = document.spans.firstIndex(where: { $0.source == canonicalSource }) {
             Task { await evaluateIndices([newIndex]) }
         }
-        _ = newCall
         return true
     }
 
@@ -157,17 +236,23 @@ extension DocumentViewModel {
     func flushPendingReparse() {
         debounceTask?.cancel()
         debounceTask = nil
-        reparseAndEvaluateChanged()
+        reparseAndEvaluateChanged(canonicaliseSource: true)
     }
 
     // MARK: - Parsing
 
     func load(rawMarkdown: String) throws {
         rawText = rawMarkdown
+        insertionLocation = (rawMarkdown as NSString).length
         self.document = try Document(rawMarkdown: rawMarkdown)
+        requestEditorFocus()
     }
 
-    private func reparseAndEvaluateChanged() {
+    private func reparseAndEvaluateChanged(canonicaliseSource: Bool = false) {
+        let nextRawText = canonicaliseSource ? canonicaliseParseableSpans(in: rawText) : rawText
+        if nextRawText != rawText {
+            rawText = nextRawText
+        }
         var oldValues: [String: FormulaValue] = [:]
         for span in document.spans {
             if case .idle = span.value { continue }
@@ -188,6 +273,52 @@ extension DocumentViewModel {
 
         if !indicesToEvaluate.isEmpty {
             Task { await evaluateIndices(indicesToEvaluate) }
+        }
+    }
+
+    private func canonicaliseParseableSpans(in text: String) -> String {
+        guard let discovered = try? Document(rawMarkdown: text), !discovered.spans.isEmpty else {
+            return text
+        }
+        var working = text
+        for span in discovered.spans.sorted(by: { $0.range.lowerBound > $1.range.lowerBound }) {
+            guard let canonical = try? FormulaParser.canonicalise(span.source),
+                  canonical != span.source else {
+                continue
+            }
+            let ns = working as NSString
+            let range = NSRange(
+                location: span.range.lowerBound,
+                length: span.range.upperBound - span.range.lowerBound
+            )
+            guard range.location >= 0, range.location + range.length <= ns.length else {
+                continue
+            }
+            working = ns.replacingCharacters(in: range, with: canonical)
+        }
+        return working
+    }
+
+    private func prefixSeparator(forInsertionAt location: Int) -> String {
+        guard !rawText.isEmpty, location > 0 else { return "" }
+        let prefix = (rawText as NSString).substring(to: location)
+        if prefix.hasSuffix("\n\n") { return "" }
+        if prefix.hasSuffix("\n") { return "\n" }
+        return "\n\n"
+    }
+
+    private func suffixSeparator(forInsertionAt location: Int) -> String {
+        guard !rawText.isEmpty, location < (rawText as NSString).length else { return "" }
+        let suffix = (rawText as NSString).substring(from: location)
+        if suffix.hasPrefix("\n\n") { return "" }
+        if suffix.hasPrefix("\n") { return "\n" }
+        return "\n\n"
+    }
+
+    private var inputNames: [String] {
+        document.spans.compactMap { span in
+            guard case .input(let name, _, _) = span.call else { return nil }
+            return name.lowercased()
         }
     }
 
@@ -335,6 +466,13 @@ extension DocumentViewModel {
         flushPendingReparse()
         try await store.save(rawMarkdown: rawText, to: url)
         isDirty = false
+    }
+
+    func newDocument() {
+        fileURL = nil
+        isDirty = false
+        bindings.clear()
+        try? load(rawMarkdown: "")
     }
 
     func open(from url: URL) async throws {

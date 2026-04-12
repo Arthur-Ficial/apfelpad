@@ -276,22 +276,6 @@ Every result is cached by SHA256 of `(source || context || model_version || seed
 The cache lives at `~/Library/Application Support/apfelpad/cache/default.sqlite`
 and survives app restarts.
 
----
-
-## v0.4 preview
-
-### `=recording()` — stub
-
-Parses, round-trips, renders a placeholder. The real implementation (v0.4)
-will show an inline record button that captures audio via apfel and
-transcribes on stop. Composes with `=apfel(=recording())` already.
-
-### `=count(@anchor?)` / `=date(format?)` / `=clip()` / `=file(path)`
-
-Reserved names. Coming in v0.4+.
-
----
-
 ## Privacy
 
 apfelpad makes exactly **one** network call: an optional daily check

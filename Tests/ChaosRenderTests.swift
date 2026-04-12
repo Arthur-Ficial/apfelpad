@@ -71,8 +71,9 @@ struct ChaosRenderTests {
         }
         // The document should contain all examples in order.
         for entry in FormulaCatalogue.all {
+            let stored = (try? FormulaParser.canonicalise(entry.example)) ?? entry.example
             #expect(
-                vm.rawText.contains(entry.example),
+                vm.rawText.contains(stored),
                 "insertAtCursor lost \(entry.signature)"
             )
         }

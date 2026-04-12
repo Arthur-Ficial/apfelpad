@@ -30,13 +30,7 @@ struct Document: Equatable {
         let chars = Array(text)
         let n = chars.count
         let codeMask = codeSpanMask(for: chars)
-        let knownNames: Set<String> = [
-            "apfel", "math", "ref", "count", "date", "clip", "file",
-            "upper", "lower", "trim", "len", "concat", "replace",
-            "if", "sum", "avg", "split",
-            "cw", "month", "day", "time", "recording",
-            "input", "show",
-        ]
+        let knownNames = FormulaRegistry.discoverableFunctionNames
         var i = 0
         while i < n {
             if chars[i] != "=" || codeMask[i] {

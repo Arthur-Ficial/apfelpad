@@ -3,13 +3,18 @@ APP_BUNDLE  = build/$(APP_NAME).app
 APP_DIR    ?= /Applications
 BIN_DIR    ?= $(HOME)/.local/bin
 
-.PHONY: build test app run dist install install-app install-cli release clean
+.PHONY: build test ui-test app run dist install install-app install-cli release clean
 
 build:
 	swift build -c release
 
 test:
 	swift test
+
+ui-test: app
+	./scripts/ui-test-render-source.sh
+	./scripts/ui-test-render-calculator.sh
+	./scripts/ui-test-ai-workbook.sh
 
 app:
 	./scripts/build-app.sh

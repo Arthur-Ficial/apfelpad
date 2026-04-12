@@ -29,6 +29,12 @@ final class InputBindings: @unchecked Sendable {
         lock.unlock()
     }
 
+    func clear() {
+        lock.lock()
+        store.removeAll()
+        lock.unlock()
+    }
+
     var names: Set<String> {
         lock.lock()
         defer { lock.unlock() }

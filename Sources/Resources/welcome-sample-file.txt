@@ -1,0 +1,2 @@
+This bundled sample file exists so =file(path) has a stable, working example.
+You can replace the path in Source mode and point it at any local text file.

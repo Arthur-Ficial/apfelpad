@@ -21,9 +21,12 @@ enum FormulaParser {
         let inside = String(
             afterEquals[afterEquals.index(after: lparen)..<afterEquals.index(before: afterEquals.endIndex)]
         )
+        guard let definition = FormulaRegistry.definition(forFunctionName: name) else {
+            throw Error.unknownFunction(name)
+        }
         // =math takes the WHOLE inside as a single expression — no comma
         // splitting, so =math($1,250 + $750) parses with thousand separators.
-        if name == "math" {
+        if definition.parserKind == .math {
             let expression = inside.trimmingCharacters(in: .whitespaces)
             guard !expression.isEmpty else {
                 throw Error.malformedArguments("math expects 1 arg")
@@ -31,25 +34,25 @@ enum FormulaParser {
             return .math(expression: expression)
         }
         let rawArgs = try splitTopLevelCommas(inside)
-        switch name {
-        case "apfel":
+        switch definition.parserKind {
+        case .apfel:
             return try parseApfel(rawArgs)
-        case "math":
+        case .math:
             guard rawArgs.count == 1 else {
                 throw Error.malformedArguments("math expects 1 arg")
             }
             return .math(expression: rawArgs[0].trimmingCharacters(in: .whitespaces))
-        case "upper":
+        case .upper:
             return .upper(text: try singleStringArg(rawArgs, name: "upper"))
-        case "lower":
+        case .lower:
             return .lower(text: try singleStringArg(rawArgs, name: "lower"))
-        case "trim":
+        case .trim:
             return .trim(text: try singleStringArg(rawArgs, name: "trim"))
-        case "len":
+        case .len:
             return .len(text: try singleStringArg(rawArgs, name: "len"))
-        case "concat":
+        case .concat:
             return .concat(parts: rawArgs.map(Self.parseStringLiteral))
-        case "replace":
+        case .replace:
             guard rawArgs.count == 3 else {
                 throw Error.malformedArguments("replace expects 3 args")
             }
@@ -58,7 +61,7 @@ enum FormulaParser {
                 find: Self.parseStringLiteral(rawArgs[1]),
                 replacement: Self.parseStringLiteral(rawArgs[2])
             )
-        case "split":
+        case .split:
             guard (2...3).contains(rawArgs.count) else {
                 throw Error.malformedArguments("split expects 2 or 3 args")
             }
@@ -68,7 +71,7 @@ enum FormulaParser {
                 delim: Self.parseStringLiteral(rawArgs[1]),
                 index: index
             )
-        case "if":
+        case .ifCall:
             guard rawArgs.count == 3 else {
                 throw Error.malformedArguments("if expects 3 args")
             }
@@ -77,43 +80,34 @@ enum FormulaParser {
                 thenValue: Self.parseStringLiteral(rawArgs[1]),
                 elseValue: Self.parseStringLiteral(rawArgs[2])
             )
-        case "sum":
+        case .sum:
             return .sum(args: rawArgs.map(Self.parseStringLiteral))
-        case "avg":
+        case .avg:
             return .avg(args: rawArgs.map(Self.parseStringLiteral))
-        case "ref":
+        case .ref:
             guard rawArgs.count == 1 else {
                 throw Error.malformedArguments("ref expects 1 arg: =ref(@#anchor)")
             }
-            let raw = rawArgs[0].trimmingCharacters(in: .whitespaces)
-            let anchor: String
-            if raw.hasPrefix("@#") {
-                anchor = String(raw.dropFirst(2))
-            } else if raw.hasPrefix("@") {
-                anchor = String(raw.dropFirst())
-            } else {
-                anchor = raw
-            }
-            return .ref(anchor: anchor)
-        case "date":
+            return .ref(anchor: parseRefAnchor(rawArgs[0]))
+        case .date:
             let offset = rawArgs.isEmpty ? 0 : (try? Self.parseSignedInt(rawArgs[0])) ?? 0
             return .date(offsetDays: offset)
-        case "cw":
+        case .cw:
             let offset = rawArgs.isEmpty ? 0 : (try? Self.parseSignedInt(rawArgs[0])) ?? 0
             return .cw(offsetWeeks: offset)
-        case "month":
+        case .month:
             guard rawArgs.isEmpty else { throw Error.malformedArguments("month takes no args") }
             return .month
-        case "day":
+        case .day:
             guard rawArgs.isEmpty else { throw Error.malformedArguments("day takes no args") }
             return .day
-        case "time":
+        case .time:
             guard rawArgs.isEmpty else { throw Error.malformedArguments("time takes no args") }
             return .time
-        case "recording":
+        case .recording:
             guard rawArgs.isEmpty else { throw Error.malformedArguments("recording takes no args") }
             return .recording
-        case "input":
+        case .input:
             guard (2...3).contains(rawArgs.count) else {
                 throw Error.malformedArguments("input expects: name, type, default?")
             }
@@ -126,40 +120,29 @@ enum FormulaParser {
                 ? Self.parseStringLiteral(rawArgs[2])
                 : nil
             return .input(name: name, type: type, defaultValue: defaultValue)
-        case "show":
+        case .show:
             guard rawArgs.count == 1 else {
                 throw Error.malformedArguments("show expects 1 arg: =show(@name)")
             }
             let raw = rawArgs[0].trimmingCharacters(in: .whitespaces)
             let name = raw.hasPrefix("@") ? String(raw.dropFirst()) : raw
             return .show(name: name)
-        case "count":
+        case .count:
             if rawArgs.isEmpty {
                 return .count(anchor: nil)
             }
             guard rawArgs.count == 1 else {
                 throw Error.malformedArguments("count expects 0 or 1 arg: =count(@#anchor?)")
             }
-            let raw = rawArgs[0].trimmingCharacters(in: .whitespaces)
-            let anchor: String
-            if raw.hasPrefix("@#") {
-                anchor = String(raw.dropFirst(2))
-            } else if raw.hasPrefix("@") {
-                anchor = String(raw.dropFirst())
-            } else {
-                anchor = raw
-            }
-            return .count(anchor: anchor)
-        case "clip":
+            return .count(anchor: parseRefAnchor(rawArgs[0]))
+        case .clip:
             guard rawArgs.isEmpty else { throw Error.malformedArguments("clip takes no args") }
             return .clip
-        case "file":
+        case .file:
             guard rawArgs.count == 1 else {
                 throw Error.malformedArguments("file expects 1 arg: =file(path)")
             }
             return .file(path: Self.parseStringLiteral(rawArgs[0]))
-        default:
-            throw Error.unknownFunction(name)
         }
     }
 
@@ -177,6 +160,17 @@ enum FormulaParser {
             throw Error.malformedArguments("\(name) expects 1 arg")
         }
         return Self.parseStringLiteral(args[0])
+    }
+
+    private static func parseRefAnchor(_ token: String) -> String {
+        let raw = token.trimmingCharacters(in: .whitespaces)
+        if raw.hasPrefix("@#") {
+            return String(raw.dropFirst(2))
+        }
+        if raw.hasPrefix("@") {
+            return String(raw.dropFirst())
+        }
+        return raw
     }
 
     static func canonicalise(_ source: String) throws -> String {

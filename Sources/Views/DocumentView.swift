@@ -2,7 +2,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 enum EditingMode: String, CaseIterable {
-    case markdown = "Markdown"
+    case render = "Render"
     case source = "Source"
 }
 
@@ -11,7 +11,6 @@ struct DocumentView: View {
     @Bindable var barVM: FormulaBarViewModel
     @Bindable var catalogueVM: FormulaCatalogueSidebarViewModel
     var settingsVM: SettingsViewModel? = nil
-    @State private var mode: EditingMode = .markdown
 
     var body: some View {
         HStack(spacing: 0) {
@@ -32,16 +31,16 @@ struct DocumentView: View {
         .navigationTitle(vm.windowTitle)
         .toolbar {
             ToolbarItem(placement: .principal) {
-                Picker("Mode", selection: $mode) {
+                Picker("Mode", selection: Binding(
+                    get: { vm.editingMode },
+                    set: { vm.setEditingMode($0) }
+                )) {
                     ForEach(EditingMode.allCases, id: \.self) { m in
                         Text(m.rawValue).tag(m)
                     }
                 }
                 .pickerStyle(.segmented)
                 .frame(width: 200)
-                .onChange(of: mode) { _, _ in
-                    vm.flushPendingReparse()
-                }
             }
             ToolbarItem(placement: .primaryAction) {
                 Button {
@@ -57,13 +56,6 @@ struct DocumentView: View {
         .onDrop(of: [UTType.fileURL], isTargeted: nil) { providers in
             handleDrop(providers)
         }
-        .environment(\.openURL, OpenURLAction { url in
-            if let span = SpanClickRouter.handle(url: url, in: vm.document) {
-                barVM.select(span)
-                return .handled
-            }
-            return .systemAction
-        })
         .onAppear {
             barVM.onCommit = { [vm] id, newSource in
                 vm.replaceSpanSource(id: id, with: newSource)
@@ -71,41 +63,58 @@ struct DocumentView: View {
             catalogueVM.onInsert = { [vm] source in
                 vm.insertAtCursor(source)
             }
+            vm.requestEditorFocus()
         }
     }
 
     @ViewBuilder
     private var editorArea: some View {
-        switch mode {
-        case .markdown:
-            markdownEditor
+        switch vm.editingMode {
+        case .render:
+            renderEditor
         case .source:
             sourceEditor
         }
     }
 
-    /// Markdown mode renders evaluated values + real form widgets for
-    /// =input spans. Prose paragraphs show `8760` instead of `=math(365*24)`.
-    /// Use Source mode when you need to edit prose or formula source text.
-    private var markdownEditor: some View {
-        DocumentBodyView(vm: vm)
+    /// Render mode is the editable WYSIWYG-ish surface. It renders formulas as
+    /// chips but keeps the raw markdown document as the only source of truth.
+    private var renderEditor: some View {
+        EditableMarkdownView(
+            text: Binding(
+                get: { vm.rawText },
+                set: { vm.textDidChange($0) }
+            ),
+            document: vm.document,
+            mode: .render,
+            focusToken: vm.editorFocusToken,
+            focusedInputName: vm.focusedInputName,
+            inputFocusToken: vm.inputFocusToken,
+            inputValue: { vm.bindings.value(for: $0) },
+            onInputChange: { vm.setInputBinding($0, to: $1) },
+            onSelectionChange: { vm.setInsertionLocation($0) },
+            onFormulaActivate: { span in
+                vm.setInsertionLocation(span.range.upperBound)
+                barVM.select(span)
+            }
+        )
     }
 
-    /// Source mode is the editable surface — an NSTextView wrapper that
-    /// highlights every formula span in pale green while letting the user
-    /// freely type, paste, and drag text.
+    /// Source mode shows the exact markdown bytes with formula source ranges
+    /// highlighted, but shares the same editable text-view implementation.
     private var sourceEditor: some View {
         EditableMarkdownView(
             text: Binding(
                 get: { vm.rawText },
                 set: { vm.textDidChange($0) }
             ),
-            document: vm.document
+            document: vm.document,
+            mode: .source,
+            focusToken: vm.editorFocusToken,
+            focusedInputName: nil,
+            inputFocusToken: 0,
+            onSelectionChange: { vm.setInsertionLocation($0) }
         )
-        .dropDestination(for: String.self) { items, _ in
-            for item in items { vm.insertAtCursor(item) }
-            return !items.isEmpty
-        }
     }
 
     private var statusStrip: some View {
@@ -114,7 +123,7 @@ struct DocumentView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
             Spacer()
-            Text(mode.rawValue)
+            Text(vm.editingMode.rawValue)
                 .font(.caption)
                 .foregroundStyle(.tertiary)
         }

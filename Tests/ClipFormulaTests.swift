@@ -27,4 +27,9 @@ struct ClipFormulaTests {
         let canonical = try FormulaParser.canonicalise("=clip()")
         #expect(canonical == "=clip()")
     }
+
+    @Test("evaluator stays total in the test host")
+    func evaluateInTests() {
+        #expect(ClipFormulaEvaluator.evaluate() == "")
+    }
 }

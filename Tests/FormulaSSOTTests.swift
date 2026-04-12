@@ -38,18 +38,16 @@ struct FormulaSSOTTests {
     /// Names we explicitly allow in docs/landing even though they're not
     /// (yet) in the live catalogue — reserved namespaces or future work.
     private static let reserved: Set<String> = [
-        "=count", "=clip", "=file",  // reserved for v0.4+
-        "=http",                      // v2.0 speculation in BRIEFING
-        "=input",                     // filed in GH #5, implemented in v0.5
-        "=name",                      // template placeholder in examples
-        "=nosuch",                    // test example
+        "=http",     // v2.0 speculation in BRIEFING
+        "=name",     // template placeholder in examples
+        "=nosuch",   // test example
     ]
 
     @Test("README.md only references formulas that exist in the catalogue")
     func readmeMatchesCatalogue() throws {
         let url = Self.repoRoot.appendingPathComponent("README.md")
         let found = try Self.formulaNames(in: url)
-        let known = Set(FormulaCatalogue.all.map(\.name)).union(Self.reserved)
+        let known = FormulaRegistry.publicNames.union(Self.reserved)
         let unknown = found.subtracting(known)
         if !unknown.isEmpty {
             Issue.record("README.md references unknown formulas: \(unknown.sorted())")
@@ -60,7 +58,7 @@ struct FormulaSSOTTests {
     func docsMatchesCatalogue() throws {
         let url = Self.repoRoot.appendingPathComponent("docs/formulas.md")
         let found = try Self.formulaNames(in: url)
-        let known = Set(FormulaCatalogue.all.map(\.name)).union(Self.reserved)
+        let known = FormulaRegistry.publicNames.union(Self.reserved)
         let unknown = found.subtracting(known)
         if !unknown.isEmpty {
             Issue.record("docs/formulas.md references unknown formulas: \(unknown.sorted())")
@@ -71,7 +69,7 @@ struct FormulaSSOTTests {
     func siteMatchesCatalogue() throws {
         let url = Self.repoRoot.appendingPathComponent("site/index.html")
         let found = try Self.formulaNames(in: url)
-        let known = Set(FormulaCatalogue.all.map(\.name)).union(Self.reserved)
+        let known = FormulaRegistry.publicNames.union(Self.reserved)
         let unknown = found.subtracting(known)
         if !unknown.isEmpty {
             Issue.record("site/index.html references unknown formulas: \(unknown.sorted())")
