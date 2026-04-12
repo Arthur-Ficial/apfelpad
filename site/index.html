@@ -821,7 +821,7 @@
 <section class="sec-formulas" id="formulas">
   <div class="wrap">
     <div class="lbl">The formulas</div>
-    <h2>Nineteen functions. One syntax. Turing-complete.</h2>
+    <h2>Twenty-one functions. One syntax. Turing-complete. Reactive.</h2>
     <p class="sub">Every formula is pure. Every result is cached. Type <code>=name(args)</code> anywhere. Smart quotes, anonymous shortcuts, and auto-quoting all work. Formulas compose.</p>
 
     <h3 style="margin-top:36px;">On-device AI + math</h3>
@@ -900,11 +900,19 @@
       </div>
     </div>
 
-    <h3 style="margin-top:36px;">Document references</h3>
+    <h3 style="margin-top:36px;">Document references and reactive variables</h3>
     <div class="formula-grid">
       <div class="formula-item">
         <div class="formula-name">=ref(@anchor)</div>
         <div class="formula-desc">Insert the text of a named heading section. Live — updates as the document changes.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=input(name, type, default?)</div>
+        <div class="formula-desc">Declare a reactive variable. Use <code>@name</code> elsewhere to bind its value.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=show(@name)</div>
+        <div class="formula-desc">Echo the current value of a bound variable.</div>
       </div>
     </div>
   </div>
@@ -1005,6 +1013,59 @@ Timeline: =ref(@key-numbers)</code></pre>
       &middot; Full reference:
       <a href="https://github.com/Arthur-Ficial/apfelpad/blob/main/docs/formulas.md" style="color:var(--brand)">docs/formulas.md</a>
     </p>
+  </div>
+</section>
+
+<!-- Reactive variables — the calculator demo -->
+<section class="sec-calculator" style="background:#fff;padding:80px 0;border-top:1px solid var(--line);">
+  <div class="wrap">
+    <div class="lbl">Reactive variables (v0.5)</div>
+    <h2 class="sh">The document IS the app.</h2>
+    <p class="sub" style="max-width:680px;">
+      <code>=input(name, type)</code> declares a document-level variable. <code>=show(@name)</code> echoes it. Any formula that references <code>@name</code> recomputes in real time when the value changes. Spreadsheet semantics, inside prose.
+    </p>
+
+    <div class="two-col-grid" style="display:grid;grid-template-columns:1fr;gap:32px;align-items:start;margin-top:40px;">
+      <div>
+        <h3 style="margin-top:0;">Source</h3>
+<pre style="background:#fafafa;border:1px solid var(--line);border-radius:8px;padding:16px;overflow-x:auto;font-size:13px;line-height:1.6;"><code># Quote calculator
+
+Client name: =input("client", text, "Acme Corp")
+Project hours: =input("hours", number, "40")
+Hourly rate: =input("rate", number, "150")
+
+## Calculations
+
+Subtotal: $=math(@hours * @rate)
+Tax (20%): $=math(@hours * @rate * 0.2)
+Total: $=math(@hours * @rate * 1.2)
+
+## Summary
+
+You're quoting =show(@client) for =show(@hours) hours
+at $=show(@rate) per hour.
+
+## AI proposal
+
+=apfel(=concat("Write a two-sentence project pitch for ",
+  @client, " — a ", @hours, "-hour engagement at $",
+  @rate, "/hour"))</code></pre>
+      </div>
+      <div>
+        <h3 style="margin-top:0;">What it does</h3>
+        <ul style="color:var(--text2);line-height:1.7;">
+          <li>Each <code>=input</code> span renders as an inline form field (text, number, boolean, or date)</li>
+          <li>Typing a value into the hours input instantly re-evaluates the Subtotal, Tax, Total, and the <code>=show</code> echoes</li>
+          <li>The AI proposal recomposes live as you tweak the client name and rate — because the <code>=apfel</code> call wraps the bindings in <code>=concat</code></li>
+          <li>Cache keys use the substituted source, so rebinding never returns a stale value</li>
+          <li>Dependencies are discovered by walking <code>@name</code> references — O(spans) per keystroke, no explicit graph construction</li>
+          <li>The document is plain markdown. Save it, send it to a client, they open it in apfelpad, tweak the inputs. No cloud, no sign-in, no JavaScript.</li>
+        </ul>
+        <p style="margin-top:18px;color:var(--muted);font-size:13px;">
+          Fixture: <a href="https://github.com/Arthur-Ficial/apfelpad/blob/main/Tests/Fixtures/21-calculator.md" style="color:var(--brand)">Tests/Fixtures/21-calculator.md</a>
+        </p>
+      </div>
+    </div>
   </div>
 </section>
 
