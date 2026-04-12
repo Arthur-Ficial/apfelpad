@@ -25,13 +25,13 @@ struct EditableMarkdownView: NSViewRepresentable {
     func makeCoordinator() -> Coordinator { Coordinator(parent: self) }
 
     func makeNSView(context: Context) -> NSScrollView {
-        let scroll = NSTextView.scrollableTextView()
+        let scroll = FormulaTextView.makeScrollable()
         scroll.hasVerticalScroller = true
         scroll.hasHorizontalScroller = false
         scroll.autohidesScrollers = true
         scroll.drawsBackground = false
 
-        guard let textView = scroll.documentView as? NSTextView else { return scroll }
+        guard let textView = scroll.documentView as? FormulaTextView else { return scroll }
         textView.isEditable = true
         textView.isRichText = true
         textView.isAutomaticQuoteSubstitutionEnabled = false
@@ -43,6 +43,7 @@ struct EditableMarkdownView: NSViewRepresentable {
         textView.usesFindBar = true
         textView.registerForDraggedTypes([.string, .URL])
         textView.delegate = context.coordinator
+        textView.formulaCoordinator = context.coordinator
         textView.linkTextAttributes = [
             .foregroundColor: Self.darkGreen,
             .underlineStyle: 0,
@@ -55,7 +56,7 @@ struct EditableMarkdownView: NSViewRepresentable {
     }
 
     func updateNSView(_ scrollView: NSScrollView, context: Context) {
-        guard let textView = scrollView.documentView as? NSTextView else { return }
+        guard let textView = scrollView.documentView as? FormulaTextView else { return }
         context.coordinator.parent = self
         applyState(to: textView, coordinator: context.coordinator)
     }
@@ -374,7 +375,7 @@ struct EditableMarkdownView: NSViewRepresentable {
 
     final class Coordinator: NSObject, NSTextViewDelegate {
         var parent: EditableMarkdownView
-        weak var textView: NSTextView?
+        weak var textView: FormulaTextView?
         var currentProjection: RenderProjection?
         var pendingRawSelection: Int?
         var isProgrammaticChange = false
@@ -536,6 +537,146 @@ struct EditableMarkdownView: NSViewRepresentable {
             }
         }
         return nil
+    }
+}
+
+/// NSTextView subclass with formula-aware copy: right-click context menu and
+/// Cmd+C both copy the formula's visible content (result in render mode,
+/// source in source mode).
+final class FormulaTextView: NSTextView {
+    weak var formulaCoordinator: EditableMarkdownView.Coordinator?
+
+    /// Creates a scrollable FormulaTextView (mirrors NSTextView.scrollableTextView()).
+    static func makeScrollable() -> NSScrollView {
+        let scrollView = NSScrollView()
+        scrollView.hasVerticalScroller = true
+        scrollView.hasHorizontalScroller = false
+
+        let contentSize = scrollView.contentSize
+        let textContainer = NSTextContainer(containerSize: NSSize(
+            width: contentSize.width,
+            height: CGFloat.greatestFiniteMagnitude
+        ))
+        textContainer.widthTracksTextView = true
+
+        let layoutManager = NSLayoutManager()
+        layoutManager.addTextContainer(textContainer)
+
+        let textStorage = NSTextStorage()
+        textStorage.addLayoutManager(layoutManager)
+
+        let textView = FormulaTextView(frame: NSRect(origin: .zero, size: contentSize), textContainer: textContainer)
+        textView.isVerticallyResizable = true
+        textView.isHorizontallyResizable = false
+        textView.autoresizingMask = [.width]
+        textView.maxSize = NSSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
+        textView.minSize = NSSize(width: 0, height: 0)
+
+        scrollView.documentView = textView
+        return scrollView
+    }
+
+    // MARK: - Right-click context menu
+
+    override func rightMouseDown(with event: NSEvent) {
+        let point = convert(event.locationInWindow, from: nil)
+        if let (result, source) = formulaTextUnderPoint(point) {
+            let menu = NSMenu()
+            let copyResult = NSMenuItem(title: "Copy Result", action: #selector(copyFormulaResult), keyEquivalent: "")
+            copyResult.representedObject = result
+            copyResult.target = self
+            menu.addItem(copyResult)
+
+            let copySource = NSMenuItem(title: "Copy Source", action: #selector(copyFormulaSource), keyEquivalent: "")
+            copySource.representedObject = source
+            copySource.target = self
+            menu.addItem(copySource)
+
+            NSMenu.popUpContextMenu(menu, with: event, for: self)
+            return
+        }
+        super.rightMouseDown(with: event)
+    }
+
+    @objc private func copyFormulaResult(_ sender: NSMenuItem) {
+        guard let text = sender.representedObject as? String else { return }
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+    }
+
+    @objc private func copyFormulaSource(_ sender: NSMenuItem) {
+        guard let text = sender.representedObject as? String else { return }
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+    }
+
+    // MARK: - Cmd+C copies formula content when span is selected
+
+    override func copy(_ sender: Any?) {
+        guard let coordinator = formulaCoordinator else {
+            super.copy(sender)
+            return
+        }
+
+        let selection = selectedRange()
+
+        switch coordinator.parent.mode {
+        case .render:
+            guard let projection = coordinator.currentProjection,
+                  let segment = projection.segments.first(where: { seg in
+                      guard seg.atomicSpan != nil else { return false }
+                      return selection.location >= seg.visibleRange.lowerBound
+                          && selection.location < seg.visibleRange.upperBound
+                  }),
+                  let span = segment.atomicSpan else {
+                super.copy(sender)
+                return
+            }
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString(span.displayText, forType: .string)
+
+        case .source:
+            let doc = coordinator.parent.document
+            if let span = doc.spans.first(where: {
+                selection.location >= $0.range.lowerBound && selection.location < $0.range.upperBound
+            }) {
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(span.source, forType: .string)
+            } else {
+                super.copy(sender)
+            }
+        }
+    }
+
+    // MARK: - Helpers
+
+    /// Returns (displayText, source) for the formula span under the given point, if any.
+    private func formulaTextUnderPoint(_ point: NSPoint) -> (result: String, source: String)? {
+        guard let coordinator = formulaCoordinator else { return nil }
+        let charIndex = characterIndexForInsertion(at: point)
+
+        switch coordinator.parent.mode {
+        case .render:
+            guard let projection = coordinator.currentProjection,
+                  let segment = projection.segments.first(where: {
+                      if case .formula = $0.kind {
+                          return charIndex >= $0.visibleRange.lowerBound
+                              && charIndex < $0.visibleRange.upperBound
+                      }
+                      return false
+                  }),
+                  case .formula(let span) = segment.kind else {
+                return nil
+            }
+            return (result: span.displayText, source: span.source)
+
+        case .source:
+            let doc = coordinator.parent.document
+            guard let span = doc.spans.first(where: { $0.range.contains(charIndex) }) else {
+                return nil
+            }
+            return (result: span.displayText, source: span.source)
+        }
     }
 }
 
