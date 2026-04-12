@@ -10,6 +10,7 @@ struct ServerManagerTests {
         #expect(args.contains("--port"))
         #expect(args.contains("11450"))
         #expect(args.contains("--cors"))
+        #expect(args.contains("--permissive"))
     }
 
     @Test("findAvailablePort returns a port in apfelpad's range")

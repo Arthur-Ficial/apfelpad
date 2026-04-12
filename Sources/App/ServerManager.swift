@@ -84,7 +84,7 @@ final class ServerManager {
     }
 
     nonisolated static func buildArguments(port: Int) -> [String] {
-        ["--serve", "--port", "\(port)", "--cors"]
+        ["--serve", "--port", "\(port)", "--cors", "--permissive"]
     }
 
     // MARK: - Lifecycle
