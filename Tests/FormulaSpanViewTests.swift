@@ -2,12 +2,12 @@ import Testing
 import SwiftUI
 @testable import apfelpad
 
-@Suite("FormulaSpanView visual spec")
+@Suite("FormulaSpanView visual spec", .serialized)
 struct FormulaSpanViewTests {
-    @Test("uses pale green background and dark green accent")
+    @Test("uses shared app theme colors")
     func colours() {
-        #expect(FormulaSpanView.backgroundColour == Color(red: 0.94, green: 0.98, blue: 0.93))
-        #expect(FormulaSpanView.accentColour == Color(red: 0.16, green: 0.49, blue: 0.22))
+        #expect(FormulaSpanView.backgroundColour == AppTheme.formulaBackground)
+        #expect(FormulaSpanView.accentColour == AppTheme.formulaAccent)
     }
 
     @Test("displayText shows source in idle state")

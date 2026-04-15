@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import apfelpad
 
-@Suite("InlineFormulaRenderer")
+@Suite("InlineFormulaRenderer", .serialized)
 @MainActor
 struct InlineFormulaRendererTests {
     @Test("replaces formula source with display text")

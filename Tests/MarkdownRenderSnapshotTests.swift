@@ -13,7 +13,7 @@ import Foundation
 /// The plaintext is produced by running the document through the same
 /// InlineFormulaRenderer that DocumentBodyView uses for every prose paragraph.
 /// If this contract breaks, every Markdown-mode render breaks with it.
-@Suite("Markdown render snapshots — what you see vs what you expect")
+@Suite("Markdown render snapshots — what you see vs what you expect", .serialized)
 @MainActor
 struct MarkdownRenderSnapshotTests {
 

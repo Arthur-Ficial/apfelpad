@@ -5,7 +5,7 @@ import Testing
 ///   - =input(name, type) declares a variable
 ///   - @name inside another formula resolves to the current value
 ///   - Changing an input value re-evaluates dependent formulas
-@Suite("InputBindings")
+@Suite("InputBindings", .serialized)
 @MainActor
 struct InputBindingsTests {
     @Test("parser recognises =input(name, type)")

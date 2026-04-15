@@ -1,7 +1,7 @@
 import Testing
 @testable import apfelpad
 
-@Suite("FormulaCatalogue")
+@Suite("FormulaCatalogue", .serialized)
 struct FormulaCatalogueTests {
     @Test("contains every v0.3.1 formula (at least 19 entries)")
     func count() {

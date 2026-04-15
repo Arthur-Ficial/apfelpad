@@ -15,7 +15,7 @@ import Foundation
 /// that the substitution pipeline is total: every recognised formula
 /// becomes a clickable link or widget, and every unrecognised formula
 /// stays as source text without crashing anything.
-@Suite("Chaos rendering — every formula, every path")
+@Suite("Chaos rendering — every formula, every path", .serialized)
 @MainActor
 struct ChaosRenderTests {
 

@@ -1,7 +1,7 @@
 import Testing
 @testable import apfelpad
 
-@Suite("DocumentViewModel")
+@Suite("DocumentViewModel", .serialized)
 @MainActor
 struct DocumentViewModelTests {
     @Test("evaluating a doc with one math span fills the span value")

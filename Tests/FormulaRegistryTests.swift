@@ -1,7 +1,7 @@
 import Testing
 @testable import apfelpad
 
-@Suite("FormulaRegistry")
+@Suite("FormulaRegistry", .serialized)
 struct FormulaRegistryTests {
     @Test("public catalogue entries are derived from the registry")
     func catalogueMatchesRegistry() {

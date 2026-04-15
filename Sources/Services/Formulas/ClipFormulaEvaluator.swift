@@ -6,7 +6,7 @@ protocol ClipboardReading: Sendable {
 
 struct SystemClipboard: ClipboardReading {
     func currentString() -> String? {
-        NSPasteboard.general.pasteboardItems?.first?.string(forType: .string)
+        NSPasteboard.general.string(forType: .string)
     }
 }
 

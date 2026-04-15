@@ -123,60 +123,7 @@ final class FormulaRuntime: Sendable {
     /// Centralises the text/math/spreadsheet dispatch so both the streaming
     /// and non-streaming entry points reuse it.
     private func synchronousCompute(for call: FormulaCall) throws -> String {
-        switch call {
-        case .math(let expression):
-            return try MathFormulaEvaluator.evaluate(expression)
-        case .upper(let t):
-            return try UpperFormulaEvaluator.evaluate(t)
-        case .lower(let t):
-            return try LowerFormulaEvaluator.evaluate(t)
-        case .trim(let t):
-            return try TrimFormulaEvaluator.evaluate(t)
-        case .len(let t):
-            return try LenFormulaEvaluator.evaluate(t)
-        case .concatenate(let parts):
-            return try ConcatenateFormulaEvaluator.evaluate(parts)
-        case .substitute(let text, let oldText, let newText, let occurrence):
-            return try SubstituteFormulaEvaluator.evaluate(
-                text: text, find: oldText, replacement: newText, occurrence: occurrence
-            )
-        case .`split`(let text, let delim, let index):
-            return try SplitFormulaEvaluator.evaluate(
-                text: text, delim: delim, index: index
-            )
-        case .`if`(let cond, let thenValue, let elseValue):
-            return try IfFormulaEvaluator.evaluate(
-                cond: cond, thenValue: thenValue, elseValue: elseValue
-            )
-        case .sum(let args):
-            return try SumFormulaEvaluator.evaluate(args)
-        case .average(let args):
-            return try AverageFormulaEvaluator.evaluate(args)
-        case .apfel:
-            throw RuntimeError.apfelRequiresStreamingPath
-        case .ref:
-            throw RuntimeError.refRequiresDocumentContext
-        case .date(let offsetDays):
-            return DateFormulaEvaluator.evaluate(offsetDays: offsetDays)
-        case .weeknum(let offsetWeeks):
-            return WeeknumFormulaEvaluator.evaluate(offsetWeeks: offsetWeeks)
-        case .today:
-            return DateFormulaEvaluator.evaluate(offsetDays: 0)
-        case .month:
-            return MonthFormulaEvaluator.evaluate()
-        case .day:
-            return DayFormulaEvaluator.evaluate()
-        case .time:
-            return TimeFormulaEvaluator.evaluate()
-        case .recording:
-            return "🎙 recording UI — v0.4 (tap to record via apfel)"
-        case .clip:
-            return ClipFormulaEvaluator.evaluate(clipboard: clipboard)
-        case .file(let path):
-            return try FileFormulaEvaluator.evaluate(path: path)
-        case .count, .input, .show:
-            throw RuntimeError.inputRequiresDocumentContext
-        }
+        try FormulaSyncEvaluator.evaluate(call, clipboard: clipboard)
     }
 
     private func computeValue(

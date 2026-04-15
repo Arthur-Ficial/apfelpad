@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import apfelpad
 
-@Suite("Speed: debounce and incremental evaluation")
+@Suite("Speed: debounce and incremental evaluation", .serialized)
 @MainActor
 struct SpeedTests {
     @MainActor

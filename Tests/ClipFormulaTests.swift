@@ -1,7 +1,7 @@
 import Testing
 @testable import apfelpad
 
-@Suite("ClipFormula")
+@Suite("ClipFormula", .serialized)
 struct ClipFormulaTests {
     @Test("parser recognises =clip()")
     func parseClip() throws {

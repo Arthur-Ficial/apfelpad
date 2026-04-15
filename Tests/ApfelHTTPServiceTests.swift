@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import apfelpad
 
-@Suite("ApfelHTTPService")
+@Suite("ApfelHTTPService", .serialized)
 struct ApfelHTTPServiceTests {
     @Test("builds correct request body")
     func requestBody() throws {

@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import apfelpad
 
-@Suite("File persistence")
+@Suite("File persistence", .serialized)
 @MainActor
 struct FilePersistenceTests {
 

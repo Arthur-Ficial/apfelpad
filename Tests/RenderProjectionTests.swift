@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import apfelpad
 
-@Suite("Render projection")
+@Suite("Render projection", .serialized)
 struct RenderProjectionTests {
 
     @Test("render replaces formula source with display text")

@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import apfelpad
 
-@Suite("SQLiteFormulaCache")
+@Suite("SQLiteFormulaCache", .serialized)
 struct SQLiteFormulaCacheTests {
     private func makeTempPath() -> String {
         URL(fileURLWithPath: NSTemporaryDirectory())

@@ -4,12 +4,6 @@ import UniformTypeIdentifiers
 struct FormulaCatalogueSidebarView: View {
     @Bindable var vm: FormulaCatalogueSidebarViewModel
 
-    // Visual palette (matches apfelpad's pale/dark green identity)
-    private static let paleGreen = Color(red: 0.94, green: 0.98, blue: 0.93)
-    private static let darkGreen = Color(red: 0.16, green: 0.49, blue: 0.22)
-    private static let panelBg   = Color(white: 0.97)
-    private static let rowHover  = Color(red: 0.90, green: 0.96, blue: 0.89)
-
     var body: some View {
         VStack(spacing: 0) {
             header
@@ -23,7 +17,7 @@ struct FormulaCatalogueSidebarView: View {
             }
         }
         .frame(width: 340)
-        .background(Self.panelBg)
+        .background(AppTheme.chromeBackground)
         .overlay(
             Rectangle()
                 .frame(width: 1)
@@ -38,7 +32,7 @@ struct FormulaCatalogueSidebarView: View {
         HStack {
             Text("Formulas")
                 .font(.system(.headline, design: .rounded))
-                .foregroundStyle(Self.darkGreen)
+                .foregroundStyle(AppTheme.formulaAccent)
             Spacer()
             Text("\(vm.totalVisibleCount)")
                 .font(.caption.monospacedDigit())
@@ -106,7 +100,7 @@ struct FormulaCatalogueSidebarView: View {
             .padding(.horizontal, 14)
             .padding(.top, 14)
             .padding(.bottom, 6)
-            .background(Self.panelBg)
+            .background(AppTheme.chromeBackground)
     }
 
     private func row(_ entry: FormulaCatalogueEntry) -> some View {
@@ -117,7 +111,7 @@ struct FormulaCatalogueSidebarView: View {
                 HStack(spacing: 6) {
                     Text(entry.signature)
                         .font(.system(.body, design: .monospaced).weight(.semibold))
-                        .foregroundStyle(Self.darkGreen)
+                        .foregroundStyle(AppTheme.formulaAccent)
                         .lineLimit(1)
                     Spacer()
                     Image(systemName: "arrow.down.right.circle")
@@ -132,16 +126,16 @@ struct FormulaCatalogueSidebarView: View {
                 // Pale-green preview of the example
                 HStack(spacing: 0) {
                     Rectangle()
-                        .fill(Self.darkGreen)
+                        .fill(AppTheme.formulaAccent)
                         .frame(width: 2)
                     Text(entry.example)
                         .font(.system(.caption, design: .monospaced))
-                        .foregroundStyle(Self.darkGreen)
+                        .foregroundStyle(AppTheme.formulaAccent)
                         .lineLimit(1)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 3)
                 }
-                .background(Self.paleGreen)
+                .background(AppTheme.formulaBackground)
                 .clipShape(RoundedRectangle(cornerRadius: 3))
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -156,9 +150,9 @@ struct FormulaCatalogueSidebarView: View {
         .draggable(entry.example) {
             Text(entry.example)
                 .font(.system(.caption, design: .monospaced))
-                .foregroundStyle(Self.darkGreen)
+                .foregroundStyle(AppTheme.formulaAccent)
                 .padding(6)
-                .background(Self.paleGreen)
+                .background(AppTheme.formulaBackground)
                 .clipShape(RoundedRectangle(cornerRadius: 4))
         }
         .overlay(

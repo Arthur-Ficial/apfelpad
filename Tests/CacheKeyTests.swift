@@ -1,7 +1,7 @@
 import Testing
 @testable import apfelpad
 
-@Suite("CacheKey")
+@Suite("CacheKey", .serialized)
 struct CacheKeyTests {
     @Test("same inputs → same key and same hash")
     func deterministic() {

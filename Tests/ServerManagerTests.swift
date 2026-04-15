@@ -1,7 +1,7 @@
 import Testing
 @testable import apfelpad
 
-@Suite("ServerManager")
+@Suite("ServerManager", .serialized)
 struct ServerManagerTests {
     @Test("buildArguments uses the supplied port and --cors")
     func buildArgs() {

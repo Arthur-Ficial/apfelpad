@@ -1,7 +1,7 @@
 import Testing
 @testable import apfelpad
 
-@Suite("NestedFormulaResolver")
+@Suite("NestedFormulaResolver", .serialized)
 struct NestedFormulaResolverTests {
     @Test("flattens =upper(=lower(HELLO)) to =upper(\"hello\")")
     func simpleNesting() async throws {

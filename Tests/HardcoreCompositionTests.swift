@@ -6,7 +6,7 @@ import Foundation
 /// testing of nested formula composition. Every pure synchronous formula
 /// is composed with every other (where the inner's output is a plausible
 /// input to the outer), plus random-fuzz chaos for 100+ iterations.
-@Suite("Hardcore composition")
+@Suite("Hardcore composition", .serialized)
 @MainActor
 struct HardcoreCompositionTests {
     private func makeVM() -> DocumentViewModel {
@@ -281,7 +281,6 @@ struct HardcoreCompositionTests {
         try vm.load(rawMarkdown: md)
         await vm.evaluateAll()
 
-        let span = vm.document.spans.first!
         // Find the "Shouted brief" span — =upper(=ref(@#project-brief))
         let shoutedSpan = vm.document.spans.first { $0.source == "=upper(=ref(@#project-brief))" }!
         switch shoutedSpan.value {

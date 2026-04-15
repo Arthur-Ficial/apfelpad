@@ -6,7 +6,7 @@ import Foundation
 /// docs/formulas.md, and site/index.html must exist in FormulaCatalogue.
 /// This prevents documentation / landing-page drift — if a doc mentions
 /// `=foo` that isn't in the catalogue, the test fails.
-@Suite("Formula SSOT — catalogue is authoritative")
+@Suite("Formula SSOT — catalogue is authoritative", .serialized)
 struct FormulaSSOTTests {
     private static let repoRoot: URL = {
         // Resolve the project root by walking up from the current test file.

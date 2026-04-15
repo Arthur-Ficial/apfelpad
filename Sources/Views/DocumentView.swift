@@ -150,7 +150,7 @@ struct DocumentView: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 4)
-        .background(Color(white: 0.97))
+        .background(AppTheme.chromeBackground)
         .overlay(
             Rectangle()
                 .frame(height: 1)

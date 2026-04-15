@@ -1,7 +1,7 @@
 import Testing
 @testable import apfelpad
 
-@Suite("FormulaParser")
+@Suite("FormulaParser", .serialized)
 struct FormulaParserTests {
     @Test("plain quoted string literal parses to apfel call")
     func plainQuotedString() throws {

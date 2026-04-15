@@ -31,4 +31,18 @@ struct FormulaSpan: Identifiable, Equatable {
         case .error(let message): return message
         }
     }
+
+    var isError: Bool {
+        if case .error = value {
+            return true
+        }
+        return false
+    }
+
+    var isStale: Bool {
+        if case .stale = value {
+            return true
+        }
+        return false
+    }
 }

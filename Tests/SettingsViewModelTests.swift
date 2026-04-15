@@ -1,7 +1,7 @@
 import Testing
 @testable import apfelpad
 
-@Suite("SettingsViewModel")
+@Suite("SettingsViewModel", .serialized)
 @MainActor
 struct SettingsViewModelTests {
     @Test("newer remote version → updateAvailable")

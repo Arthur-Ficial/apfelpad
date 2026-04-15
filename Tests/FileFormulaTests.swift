@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import apfelpad
 
-@Suite("FileFormula")
+@Suite("FileFormula", .serialized)
 struct FileFormulaTests {
     @Test("parser recognises =file(path)")
     func parseFile() throws {

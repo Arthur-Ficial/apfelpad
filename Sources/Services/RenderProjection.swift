@@ -44,12 +44,14 @@ struct RenderProjection: Equatable {
         rawText = document.rawMarkdown
 
         let ns = document.rawMarkdown as NSString
-        let sortedSpans = document.spans.sorted { $0.range.lowerBound < $1.range.lowerBound }
+        let orderedSpans = document.spansInSourceOrder
 
         var pieces: [String] = []
         var builtSegments: [Segment] = []
         var rawCursor = 0
         var visibleCursor = 0
+        pieces.reserveCapacity(orderedSpans.count * 2 + 1)
+        builtSegments.reserveCapacity(orderedSpans.count * 2 + 1)
 
         func appendPlain(until upperBound: Int) {
             guard upperBound > rawCursor else { return }
@@ -66,7 +68,7 @@ struct RenderProjection: Equatable {
             visibleCursor += visibleLength
         }
 
-        for span in sortedSpans {
+        for span in orderedSpans {
             appendPlain(until: span.range.lowerBound)
 
             switch span.call {

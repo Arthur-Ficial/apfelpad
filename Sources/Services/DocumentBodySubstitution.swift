@@ -83,13 +83,6 @@ enum DocumentBodySubstitution {
     /// The user-visible text for a span — mirrors `FormulaSpan.displayText`
     /// but lives here so the substitution module is self-contained.
     static func displayText(for span: FormulaSpan) -> String {
-        switch span.value {
-        case .idle:               return span.source
-        case .evaluating:         return "…"
-        case .streaming(let p):   return p.isEmpty ? "…" : p
-        case .ready(let t):       return t
-        case .stale(let t):       return t
-        case .error(let m):       return m
-        }
+        span.displayText
     }
 }

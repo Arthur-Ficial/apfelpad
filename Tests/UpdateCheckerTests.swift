@@ -1,7 +1,7 @@
 import Testing
 @testable import apfelpad
 
-@Suite("UpdateChecker")
+@Suite("UpdateChecker", .serialized)
 @MainActor
 struct UpdateCheckerTests {
     @Test("mock returns configured version")

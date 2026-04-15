@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import apfelpad
 
-@Suite("Date / time formulas")
+@Suite("Date / time formulas", .serialized)
 struct DateTimeFormulasTests {
     // A fixed reference date so tests are deterministic.
     // 2026-04-15 is a Wednesday, ISO calendar week 16.

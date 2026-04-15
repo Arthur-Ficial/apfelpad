@@ -18,10 +18,6 @@ struct EditableMarkdownView: NSViewRepresentable {
     var onSelectionChange: ((Int) -> Void)? = nil
     var onFormulaActivate: ((FormulaSpan) -> Void)? = nil
 
-    private static let paleGreen = NSColor(red: 0.94, green: 0.98, blue: 0.93, alpha: 1)
-    private static let darkGreen = NSColor(red: 0.16, green: 0.49, blue: 0.22, alpha: 1)
-    private static let errorBg = NSColor(red: 0.99, green: 0.93, blue: 0.93, alpha: 1)
-
     func makeCoordinator() -> Coordinator { Coordinator(parent: self) }
 
     func makeNSView(context: Context) -> NSScrollView {
@@ -45,7 +41,7 @@ struct EditableMarkdownView: NSViewRepresentable {
         textView.delegate = context.coordinator
         textView.formulaCoordinator = context.coordinator
         textView.linkTextAttributes = [
-            .foregroundColor: Self.darkGreen,
+            .foregroundColor: AppTheme.formulaAccentNSColor,
             .underlineStyle: 0,
         ]
 
@@ -137,7 +133,7 @@ struct EditableMarkdownView: NSViewRepresentable {
 
         coordinator.currentProjection = projection
         coordinator.lastRenderedGeneration = documentGeneration
-        let rendered = buildRenderAttributedString(from: projection)
+        let rendered = RenderAttributedStringBuilder.build(from: projection)
         coordinator.isProgrammaticChange = true
         textView.textStorage?.setAttributedString(rendered)
         textView.setSelectedRange(clamp(visibleSelection, maxLength: rendered.length))
@@ -169,111 +165,11 @@ struct EditableMarkdownView: NSViewRepresentable {
         storage.endEditing()
     }
 
-    private func buildRenderAttributedString(from projection: RenderProjection) -> NSAttributedString {
-        let out = NSMutableAttributedString(string: projection.visibleText, attributes: [
-            .font: NSFont.systemFont(ofSize: 15),
-            .foregroundColor: NSColor.labelColor,
-        ])
-
-        for segment in projection.segments {
-            let visibleRange = NSRange(
-                location: segment.visibleRange.lowerBound,
-                length: segment.visibleRange.upperBound - segment.visibleRange.lowerBound
-            )
-
-            switch segment.kind {
-            case .plain:
-                applyRenderTypography(to: out, range: visibleRange)
-            case .formula(let span):
-                out.addAttributes(renderAttributes(for: span), range: visibleRange)
-                out.addAttribute(
-                    .link,
-                    value: URL(string: "apfelpad://span/\(span.id.uuidString)") as Any,
-                    range: visibleRange
-                )
-            case .input:
-                out.addAttributes([
-                    .foregroundColor: NSColor.clear,
-                    .backgroundColor: NSColor.clear,
-                ], range: visibleRange)
-            }
-        }
-
-        return out
-    }
-
-    private func applyRenderTypography(to text: NSMutableAttributedString, range: NSRange) {
-        let ns = text.string as NSString
-        var paragraphStart = range.location
-        let upperBound = range.location + range.length
-
-        while paragraphStart < upperBound, paragraphStart < ns.length {
-            let paragraphRange = ns.paragraphRange(for: NSRange(location: paragraphStart, length: 0))
-            let paragraph = ns.substring(with: paragraphRange)
-
-            if paragraph.hasPrefix("# ") {
-                hideMarkdownPrefix(in: text, paragraphRange: paragraphRange, prefixLength: 2)
-                text.addAttributes([
-                    .font: NSFont.systemFont(ofSize: 28, weight: .bold),
-                ], range: NSRange(location: paragraphRange.location + 2, length: max(0, paragraphRange.length - 2)))
-            } else if paragraph.hasPrefix("## ") {
-                hideMarkdownPrefix(in: text, paragraphRange: paragraphRange, prefixLength: 3)
-                text.addAttributes([
-                    .font: NSFont.systemFont(ofSize: 22, weight: .semibold),
-                ], range: NSRange(location: paragraphRange.location + 3, length: max(0, paragraphRange.length - 3)))
-            } else if paragraph.hasPrefix("### ") {
-                hideMarkdownPrefix(in: text, paragraphRange: paragraphRange, prefixLength: 4)
-                text.addAttributes([
-                    .font: NSFont.systemFont(ofSize: 18, weight: .semibold),
-                ], range: NSRange(location: paragraphRange.location + 4, length: max(0, paragraphRange.length - 4)))
-            }
-
-            let nextParagraphStart = paragraphRange.location + paragraphRange.length
-            if nextParagraphStart <= paragraphStart { break }
-            paragraphStart = nextParagraphStart
-        }
-    }
-
-    private func hideMarkdownPrefix(
-        in text: NSMutableAttributedString,
-        paragraphRange: NSRange,
-        prefixLength: Int
-    ) {
-        guard paragraphRange.length >= prefixLength else { return }
-        text.addAttributes([
-            .foregroundColor: NSColor.clear,
-            .font: NSFont.systemFont(ofSize: 1),
-        ], range: NSRange(location: paragraphRange.location, length: prefixLength))
-    }
-
     private func sourceAttributes(for span: FormulaSpan) -> [NSAttributedString.Key: Any] {
-        let isError: Bool
-        if case .error = span.value {
-            isError = true
-        } else {
-            isError = false
-        }
-
         return [
-            .backgroundColor: isError ? Self.errorBg : Self.paleGreen,
-            .foregroundColor: isError ? NSColor.systemRed : Self.darkGreen,
+            .backgroundColor: AppTheme.formulaChipBackgroundNSColor(for: span),
+            .foregroundColor: AppTheme.formulaChipForegroundNSColor(for: span),
             .font: NSFont.monospacedSystemFont(ofSize: 13, weight: .semibold),
-        ]
-    }
-
-    private func renderAttributes(for span: FormulaSpan) -> [NSAttributedString.Key: Any] {
-        let isError: Bool
-        if case .error = span.value {
-            isError = true
-        } else {
-            isError = false
-        }
-
-        return [
-            .backgroundColor: isError ? Self.errorBg : Self.paleGreen,
-            .foregroundColor: isError ? NSColor.systemRed : Self.darkGreen,
-            .font: NSFont.monospacedSystemFont(ofSize: 14, weight: .semibold),
-            .cursor: NSCursor.pointingHand,
         ]
     }
 
@@ -373,6 +269,7 @@ struct EditableMarkdownView: NSViewRepresentable {
         return NSRange(location: location, length: length)
     }
 
+    @MainActor
     final class Coordinator: NSObject, NSTextViewDelegate {
         var parent: EditableMarkdownView
         weak var textView: FormulaTextView?

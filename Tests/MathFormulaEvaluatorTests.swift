@@ -1,7 +1,7 @@
 import Testing
 @testable import apfelpad
 
-@Suite("MathFormulaEvaluator")
+@Suite("MathFormulaEvaluator", .serialized)
 struct MathFormulaEvaluatorTests {
     @Test("evaluates 42+2*3")
     func evalAddMul() throws {
