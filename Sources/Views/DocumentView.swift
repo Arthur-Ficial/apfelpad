@@ -10,6 +10,7 @@ struct DocumentView: View {
     @Bindable var vm: DocumentViewModel
     @Bindable var barVM: FormulaBarViewModel
     @Bindable var catalogueVM: FormulaCatalogueSidebarViewModel
+    @Bindable var examplesVM: ExamplesSidebarViewModel
     var settingsVM: SettingsViewModel? = nil
     var onNew: (() -> Void)? = nil
     var onSave: (() -> Void)? = nil
@@ -28,8 +29,13 @@ struct DocumentView: View {
                 FormulaCatalogueSidebarView(vm: catalogueVM)
                     .transition(.move(edge: .trailing))
             }
+            if examplesVM.isOpen {
+                ExamplesSidebarView(vm: examplesVM)
+                    .transition(.move(edge: .trailing))
+            }
         }
         .animation(.easeOut(duration: 0.18), value: catalogueVM.isOpen)
+        .animation(.easeOut(duration: 0.18), value: examplesVM.isOpen)
         .navigationTitle(vm.windowTitle)
         .toolbar {
             ToolbarItem(placement: .navigation) {
@@ -63,12 +69,21 @@ struct DocumentView: View {
             }
             ToolbarItem(placement: .primaryAction) {
                 Button {
-                    catalogueVM.toggle()
+                    catalogueVM.toggle(closing: [examplesVM.close])
                 } label: {
                     Label("Formulas", systemImage: "function")
                 }
                 .help("Formula catalogue (\u{2318}\u{21E7}F)")
                 .keyboardShortcut("f", modifiers: [.command, .shift])
+            }
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    examplesVM.toggle(closing: [catalogueVM.close])
+                } label: {
+                    Label("Examples", systemImage: "books.vertical")
+                }
+                .help("Examples library (\u{2318}\u{21E7}E)")
+                .keyboardShortcut("e", modifiers: [.command, .shift])
             }
         }
         .frame(minWidth: 720, minHeight: 520)
@@ -81,6 +96,11 @@ struct DocumentView: View {
             }
             catalogueVM.onInsert = { [vm] source in
                 vm.insertAtCursor(source)
+            }
+            examplesVM.onLoad = { [vm] entry in
+                try? vm.load(rawMarkdown: entry.body)
+                Task { await vm.evaluateAll() }
+                examplesVM.close()
             }
             vm.requestEditorFocus()
         }

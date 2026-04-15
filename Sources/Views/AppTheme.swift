@@ -47,6 +47,15 @@ enum AppTheme {
 
     static let formulaBackground = Color(nsColor: formulaBackgroundNSColor)
     static let formulaAccent = Color(nsColor: formulaAccentNSColor)
+
+    /// The single canonical font used everywhere a formula value (or input
+    /// value) is rendered as a chip. Keep AppKit and SwiftUI in lockstep so
+    /// inline =input widgets visually match =show / =upper / etc. chips.
+    nonisolated(unsafe) static let chipFontNSFont = NSFont.monospacedSystemFont(ofSize: 14, weight: .semibold)
+    static let chipFont = Font.system(size: 14, weight: .semibold, design: .monospaced)
+    /// 1pt visible-but-subtle border drawn around editable input chips so the
+    /// user can tell at a glance which chips accept typing.
+    static let inputBorder = Color.primary
     static let errorBackground = Color(nsColor: errorBackgroundNSColor)
     static let errorAccent = Color(nsColor: errorAccentNSColor)
     static let staleBorder = Color(nsColor: staleBorderNSColor)

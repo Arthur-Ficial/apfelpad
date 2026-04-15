@@ -202,6 +202,7 @@ struct EditableMarkdownView: NSViewRepresentable {
             }()
             host.inputName = spec.name
 
+            let activatedSpan = spec.span
             host.rootView = AnyView(
                 InputFieldView(
                     name: spec.name,
@@ -209,7 +210,10 @@ struct EditableMarkdownView: NSViewRepresentable {
                     value: Binding(
                         get: { inputValue?(spec.name) ?? spec.defaultValue ?? "" },
                         set: { onInputChange?(spec.name, $0) }
-                    )
+                    ),
+                    onActivate: { [onFormulaActivate] in
+                        onFormulaActivate?(activatedSpan)
+                    }
                 )
                 .fixedSize()
                 .accessibilityLabel("Input \(spec.name)")
@@ -222,12 +226,12 @@ struct EditableMarkdownView: NSViewRepresentable {
             }
 
             let fitting = host.fittingSize
-            host.frame = NSRect(
-                x: frame.minX,
-                y: frame.minY,
-                width: max(frame.width, fitting.width),
-                height: max(frame.height, fitting.height)
-            )
+            // Force the host to the natural text-line height so the input
+            // sits inline like a chip. SwiftUI vertically-centers the field
+            // content inside that frame, putting it on the same baseline as
+            // the surrounding label text.
+            let w = max(frame.width, fitting.width)
+            host.frame = NSRect(x: frame.minX, y: frame.minY, width: w, height: frame.height)
             host.isHidden = false
         }
     }
@@ -310,11 +314,13 @@ struct EditableMarkdownView: NSViewRepresentable {
                     continue
                 }
                 let fitting = host.fittingSize
+                let h = max(frame.height, fitting.height)
+                let w = max(frame.width, fitting.width)
                 host.frame = NSRect(
                     x: frame.minX,
-                    y: frame.minY,
-                    width: max(frame.width, fitting.width),
-                    height: max(frame.height, fitting.height)
+                    y: frame.minY + (frame.height - h) / 2,
+                    width: w,
+                    height: h
                 )
                 host.isHidden = false
             }

@@ -92,7 +92,7 @@ enum MathFormulaEvaluator {
 
     private enum Token: Equatable {
         case number(Double)
-        case plus, minus, star, slash, lparen, rparen
+        case plus, minus, star, slash, caret, lparen, rparen
     }
 
     private static func tokenise(_ s: String) -> [Token] {
@@ -118,8 +118,18 @@ enum MathFormulaEvaluator {
             switch ch {
             case "+": out.append(.plus)
             case "-": out.append(.minus)
-            case "*": out.append(.star)
+            case "*":
+                // Collapse `**` into a single power token (Python / JS-style),
+                // alongside `^` — both bind tighter than * and /.
+                let next = s.index(after: i)
+                if next < s.endIndex && s[next] == "*" {
+                    out.append(.caret)
+                    i = s.index(after: next)
+                    continue
+                }
+                out.append(.star)
             case "/": out.append(.slash)
+            case "^": out.append(.caret)
             case "(": out.append(.lparen)
             case ")": out.append(.rparen)
             default:
@@ -151,14 +161,24 @@ enum MathFormulaEvaluator {
         }
 
         mutating func parseTerm() throws -> Double {
-            var left = try parseFactor()
+            var left = try parsePower()
             while pos < tokens.count, tokens[pos] == .star || tokens[pos] == .slash {
                 let op = tokens[pos]
                 pos += 1
-                let right = try parseFactor()
+                let right = try parsePower()
                 left = (op == .star) ? (left * right) : (left / right)
             }
             return left
+        }
+
+        /// Power binds tighter than * and /, and is right-associative —
+        /// `2^3^2` is `2^(3^2) = 512`, not `(2^3)^2 = 64`.
+        mutating func parsePower() throws -> Double {
+            let base = try parseFactor()
+            guard pos < tokens.count, tokens[pos] == .caret else { return base }
+            pos += 1
+            let exponent = try parsePower()
+            return pow(base, exponent)
         }
 
         mutating func parseFactor() throws -> Double {

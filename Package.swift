@@ -7,10 +7,14 @@ let package = Package(
     platforms: [.macOS(.v26)],
     dependencies: [
         .package(url: "https://github.com/apple/swift-testing.git", from: "0.12.0"),
+        .package(url: "https://github.com/apple/swift-markdown.git", from: "0.4.0"),
     ],
     targets: [
         .executableTarget(
             name: "apfelpad",
+            dependencies: [
+                .product(name: "Markdown", package: "swift-markdown"),
+            ],
             path: "Sources",
             resources: [
                 .process("Resources"),

@@ -9,54 +9,61 @@ struct InputFieldView: View {
     let name: String
     let type: InputType
     @Binding var value: String
+    var onActivate: (() -> Void)? = nil
+
+    @FocusState private var isFocused: Bool
 
     var body: some View {
-        HStack(spacing: 0) {
-            Rectangle()
-                .fill(AppTheme.formulaAccent)
-                .frame(width: 3)
-            field
-        }
-        .background(AppTheme.formulaBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 4))
-        .help("@\(name) — \(type.displayLabel) variable")
+        field
+            .focused($isFocused)
+            .padding(.horizontal, 4)
+            .padding(.vertical, 0)
+            .background(AppTheme.formulaBackground)
+            .overlay(
+                Rectangle()
+                    .stroke(Color.primary, lineWidth: 1)
+            )
+            .contentShape(Rectangle())
+            .onTapGesture { onActivate?() }
+            .onChange(of: isFocused) { _, focused in
+                if focused { onActivate?() }
+            }
+            .help("@\(name) — \(type.displayLabel) variable")
     }
 
     @ViewBuilder
     private var field: some View {
         switch type {
         case .text, .search:
-            plainTextField(monospaced: false, minWidth: 120)
+            plainTextField(monospaced: false, minWidth: 90)
         case .email:
-            plainTextField(monospaced: false, minWidth: 180)
+            plainTextField(monospaced: false, minWidth: 140)
                 .textContentType(.emailAddress)
         case .url:
-            plainTextField(monospaced: false, minWidth: 180)
+            plainTextField(monospaced: false, minWidth: 140)
                 .textContentType(.URL)
         case .tel:
-            plainTextField(monospaced: true, minWidth: 140)
+            plainTextField(monospaced: true, minWidth: 110)
                 .textContentType(.telephoneNumber)
         case .password:
             SecureField(name, text: $value)
                 .textFieldStyle(.plain)
                 .foregroundStyle(AppTheme.formulaAccent)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 3)
-                .frame(minWidth: 140)
+                .frame(minWidth: 110)
         case .textarea:
             TextEditor(text: $value)
                 .font(.body)
                 .foregroundStyle(AppTheme.formulaAccent)
                 .scrollContentBackground(.hidden)
-                .padding(.horizontal, 4)
-                .padding(.vertical, 3)
-                .frame(minWidth: 240, minHeight: 60, maxHeight: 160)
+                .frame(minWidth: 200, minHeight: 60, maxHeight: 160)
         case .number:
-            plainTextField(monospaced: true, minWidth: 80)
+            plainTextField(monospaced: true, minWidth: 60)
         case .percent:
-            HStack(spacing: 4) {
-                plainTextField(monospaced: true, minWidth: 60)
-                Text("%").foregroundStyle(AppTheme.formulaAccent).padding(.trailing, 6)
+            HStack(spacing: 2) {
+                plainTextField(monospaced: true, minWidth: 40)
+                Text("%")
+                    .font(AppTheme.chipFont)
+                    .foregroundStyle(AppTheme.formulaAccent)
             }
         case .range:
             rangeSlider
@@ -66,14 +73,13 @@ struct InputFieldView: View {
                 set: { value = $0 ? "true" : "false" }
             )) { Text(name).font(.caption) }
             .toggleStyle(.switch)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 3)
+            .controlSize(.mini)
         case .date:
-            datePicker(components: .date, widthHint: 120)
+            datePicker(components: .date, widthHint: 100)
         case .time:
-            datePicker(components: .hourAndMinute, widthHint: 100)
+            datePicker(components: .hourAndMinute, widthHint: 80)
         case .datetime:
-            datePicker(components: [.date, .hourAndMinute], widthHint: 180)
+            datePicker(components: [.date, .hourAndMinute], widthHint: 160)
         case .color:
             colorPicker
         }
@@ -85,13 +91,11 @@ struct InputFieldView: View {
         let tf = TextField(name, text: $value)
             .textFieldStyle(.plain)
             .foregroundStyle(AppTheme.formulaAccent)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 3)
             .frame(minWidth: minWidth)
         if monospaced {
-            return AnyView(tf.font(.system(.body, design: .monospaced)))
+            return AnyView(tf.font(AppTheme.chipFont))
         }
-        return AnyView(tf)
+        return AnyView(tf.font(.system(size: 14, weight: .semibold)))
     }
 
     private var rangeSlider: some View {
@@ -103,14 +107,13 @@ struct InputFieldView: View {
                 ),
                 in: 0...100
             )
-            .frame(minWidth: 160)
+            .controlSize(.small)
+            .frame(minWidth: 140)
             Text(value.isEmpty ? "0" : value)
-                .font(.system(.body, design: .monospaced))
+                .font(AppTheme.chipFont)
                 .foregroundStyle(AppTheme.formulaAccent)
-                .frame(minWidth: 30, alignment: .trailing)
+                .frame(minWidth: 26, alignment: .trailing)
         }
-        .padding(.horizontal, 6)
-        .padding(.vertical, 3)
     }
 
     private func datePicker(components: DatePicker.Components, widthHint: CGFloat) -> some View {
@@ -123,9 +126,8 @@ struct InputFieldView: View {
             displayedComponents: components
         )
         .labelsHidden()
+        .controlSize(.small)
         .foregroundStyle(AppTheme.formulaAccent)
-        .padding(.horizontal, 6)
-        .padding(.vertical, 3)
         .frame(minWidth: widthHint)
     }
 
@@ -139,8 +141,6 @@ struct InputFieldView: View {
             supportsOpacity: false
         )
         .labelsHidden()
-        .padding(.horizontal, 6)
-        .padding(.vertical, 3)
     }
 
     // MARK: - Date / color serialization

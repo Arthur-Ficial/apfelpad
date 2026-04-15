@@ -8,6 +8,7 @@ struct ApfelPadApp: App {
     @State private var documentVM: DocumentViewModel
     @State private var barVM = FormulaBarViewModel()
     @State private var catalogueVM = FormulaCatalogueSidebarViewModel()
+    @State private var examplesVM = ExamplesSidebarViewModel()
     @State private var settingsVM: SettingsViewModel
     private let cache: FormulaCache
 
@@ -40,6 +41,7 @@ struct ApfelPadApp: App {
                     vm: documentVM,
                     barVM: barVM,
                     catalogueVM: catalogueVM,
+                    examplesVM: examplesVM,
                     settingsVM: settingsVM,
                     onNew: { documentVM.newDocument() },
                     onSave: { Task {

@@ -50,6 +50,17 @@ final class FormulaCatalogueSidebarViewModel {
     func open()   { isOpen = true }
     func close()  { isOpen = false }
 
+    /// Closes any peer sidebars before opening this one, so only one
+    /// right-side panel is visible at a time.
+    func toggle(closing peers: [() -> Void]) {
+        if isOpen {
+            isOpen = false
+        } else {
+            peers.forEach { $0() }
+            isOpen = true
+        }
+    }
+
     /// Insert a formula into the document via the registered callback.
     func insert(_ entry: FormulaCatalogueEntry) {
         onInsert?(entry.example)

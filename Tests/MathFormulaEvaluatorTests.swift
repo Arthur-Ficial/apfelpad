@@ -83,4 +83,38 @@ struct MathFormulaEvaluatorTests {
     func mSuffix() throws {
         #expect(try MathFormulaEvaluator.evaluate("2m / 4") == "500000")
     }
+
+    // ── Power operator ─────────────────────────────────────────────────────
+
+    @Test("power with ^: 2^10")
+    func powerCaret() throws {
+        #expect(try MathFormulaEvaluator.evaluate("2^10") == "1024")
+    }
+
+    @Test("power with **: 2**10")
+    func powerStarStar() throws {
+        #expect(try MathFormulaEvaluator.evaluate("2**10") == "1024")
+    }
+
+    @Test("power binds tighter than * and /: 2 * 3^2 == 18")
+    func powerPrecedence() throws {
+        #expect(try MathFormulaEvaluator.evaluate("2 * 3^2") == "18")
+    }
+
+    @Test("power is right-associative: 2^3^2 == 512")
+    func powerRightAssoc() throws {
+        #expect(try MathFormulaEvaluator.evaluate("2^3^2") == "512")
+    }
+
+    @Test("negative exponent: 2^-2 == 0.25")
+    func negativeExponent() throws {
+        #expect(try MathFormulaEvaluator.evaluate("2^-2") == "0.25")
+    }
+
+    @Test("compound interest formula: 1000 * (1 + 5/100) ^ 10")
+    func compoundInterest() throws {
+        let result = try MathFormulaEvaluator.evaluate("1000 * (1 + 5/100) ^ 10")
+        // 1000 * 1.05^10 ≈ 1628.89
+        #expect(result.hasPrefix("1628."))
+    }
 }
