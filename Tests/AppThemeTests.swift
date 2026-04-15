@@ -6,6 +6,7 @@ import SwiftUI
 @Suite("AppTheme", .serialized)
 struct AppThemeTests {
     @Test("theme exposes reusable formula colors for every surface")
+    @MainActor
     func formulaColorsExist() {
         let readySpan = FormulaSpan(
             range: 0..<10,

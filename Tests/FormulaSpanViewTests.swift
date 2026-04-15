@@ -5,6 +5,7 @@ import SwiftUI
 @Suite("FormulaSpanView visual spec", .serialized)
 struct FormulaSpanViewTests {
     @Test("uses shared app theme colors")
+    @MainActor
     func colours() {
         #expect(FormulaSpanView.backgroundColour == AppTheme.formulaBackground)
         #expect(FormulaSpanView.accentColour == AppTheme.formulaAccent)
