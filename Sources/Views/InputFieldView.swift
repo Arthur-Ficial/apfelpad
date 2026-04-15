@@ -10,17 +10,14 @@ struct InputFieldView: View {
     let type: InputType
     @Binding var value: String
 
-    private static let paleGreen = Color(red: 0.94, green: 0.98, blue: 0.93)
-    private static let darkGreen = Color(red: 0.16, green: 0.49, blue: 0.22)
-
     var body: some View {
         HStack(spacing: 0) {
             Rectangle()
-                .fill(Self.darkGreen)
+                .fill(AppTheme.formulaAccent)
                 .frame(width: 3)
             field
         }
-        .background(Self.paleGreen)
+        .background(AppTheme.formulaBackground)
         .clipShape(RoundedRectangle(cornerRadius: 4))
         .help("@\(name) — \(type.displayLabel) variable")
     }
@@ -42,14 +39,14 @@ struct InputFieldView: View {
         case .password:
             SecureField(name, text: $value)
                 .textFieldStyle(.plain)
-                .foregroundStyle(Self.darkGreen)
+                .foregroundStyle(AppTheme.formulaAccent)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 3)
                 .frame(minWidth: 140)
         case .textarea:
             TextEditor(text: $value)
                 .font(.body)
-                .foregroundStyle(Self.darkGreen)
+                .foregroundStyle(AppTheme.formulaAccent)
                 .scrollContentBackground(.hidden)
                 .padding(.horizontal, 4)
                 .padding(.vertical, 3)
@@ -59,7 +56,7 @@ struct InputFieldView: View {
         case .percent:
             HStack(spacing: 4) {
                 plainTextField(monospaced: true, minWidth: 60)
-                Text("%").foregroundStyle(Self.darkGreen).padding(.trailing, 6)
+                Text("%").foregroundStyle(AppTheme.formulaAccent).padding(.trailing, 6)
             }
         case .range:
             rangeSlider
@@ -87,7 +84,7 @@ struct InputFieldView: View {
     private func plainTextField(monospaced: Bool, minWidth: CGFloat) -> some View {
         let tf = TextField(name, text: $value)
             .textFieldStyle(.plain)
-            .foregroundStyle(Self.darkGreen)
+            .foregroundStyle(AppTheme.formulaAccent)
             .padding(.horizontal, 6)
             .padding(.vertical, 3)
             .frame(minWidth: minWidth)
@@ -109,7 +106,7 @@ struct InputFieldView: View {
             .frame(minWidth: 160)
             Text(value.isEmpty ? "0" : value)
                 .font(.system(.body, design: .monospaced))
-                .foregroundStyle(Self.darkGreen)
+                .foregroundStyle(AppTheme.formulaAccent)
                 .frame(minWidth: 30, alignment: .trailing)
         }
         .padding(.horizontal, 6)
@@ -126,7 +123,7 @@ struct InputFieldView: View {
             displayedComponents: components
         )
         .labelsHidden()
-        .foregroundStyle(Self.darkGreen)
+        .foregroundStyle(AppTheme.formulaAccent)
         .padding(.horizontal, 6)
         .padding(.vertical, 3)
         .frame(minWidth: widthHint)
@@ -189,7 +186,7 @@ struct InputFieldView: View {
     static func parseColor(_ s: String) -> Color {
         let trimmed = s.trimmingCharacters(in: .whitespaces)
         guard trimmed.hasPrefix("#"), trimmed.count == 7 else {
-            return Color(red: 0.94, green: 0.98, blue: 0.93)
+            return AppTheme.formulaBackground
         }
         let hex = String(trimmed.dropFirst())
         var value: UInt64 = 0

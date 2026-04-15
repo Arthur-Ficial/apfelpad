@@ -33,19 +33,19 @@ struct FormulaBarView: View {
             EmptyView()
         case .valid:
             Image(systemName: "checkmark.circle.fill")
-                .foregroundStyle(Color(red: 0.16, green: 0.49, blue: 0.22))
+                .foregroundStyle(AppTheme.formulaAccent)
                 .help("Formula applied")
         case .invalid(let message):
             Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundStyle(.red)
+                .foregroundStyle(AppTheme.errorAccent)
                 .help(message)
         }
     }
 
     private var background: Color {
         switch vm.editState {
-        case .invalid: return Color(red: 1.0, green: 0.96, blue: 0.96)
-        default: return Color(white: 0.97)
+        case .invalid: return AppTheme.invalidChromeBackground
+        default: return AppTheme.chromeBackground
         }
     }
 }

@@ -1,7 +1,7 @@
 import Testing
 @testable import apfelpad
 
-@Suite("CountFormula")
+@Suite("CountFormula", .serialized)
 struct CountFormulaTests {
     @Test("parser recognises =count() with no args")
     func parseCountNoArgs() throws {

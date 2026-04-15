@@ -1,7 +1,7 @@
 import Testing
 @testable import apfelpad
 
-@Suite("Document")
+@Suite("Document", .serialized)
 struct DocumentTests {
     @Test("discovers a single formula span")
     func singleSpan() throws {

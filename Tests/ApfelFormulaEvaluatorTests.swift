@@ -1,7 +1,7 @@
 import Testing
 @testable import apfelpad
 
-@Suite("ApfelFormulaEvaluator")
+@Suite("ApfelFormulaEvaluator", .serialized)
 struct ApfelFormulaEvaluatorTests {
     @Test("calls LLM and caches the joined result")
     func callsAndCaches() async throws {

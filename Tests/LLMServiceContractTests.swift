@@ -1,7 +1,7 @@
 import Testing
 @testable import apfelpad
 
-@Suite("LLMService contract")
+@Suite("LLMService contract", .serialized)
 struct LLMServiceContractTests {
     @Test("mock yields configured chunks")
     func mockYields() async throws {

@@ -1,7 +1,7 @@
 import Testing
 @testable import apfelpad
 
-@Suite("SSEParser")
+@Suite("SSEParser", .serialized)
 struct SSEParserTests {
     @Test("extracts content delta from a chunk line")
     func contentDelta() {

@@ -6,7 +6,7 @@ import Foundation
 /// `.expected.json` that describes what Document.discover + the math
 /// evaluator should produce. The tests iterate the corpus so adding a
 /// new fixture to the directory automatically extends the coverage.
-@Suite("Fixture corpus")
+@Suite("Fixture corpus", .serialized)
 struct FixtureCorpusTests {
     private struct Expected: Decodable {
         let description: String?

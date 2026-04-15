@@ -20,6 +20,17 @@ struct Document: Equatable {
         Document(rawMarkdown: "", spans: [])
     }
 
+    var spansInSourceOrder: [FormulaSpan] {
+        guard spans.count > 1 else { return spans }
+        for index in spans.indices.dropFirst() {
+            let previous = spans.index(before: index)
+            if spans[previous].range.lowerBound > spans[index].range.lowerBound {
+                return spans.sorted { $0.range.lowerBound < $1.range.lowerBound }
+            }
+        }
+        return spans
+    }
+
     /// Scan the raw markdown for formula calls of the form `=name(...)`.
     /// Uses a balanced-paren walker so `=math((1+2)*3)` is found. Skips
     /// matches inside markdown code spans (backticks) so prose references

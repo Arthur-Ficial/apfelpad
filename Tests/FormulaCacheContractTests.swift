@@ -1,7 +1,7 @@
 import Testing
 @testable import apfelpad
 
-@Suite("FormulaCache contract")
+@Suite("FormulaCache contract", .serialized)
 struct FormulaCacheContractTests {
     @Test("set/get round trip")
     func roundTrip() async throws {

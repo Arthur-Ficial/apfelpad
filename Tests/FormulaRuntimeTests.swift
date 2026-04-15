@@ -1,7 +1,7 @@
 import Testing
 @testable import apfelpad
 
-@Suite("FormulaRuntime")
+@Suite("FormulaRuntime", .serialized)
 struct FormulaRuntimeTests {
     @Test("evaluates =math and caches result")
     func mathCached() async throws {

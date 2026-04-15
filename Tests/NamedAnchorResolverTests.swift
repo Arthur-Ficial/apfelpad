@@ -1,7 +1,7 @@
 import Testing
 @testable import apfelpad
 
-@Suite("NamedAnchorResolver")
+@Suite("NamedAnchorResolver", .serialized)
 struct NamedAnchorResolverTests {
     @Test("resolves a simple top-level heading")
     func topLevel() {

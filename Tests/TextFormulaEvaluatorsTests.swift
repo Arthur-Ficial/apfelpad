@@ -1,7 +1,7 @@
 import Testing
 @testable import apfelpad
 
-@Suite("Text / numeric formula evaluators")
+@Suite("Text / numeric formula evaluators", .serialized)
 struct TextFormulaEvaluatorsTests {
     // MARK: - upper / lower / trim / len
 

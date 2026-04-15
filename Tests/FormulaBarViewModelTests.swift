@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import apfelpad
 
-@Suite("FormulaBarViewModel")
+@Suite("FormulaBarViewModel", .serialized)
 @MainActor
 struct FormulaBarViewModelTests {
     @Test("selecting a span shows its source")
@@ -104,7 +104,7 @@ struct FormulaBarViewModelTests {
     }
 }
 
-@Suite("DocumentViewModel.replaceSpanSource")
+@Suite("DocumentViewModel.replaceSpanSource", .serialized)
 @MainActor
 struct DocumentReplaceSpanTests {
     @Test("replaces a math span and re-evaluates")

@@ -12,7 +12,7 @@ import Foundation
 ///
 /// Both behaviours must survive future refactors — if either breaks,
 /// click-to-edit and live-value rendering break with them.
-@Suite("DocumentBody prose substitution + click routing")
+@Suite("DocumentBody prose substitution + click routing", .serialized)
 @MainActor
 struct DocumentBodySubstitutionTests {
 

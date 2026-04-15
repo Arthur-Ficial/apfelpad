@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import apfelpad
 
-@Suite("Welcome workbook")
+@Suite("Welcome workbook", .serialized)
 @MainActor
 struct WelcomeWorkbookTests {
 

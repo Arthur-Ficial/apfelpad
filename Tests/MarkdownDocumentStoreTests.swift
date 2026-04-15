@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import apfelpad
 
-@Suite("MarkdownDocumentStore")
+@Suite("MarkdownDocumentStore", .serialized)
 struct MarkdownDocumentStoreTests {
     @Test("round-trip .md file")
     func roundTrip() async throws {

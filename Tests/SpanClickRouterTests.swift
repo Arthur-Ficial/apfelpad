@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import apfelpad
 
-@Suite("SpanClickRouter")
+@Suite("SpanClickRouter", .serialized)
 struct SpanClickRouterTests {
     @Test("routes a valid span URL to the matching span")
     func valid() throws {

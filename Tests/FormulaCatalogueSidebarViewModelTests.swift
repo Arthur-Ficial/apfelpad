@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import apfelpad
 
-@Suite("FormulaCatalogueSidebarViewModel")
+@Suite("FormulaCatalogueSidebarViewModel", .serialized)
 @MainActor
 struct FormulaCatalogueSidebarViewModelTests {
     @Test("isOpen defaults to false")

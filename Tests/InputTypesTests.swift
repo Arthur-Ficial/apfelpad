@@ -4,7 +4,7 @@ import Foundation
 
 /// TDD for extended =input types. Every HTML-style input type keyword must
 /// parse, reach the VM, and survive a bind + show round-trip.
-@Suite("Extended =input types")
+@Suite("Extended =input types", .serialized)
 @MainActor
 struct InputTypesTests {
 

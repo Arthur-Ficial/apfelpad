@@ -1,7 +1,7 @@
 import Testing
 @testable import apfelpad
 
-@Suite("Smoke")
+@Suite("Smoke", .serialized)
 struct SmokeTests {
     @Test("package builds and tests run")
     func smoke() {

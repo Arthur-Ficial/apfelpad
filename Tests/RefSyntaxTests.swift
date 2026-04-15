@@ -1,7 +1,7 @@
 import Testing
 @testable import apfelpad
 
-@Suite("RefSyntax — @# for sections, @ for variables")
+@Suite("RefSyntax — @# for sections, @ for variables", .serialized)
 @MainActor
 struct RefSyntaxTests {
     @Test("=ref(@#anchor) parses with @# prefix")

@@ -42,13 +42,13 @@ struct SettingsPanel: View {
             ProgressView().controlSize(.small)
         case .upToDate:
             Label("Up to date", systemImage: "checkmark.circle")
-                .foregroundStyle(.green)
+                .foregroundStyle(AppTheme.formulaAccent)
         case .updateAvailable(let latest):
             Label("\(latest) available", systemImage: "arrow.up.circle")
-                .foregroundStyle(Color(red: 0.16, green: 0.49, blue: 0.22))
+                .foregroundStyle(AppTheme.formulaAccent)
         case .error(let message):
             Label(message, systemImage: "exclamationmark.triangle")
-                .foregroundStyle(.red)
+                .foregroundStyle(AppTheme.errorAccent)
         }
     }
 }

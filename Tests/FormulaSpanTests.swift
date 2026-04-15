@@ -1,7 +1,7 @@
 import Testing
 @testable import apfelpad
 
-@Suite("FormulaSpan")
+@Suite("FormulaSpan", .serialized)
 struct FormulaSpanTests {
     @Test("stores source range and parsed call")
     func makeSpan() {

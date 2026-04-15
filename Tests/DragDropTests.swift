@@ -12,7 +12,7 @@ import Foundation
 /// captured all gestures inside its Text views. These tests pin the
 /// contract: insertAtCursor always appends the dropped source on its own
 /// line, re-parses the document, and re-evaluates the new span.
-@Suite("Drag & drop into rendered markdown")
+@Suite("Drag & drop into rendered markdown", .serialized)
 @MainActor
 struct DragDropTests {
 

@@ -1,7 +1,7 @@
 import Testing
 @testable import apfelpad
 
-@Suite("FormulaPreprocessor")
+@Suite("FormulaPreprocessor", .serialized)
 struct FormulaPreprocessorTests {
     @Test("normalizes curly double quotes to ASCII double quotes")
     func curlyDouble() {
