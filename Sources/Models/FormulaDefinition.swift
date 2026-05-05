@@ -380,6 +380,14 @@ enum FormulaRegistry {
         Set(all.filter(\.isDiscoverable).map { $0.functionName.lowercased() }.filter { !$0.isEmpty })
     }
 
+    /// Names of formulas that may be written as a bare `=name` (no parens) in
+    /// the document. Allowed for formulas whose every argument is optional.
+    /// Used by `Document.discover` so users can type `=today` instead of
+    /// `=today()`. See issue #18.
+    static var bareNameAllowedNames: Set<String> {
+        ["today", "time", "month", "day", "clip", "recording", "count"]
+    }
+
     static var publicDefinitions: [FormulaDefinition] {
         all.filter(\.isPublic)
     }

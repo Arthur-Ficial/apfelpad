@@ -42,6 +42,7 @@ struct Document: Equatable {
         let n = chars.count
         let codeMask = codeSpanMask(for: chars)
         let knownNames = FormulaRegistry.discoverableFunctionNames
+        let bareNames = FormulaRegistry.bareNameAllowedNames
         var i = 0
         while i < n {
             if chars[i] != "=" || codeMask[i] {
@@ -55,9 +56,27 @@ struct Document: Equatable {
                 name.append(chars[j])
                 j += 1
             }
-            // Accept either `=name(` (with a known name) or `=(` (anonymous apfel)
-            let isAnonymous = (name.isEmpty && j < n && chars[j] == "(")
-            let isNamed = (!name.isEmpty && knownNames.contains(name.lowercased()) && j < n && chars[j] == "(")
+            let lowered = name.lowercased()
+            let nextIsParen = (j < n && chars[j] == "(")
+
+            // Accept either `=name(` (with a known name) or `=(` (anonymous apfel),
+            // or a bare `=name` (no parens) when the formula allows bare invocation.
+            let isAnonymous = (name.isEmpty && nextIsParen)
+            let isNamed = (!name.isEmpty && knownNames.contains(lowered) && nextIsParen)
+            let isBareZeroArg = (!name.isEmpty && !nextIsParen && bareNames.contains(lowered))
+
+            if isBareZeroArg {
+                let bareEnd = j  // exclusive
+                let source = String(chars[i..<bareEnd])
+                if let call = try? FormulaParser.parse("\(source)()") {
+                    out.append(
+                        FormulaSpan(range: i..<bareEnd, source: source, call: call, value: .idle)
+                    )
+                }
+                i = bareEnd
+                continue
+            }
+
             guard isAnonymous || isNamed else {
                 i += 1
                 continue

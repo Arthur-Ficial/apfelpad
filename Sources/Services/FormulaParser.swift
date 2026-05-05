@@ -10,8 +10,17 @@ enum FormulaParser {
     static func parse(_ source: String) throws -> FormulaCall {
         // 1. Preprocess raw user input: straighten smart quotes + expand =(…) shortcut
         let normalised = FormulaPreprocessor.normalize(source)
-        let trimmed = normalised.trimmingCharacters(in: .whitespaces)
+        var trimmed = normalised.trimmingCharacters(in: .whitespaces)
         guard trimmed.hasPrefix("=") else { throw Error.invalidFormula(source) }
+        // Bare zero-arg form: `=name` (no parens) is shorthand for `=name()`
+        // when the formula allows bare invocation. See issue #18.
+        if !trimmed.hasSuffix(")"),
+           !trimmed.contains("(") {
+            let bareName = String(trimmed.dropFirst()).lowercased()
+            if FormulaRegistry.bareNameAllowedNames.contains(bareName) {
+                trimmed = "=\(bareName)()"
+            }
+        }
         guard trimmed.hasSuffix(")") else { throw Error.invalidFormula(source) }
         let afterEquals = String(trimmed.dropFirst())
         guard let lparen = afterEquals.firstIndex(of: "(") else {
