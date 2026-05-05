@@ -273,6 +273,23 @@ struct EditableMarkdownView: NSViewRepresentable {
         return NSRange(location: location, length: length)
     }
 
+    /// Resolve the tooltip string for a character in the rendered projection.
+    /// Returns the formula source (e.g. `=math(40+2)`) for formula chips so users
+    /// don't see the raw `apfelpad://span/UUID` link that AppKit would otherwise
+    /// surface from the `.link` attribute. Returns nil for plain text and input
+    /// segments so AppKit shows no link tooltip there.
+    nonisolated static func toolTipString(in projection: RenderProjection, at charIndex: Int) -> String? {
+        guard let segment = projection.segments.first(where: {
+            charIndex >= $0.visibleRange.lowerBound && charIndex < $0.visibleRange.upperBound
+        }) else {
+            return nil
+        }
+        if case .formula(let span) = segment.kind {
+            return span.source
+        }
+        return nil
+    }
+
     @MainActor
     final class Coordinator: NSObject, NSTextViewDelegate {
         var parent: EditableMarkdownView
@@ -301,6 +318,21 @@ struct EditableMarkdownView: NSViewRepresentable {
             }
             parent.text = textView.string
             parent.onSelectionChange?(textView.selectedRange().location)
+        }
+
+        /// Replace the default link tooltip (which exposes `apfelpad://span/UUID`)
+        /// with the formula's source string. Returns the empty string for plain
+        /// text and input segments so AppKit suppresses the tooltip entirely.
+        func textView(
+            _ textView: NSTextView,
+            willDisplayToolTip tooltip: String,
+            forCharacterAt characterIndex: Int
+        ) -> String? {
+            guard parent.mode == .render,
+                  let projection = currentProjection else {
+                return tooltip
+            }
+            return EditableMarkdownView.toolTipString(in: projection, at: characterIndex) ?? ""
         }
 
         func repositionInputWidgets() {
