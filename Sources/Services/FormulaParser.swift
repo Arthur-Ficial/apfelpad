@@ -283,6 +283,95 @@ enum FormulaParser {
             guard (1...2).contains(rawArgs.count) else { throw Error.malformedArguments("TEXT expects (value, [format])") }
             let fmt = rawArgs.count == 2 ? Self.parseStringLiteral(rawArgs[1]) : ""
             return .textFmt(value: Self.parseStringLiteral(rawArgs[0]), format: fmt)
+        case .max:
+            return .max(args: rawArgs.map(Self.parseStringLiteral))
+        case .min:
+            return .min(args: rawArgs.map(Self.parseStringLiteral))
+        case .product:
+            return .product(args: rawArgs.map(Self.parseStringLiteral))
+        case .abs:
+            return .abs(value: try singleStringArg(rawArgs, name: "ABS"))
+        case .sqrt:
+            return .sqrt(value: try singleStringArg(rawArgs, name: "SQRT"))
+        case .intFn:
+            return .intFn(value: try singleStringArg(rawArgs, name: "INT"))
+        case .sign:
+            return .sign(value: try singleStringArg(rawArgs, name: "SIGN"))
+        case .even:
+            return .even(value: try singleStringArg(rawArgs, name: "EVEN"))
+        case .odd:
+            return .odd(value: try singleStringArg(rawArgs, name: "ODD"))
+        case .fact:
+            return .fact(value: try singleStringArg(rawArgs, name: "FACT"))
+        case .ln:
+            return .ln(value: try singleStringArg(rawArgs, name: "LN"))
+        case .log10Fn:
+            return .log10Fn(value: try singleStringArg(rawArgs, name: "LOG10"))
+        case .exp:
+            return .exp(value: try singleStringArg(rawArgs, name: "EXP"))
+        case .mod:
+            guard rawArgs.count == 2 else { throw Error.malformedArguments("MOD expects 2 args") }
+            return .mod(dividend: Self.parseStringLiteral(rawArgs[0]), divisor: Self.parseStringLiteral(rawArgs[1]))
+        case .power:
+            guard rawArgs.count == 2 else { throw Error.malformedArguments("POWER expects 2 args") }
+            return .power(base: Self.parseStringLiteral(rawArgs[0]), exponent: Self.parseStringLiteral(rawArgs[1]))
+        case .gcd:
+            guard rawArgs.count == 2 else { throw Error.malformedArguments("GCD expects 2 args") }
+            return .gcd(a: try parseIntLiteral(rawArgs[0]), b: try parseIntLiteral(rawArgs[1]))
+        case .lcm:
+            guard rawArgs.count == 2 else { throw Error.malformedArguments("LCM expects 2 args") }
+            return .lcm(a: try parseIntLiteral(rawArgs[0]), b: try parseIntLiteral(rawArgs[1]))
+        case .combin:
+            guard rawArgs.count == 2 else { throw Error.malformedArguments("COMBIN expects (n, k)") }
+            return .combin(n: try parseIntLiteral(rawArgs[0]), k: try parseIntLiteral(rawArgs[1]))
+        case .randbetween:
+            guard rawArgs.count == 2 else { throw Error.malformedArguments("RANDBETWEEN expects (low, high)") }
+            return .randbetween(low: try parseIntLiteral(rawArgs[0]), high: try parseIntLiteral(rawArgs[1]))
+        case .round:
+            guard (1...2).contains(rawArgs.count) else { throw Error.malformedArguments("ROUND expects (value, [places])") }
+            let places = rawArgs.count == 2 ? try parseIntLiteral(rawArgs[1]) : 0
+            return .round(value: Self.parseStringLiteral(rawArgs[0]), places: places)
+        case .roundup:
+            guard (1...2).contains(rawArgs.count) else { throw Error.malformedArguments("ROUNDUP expects (value, [places])") }
+            let places = rawArgs.count == 2 ? try parseIntLiteral(rawArgs[1]) : 0
+            return .roundup(value: Self.parseStringLiteral(rawArgs[0]), places: places)
+        case .rounddown:
+            guard (1...2).contains(rawArgs.count) else { throw Error.malformedArguments("ROUNDDOWN expects (value, [places])") }
+            let places = rawArgs.count == 2 ? try parseIntLiteral(rawArgs[1]) : 0
+            return .rounddown(value: Self.parseStringLiteral(rawArgs[0]), places: places)
+        case .ceiling:
+            guard (1...2).contains(rawArgs.count) else { throw Error.malformedArguments("CEILING expects (value, [factor])") }
+            let factor: Double
+            if rawArgs.count == 2 {
+                let t = rawArgs[1].trimmingCharacters(in: .whitespaces)
+                guard let n = Double(t) else { throw Error.malformedArguments("CEILING: factor must be a number") }
+                factor = n
+            } else { factor = 1.0 }
+            return .ceiling(value: Self.parseStringLiteral(rawArgs[0]), factor: factor)
+        case .floor:
+            guard (1...2).contains(rawArgs.count) else { throw Error.malformedArguments("FLOOR expects (value, [factor])") }
+            let factor: Double
+            if rawArgs.count == 2 {
+                let t = rawArgs[1].trimmingCharacters(in: .whitespaces)
+                guard let n = Double(t) else { throw Error.malformedArguments("FLOOR: factor must be a number") }
+                factor = n
+            } else { factor = 1.0 }
+            return .floor(value: Self.parseStringLiteral(rawArgs[0]), factor: factor)
+        case .log:
+            guard (1...2).contains(rawArgs.count) else { throw Error.malformedArguments("LOG expects (value, [base])") }
+            let base: Double
+            if rawArgs.count == 2 {
+                let t = rawArgs[1].trimmingCharacters(in: .whitespaces)
+                guard let n = Double(t) else { throw Error.malformedArguments("LOG: base must be a number") }
+                base = n
+            } else { base = 10.0 }
+            return .log(value: Self.parseStringLiteral(rawArgs[0]), base: base)
+        case .pi:
+            guard rawArgs.isEmpty else { throw Error.malformedArguments("PI takes no args") }
+            return .pi
+        case .rand:
+            guard rawArgs.isEmpty else { throw Error.malformedArguments("RAND takes no args") }
+            return .rand
         }
     }
 
@@ -419,6 +508,33 @@ enum FormulaParser {
         case .value(let t): return "=VALUE(\"\(t)\")"
         case .textFmt(let v, let f):
             return f.isEmpty ? "=TEXT(\"\(v)\")" : "=TEXT(\"\(v)\", \"\(f)\")"
+        case .max(let a): return "=MAX(\(a.joined(separator: ", ")))"
+        case .min(let a): return "=MIN(\(a.joined(separator: ", ")))"
+        case .product(let a): return "=PRODUCT(\(a.joined(separator: ", ")))"
+        case .abs(let v): return "=ABS(\(v))"
+        case .sqrt(let v): return "=SQRT(\(v))"
+        case .intFn(let v): return "=INT(\(v))"
+        case .sign(let v): return "=SIGN(\(v))"
+        case .even(let v): return "=EVEN(\(v))"
+        case .odd(let v): return "=ODD(\(v))"
+        case .fact(let v): return "=FACT(\(v))"
+        case .ln(let v): return "=LN(\(v))"
+        case .log10Fn(let v): return "=LOG10(\(v))"
+        case .exp(let v): return "=EXP(\(v))"
+        case .mod(let d, let v): return "=MOD(\(d), \(v))"
+        case .power(let b, let e): return "=POWER(\(b), \(e))"
+        case .gcd(let a, let b): return "=GCD(\(a), \(b))"
+        case .lcm(let a, let b): return "=LCM(\(a), \(b))"
+        case .combin(let n, let k): return "=COMBIN(\(n), \(k))"
+        case .randbetween(let l, let h): return "=RANDBETWEEN(\(l), \(h))"
+        case .round(let v, let p): return p == 0 ? "=ROUND(\(v))" : "=ROUND(\(v), \(p))"
+        case .roundup(let v, let p): return p == 0 ? "=ROUNDUP(\(v))" : "=ROUNDUP(\(v), \(p))"
+        case .rounddown(let v, let p): return p == 0 ? "=ROUNDDOWN(\(v))" : "=ROUNDDOWN(\(v), \(p))"
+        case .ceiling(let v, let f): return f == 1 ? "=CEILING(\(v))" : "=CEILING(\(v), \(f))"
+        case .floor(let v, let f): return f == 1 ? "=FLOOR(\(v))" : "=FLOOR(\(v), \(f))"
+        case .log(let v, let b): return b == 10 ? "=LOG(\(v))" : "=LOG(\(v), \(b))"
+        case .pi: return "=PI()"
+        case .rand: return "=RAND()"
         }
     }
 

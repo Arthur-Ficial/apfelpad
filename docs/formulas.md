@@ -197,6 +197,71 @@ Return the `index`-th piece (default 0). Out-of-range returns `""`.
 
 ---
 
+## More math
+
+### Variadic: `=MAX(n…)` / `=MIN(n…)` / `=PRODUCT(n…)`
+
+```
+=MAX(3, 1, 7)               → 7
+=MIN(3, 1, 7)               → 1
+=PRODUCT(2, 3, 4)           → 24
+```
+
+### Single argument: `=ABS` / `=SQRT` / `=INT` / `=SIGN` / `=EVEN` / `=ODD` / `=FACT` / `=LN` / `=LOG10` / `=EXP`
+
+```
+=ABS(-5)                    → 5
+=SQRT(16)                   → 4
+=INT(3.7)                   → 3
+=SIGN(-5)                   → -1
+=EVEN(3)                    → 4
+=ODD(4)                     → 5
+=FACT(5)                    → 120
+=LN(2.718281828)            → 1
+=LOG10(100)                 → 2
+=EXP(1)                     → 2.718281828
+```
+
+### Two arguments: `=MOD` / `=POWER` (alias `=POW`) / `=GCD` / `=LCM` / `=COMBIN` / `=RANDBETWEEN`
+
+```
+=MOD(10, 3)                 → 1
+=POWER(2, 10)               → 1024
+=POW(2, 10)                 → 1024
+=GCD(12, 8)                 → 4
+=LCM(4, 6)                  → 12
+=COMBIN(5, 2)               → 10
+=RANDBETWEEN(1, 10)         → (random integer 1-10)
+```
+
+### Number + optional second arg
+
+```
+=ROUND(3.14159, 2)          → 3.14
+=ROUND(3.7)                 → 4         # places defaults to 0
+=ROUNDUP(3.1)               → 4         # always away from zero
+=ROUNDDOWN(3.9)             → 3         # always toward zero
+=CEILING(4.1, 1)            → 5         # nearest multiple of factor
+=CEILING(4.3, 0.5)          → 4.5
+=FLOOR(4.9, 1)              → 4
+=LOG(100)                   → 2         # base defaults to 10
+=LOG(8, 2)                  → 3
+```
+
+### Constants and randoms: `=PI()` / `=RAND()`
+
+```
+=PI()                       → 3.141592653589793
+=RAND()                     → (0..<1)
+```
+
+Both `=RAND()` and `=RANDBETWEEN()` return a different value each time they
+are evaluated. They participate in caching like any other formula — open
+the document again and you'll get the same cached result until you click
+to re-roll.
+
+---
+
 ## Numeric aggregates
 
 ### `=sum(n1, n2, …)` / `=average(n1, n2, …)`

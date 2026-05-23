@@ -20,7 +20,8 @@ struct FormulaSSOTTests {
     /// catalogue mixes lower- and upper-case display names (Google Sheets
     /// formulas are uppercase by convention, older apfelpad formulas are
     /// lowercase). Comparison is case-insensitive too — see `normalize(_:)`.
-    private static let formulaPattern = "=([A-Za-z]+)\\("
+    /// Names may contain digits after a leading letter (LOG10).
+    private static let formulaPattern = "=([A-Za-z][A-Za-z0-9]*)\\("
 
     /// Scan a file for every =name( mention and return the set of unique
     /// formula names found, normalised to lowercase. Ignores names that are

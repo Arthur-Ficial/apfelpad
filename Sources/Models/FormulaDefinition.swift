@@ -61,6 +61,33 @@ struct FormulaDefinition: Identifiable, Equatable, Hashable {
         case textjoin
         case value
         case textFmt
+        case max
+        case min
+        case product
+        case abs
+        case sqrt
+        case intFn
+        case sign
+        case even
+        case odd
+        case fact
+        case ln
+        case log10Fn
+        case exp
+        case mod
+        case power
+        case gcd
+        case lcm
+        case combin
+        case randbetween
+        case round
+        case roundup
+        case rounddown
+        case ceiling
+        case floor
+        case log
+        case pi
+        case rand
     }
 
     let functionName: String
@@ -758,10 +785,131 @@ enum FormulaRegistry {
             keywords: ["text", "format", "number", "decimal", "percent"],
             parserKind: .textFmt
         ),
+        // ----- Phase 3 math -----
+        FormulaDefinition(functionName: "max", displayName: "=MAX",
+            category: .math, signature: "=MAX(n1, n2, …)",
+            description: "Largest of the supplied numbers", example: "=MAX(3, 1, 7)", exampleResult: "7",
+            keywords: ["max", "largest", "greatest"], parserKind: .max),
+        FormulaDefinition(functionName: "min", displayName: "=MIN",
+            category: .math, signature: "=MIN(n1, n2, …)",
+            description: "Smallest of the supplied numbers", example: "=MIN(3, 1, 7)", exampleResult: "1",
+            keywords: ["min", "smallest", "least"], parserKind: .min),
+        FormulaDefinition(functionName: "product", displayName: "=PRODUCT",
+            category: .math, signature: "=PRODUCT(n1, n2, …)",
+            description: "Multiply all values together", example: "=PRODUCT(2, 3, 4)", exampleResult: "24",
+            keywords: ["product", "multiply", "times"], parserKind: .product),
+        FormulaDefinition(functionName: "abs", displayName: "=ABS",
+            category: .math, signature: "=ABS(n)",
+            description: "Absolute value", example: "=ABS(-5)", exampleResult: "5",
+            keywords: ["abs", "absolute", "magnitude"], parserKind: .abs),
+        FormulaDefinition(functionName: "sqrt", displayName: "=SQRT",
+            category: .math, signature: "=SQRT(n)",
+            description: "Square root", example: "=SQRT(16)", exampleResult: "4",
+            keywords: ["sqrt", "root", "square"], parserKind: .sqrt),
+        FormulaDefinition(functionName: "int", displayName: "=INT",
+            category: .math, signature: "=INT(n)",
+            description: "Truncate toward zero", example: "=INT(3.7)", exampleResult: "3",
+            keywords: ["int", "integer", "truncate"], parserKind: .intFn),
+        FormulaDefinition(functionName: "sign", displayName: "=SIGN",
+            category: .math, signature: "=SIGN(n)",
+            description: "Returns -1, 0, or 1", example: "=SIGN(-5)", exampleResult: "-1",
+            keywords: ["sign", "signum"], parserKind: .sign),
+        FormulaDefinition(functionName: "even", displayName: "=EVEN",
+            category: .math, signature: "=EVEN(n)",
+            description: "Round up magnitude to nearest even integer", example: "=EVEN(3)", exampleResult: "4",
+            keywords: ["even", "round"], parserKind: .even),
+        FormulaDefinition(functionName: "odd", displayName: "=ODD",
+            category: .math, signature: "=ODD(n)",
+            description: "Round up magnitude to nearest odd integer", example: "=ODD(4)", exampleResult: "5",
+            keywords: ["odd", "round"], parserKind: .odd),
+        FormulaDefinition(functionName: "fact", displayName: "=FACT",
+            category: .math, signature: "=FACT(n)",
+            description: "Factorial of a non-negative integer", example: "=FACT(5)", exampleResult: "120",
+            keywords: ["fact", "factorial"], parserKind: .fact),
+        FormulaDefinition(functionName: "ln", displayName: "=LN",
+            category: .math, signature: "=LN(n)",
+            description: "Natural logarithm (base e)", example: "=LN(2.718281828)", exampleResult: "1",
+            keywords: ["ln", "natural", "log"], parserKind: .ln),
+        FormulaDefinition(functionName: "log10", displayName: "=LOG10",
+            category: .math, signature: "=LOG10(n)",
+            description: "Logarithm base 10", example: "=LOG10(100)", exampleResult: "2",
+            keywords: ["log10", "decimal", "log"], parserKind: .log10Fn),
+        FormulaDefinition(functionName: "exp", displayName: "=EXP",
+            category: .math, signature: "=EXP(n)",
+            description: "e raised to the power n", example: "=EXP(1)", exampleResult: "2.7182818284590451",
+            keywords: ["exp", "exponential", "e"], parserKind: .exp),
+        FormulaDefinition(functionName: "mod", displayName: "=MOD",
+            category: .math, signature: "=MOD(dividend, divisor)",
+            description: "Remainder of dividend / divisor", example: "=MOD(10, 3)", exampleResult: "1",
+            keywords: ["mod", "modulo", "remainder"], parserKind: .mod),
+        FormulaDefinition(functionName: "power", displayName: "=POWER",
+            category: .math, signature: "=POWER(base, exponent)",
+            description: "base raised to the power exponent (alias: =POW)", example: "=POWER(2, 10)", exampleResult: "1024",
+            keywords: ["power", "pow", "exponent"], parserKind: .power),
+        FormulaDefinition(functionName: "pow", displayName: "=POW",
+            category: .math, signature: "=POW(base, exponent)",
+            description: "Alias for =POWER", example: "=POW(2, 3)", exampleResult: "8",
+            keywords: ["pow", "power"], parserKind: .power, isDiscoverable: false),
+        FormulaDefinition(functionName: "gcd", displayName: "=GCD",
+            category: .math, signature: "=GCD(a, b)",
+            description: "Greatest common divisor", example: "=GCD(12, 8)", exampleResult: "4",
+            keywords: ["gcd", "common", "divisor"], parserKind: .gcd),
+        FormulaDefinition(functionName: "lcm", displayName: "=LCM",
+            category: .math, signature: "=LCM(a, b)",
+            description: "Least common multiple", example: "=LCM(4, 6)", exampleResult: "12",
+            keywords: ["lcm", "multiple"], parserKind: .lcm),
+        FormulaDefinition(functionName: "combin", displayName: "=COMBIN",
+            category: .math, signature: "=COMBIN(n, k)",
+            description: "Combinations: n choose k", example: "=COMBIN(5, 2)", exampleResult: "10",
+            keywords: ["combin", "choose", "combinations", "binomial"], parserKind: .combin),
+        FormulaDefinition(functionName: "randbetween", displayName: "=RANDBETWEEN",
+            category: .math, signature: "=RANDBETWEEN(low, high)",
+            description: "Random integer in [low, high]", example: "=RANDBETWEEN(1, 10)", exampleResult: "(1-10)",
+            keywords: ["random", "between", "integer"], parserKind: .randbetween),
+        FormulaDefinition(functionName: "round", displayName: "=ROUND",
+            category: .math, signature: "=ROUND(value, [places])",
+            description: "Standard rounding to N decimal places", example: "=ROUND(3.14159, 2)", exampleResult: "3.14",
+            keywords: ["round", "decimal"], parserKind: .round),
+        FormulaDefinition(functionName: "roundup", displayName: "=ROUNDUP",
+            category: .math, signature: "=ROUNDUP(value, [places])",
+            description: "Round away from zero", example: "=ROUNDUP(3.1)", exampleResult: "4",
+            keywords: ["roundup", "ceiling"], parserKind: .roundup),
+        FormulaDefinition(functionName: "rounddown", displayName: "=ROUNDDOWN",
+            category: .math, signature: "=ROUNDDOWN(value, [places])",
+            description: "Round toward zero", example: "=ROUNDDOWN(3.9)", exampleResult: "3",
+            keywords: ["rounddown", "truncate", "floor"], parserKind: .rounddown),
+        FormulaDefinition(functionName: "ceiling", displayName: "=CEILING",
+            category: .math, signature: "=CEILING(value, [factor])",
+            description: "Round up to nearest multiple of factor", example: "=CEILING(4.1, 1)", exampleResult: "5",
+            keywords: ["ceiling", "round", "up"], parserKind: .ceiling),
+        FormulaDefinition(functionName: "floor", displayName: "=FLOOR",
+            category: .math, signature: "=FLOOR(value, [factor])",
+            description: "Round down to nearest multiple of factor", example: "=FLOOR(4.9, 1)", exampleResult: "4",
+            keywords: ["floor", "round", "down"], parserKind: .floor),
+        FormulaDefinition(functionName: "log", displayName: "=LOG",
+            category: .math, signature: "=LOG(value, [base])",
+            description: "Logarithm; base defaults to 10", example: "=LOG(8, 2)", exampleResult: "3",
+            keywords: ["log", "logarithm", "base"], parserKind: .log),
+        FormulaDefinition(functionName: "pi", displayName: "=PI",
+            category: .math, signature: "=PI()",
+            description: "π ≈ 3.14159…", example: "=PI()", exampleResult: "3.141592653589793",
+            keywords: ["pi", "constant", "circle"], parserKind: .pi),
+        FormulaDefinition(functionName: "rand", displayName: "=RAND",
+            category: .math, signature: "=RAND()",
+            description: "Random number in [0, 1)", example: "=RAND()", exampleResult: "(0..<1)",
+            keywords: ["rand", "random"], parserKind: .rand),
     ]
 
     static var discoverableFunctionNames: Set<String> {
         Set(all.filter(\.isDiscoverable).map { $0.functionName.lowercased() }.filter { !$0.isEmpty })
+    }
+
+    /// All formula function names the parser knows about, including aliases
+    /// that are not listed in the sidebar (e.g. =POW for =POWER). The
+    /// document scanner uses this so user input like `=POW(2, 10)` is
+    /// recognised even though POW does not appear in the catalogue UI.
+    static var parseableFunctionNames: Set<String> {
+        Set(all.map { $0.functionName.lowercased() }.filter { !$0.isEmpty })
     }
 
     /// Names of formulas that may be written as a bare `=name` (no parens) in
@@ -773,6 +921,7 @@ enum FormulaRegistry {
             "today", "time", "month", "day", "clip", "recording", "count",
             "now", "year", "weekday", "hour", "minute", "second",
             "true", "false",
+            "pi", "rand",
         ]
     }
 

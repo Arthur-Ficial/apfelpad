@@ -41,7 +41,10 @@ struct Document: Equatable {
         let chars = Array(text)
         let n = chars.count
         let codeMask = codeSpanMask(for: chars)
-        let knownNames = FormulaRegistry.discoverableFunctionNames
+        // Scanner uses every parseable name (including aliases like POW)
+        // and Google-Sheets names containing digits (LOG10). The catalogue
+        // sidebar still uses the more restrictive discoverable set.
+        let knownNames = FormulaRegistry.parseableFunctionNames
         let bareNames = FormulaRegistry.bareNameAllowedNames
         var i = 0
         while i < n {
@@ -49,12 +52,17 @@ struct Document: Equatable {
                 i += 1
                 continue
             }
-            // Read function name (may be empty for =(…) anonymous shortcut)
+            // Read function name. Must start with a letter, may contain
+            // digits afterwards so names like LOG10 work.
             var j = i + 1
             var name = ""
-            while j < n, chars[j].isLetter {
+            if j < n, chars[j].isLetter {
                 name.append(chars[j])
                 j += 1
+                while j < n, chars[j].isLetter || chars[j].isNumber {
+                    name.append(chars[j])
+                    j += 1
+                }
             }
             let lowered = name.lowercased()
             let nextIsParen = (j < n && chars[j] == "(")
