@@ -17,6 +17,34 @@ final class ExamplesSidebarViewModel {
     /// plugs this in to receive the markdown body and load it.
     var onLoad: ((ExampleDocument) -> Void)? = nil
 
+    /// Renders the per-row thumbnail (#21). Lazily initialised so the
+    /// generator never appears in unit-test contexts that don't need it.
+    var thumbnailGenerator: ExampleThumbnailGenerator {
+        if let existing = _thumbnailGenerator { return existing }
+        let dir = ExamplesSidebarViewModel.defaultThumbnailCacheDir
+        let gen = ExampleThumbnailGenerator(cacheDir: dir, version: ExamplesSidebarViewModel.appVersion)
+        _thumbnailGenerator = gen
+        return gen
+    }
+    private var _thumbnailGenerator: ExampleThumbnailGenerator?
+
+    static let defaultThumbnailCacheDir: URL = {
+        let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)
+            .first ?? FileManager.default.temporaryDirectory
+        return support
+            .appendingPathComponent("apfelpad", isDirectory: true)
+            .appendingPathComponent("thumbnails", isDirectory: true)
+    }()
+
+    /// Read the app version from BuildInfo or default to "dev". Cheap;
+    /// changing this on a release bumps every cache key (issue #21).
+    static var appVersion: String {
+        if let v = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String {
+            return v
+        }
+        return "dev"
+    }
+
     private let persistKey: String
 
     init(persistKey: String = ExamplesSidebarViewModel.defaultPersistKey) {

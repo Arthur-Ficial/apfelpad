@@ -101,11 +101,17 @@ struct ExamplesSidebarView: View {
             vm.load(entry)
         } label: {
             HStack(alignment: .top, spacing: 10) {
-                Image(systemName: entry.icon)
-                    .font(.system(size: 16))
-                    .foregroundStyle(AppTheme.formulaAccent)
-                    .frame(width: 22, alignment: .center)
-                    .padding(.top, 2)
+                // Issue #21: tiny pre-rendered thumbnail replaces the SF
+                // Symbol so users see a glimpse of the example's body
+                // content. Cached on disk, invalidated on version bump.
+                Image(nsImage: vm.thumbnailGenerator.thumbnail(
+                    for: entry,
+                    size: NSSize(width: 60, height: 40)
+                ))
+                .resizable()
+                .frame(width: 60, height: 40)
+                .cornerRadius(4)
+                .padding(.top, 2)
                 VStack(alignment: .leading, spacing: 3) {
                     Text(entry.title)
                         .font(.system(.body, design: .rounded).weight(.semibold))
