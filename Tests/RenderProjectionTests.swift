@@ -92,4 +92,51 @@ struct RenderProjectionTests {
             Issue.record("expected input segment")
         }
     }
-}
+
+    // MARK: - Issue #17: textarea inputs should be block-level
+
+    @Test("textarea input placeholder begins on a new line")
+    func textareaPlaceholderStartsOnNewLine() throws {
+        let markdown = #"Notes: =input("notes", textarea, "draft")"#
+        var document = try Document(rawMarkdown: markdown)
+        document.spans[0].value = .ready(text: "draft")
+
+        let projection = RenderProjection(document: document)
+
+        // The visible text must contain "Notes:" followed by a newline
+        // BEFORE the textarea placeholder. The textarea must NOT appear
+        // on the same visual line as the "Notes:" label.
+        // Find the position of "Notes:" and the textarea opening "[notes".
+        let visible = projection.visibleText
+        guard let notesRange = visible.range(of: "Notes:") else {
+            Issue.record("expected 'Notes:' in visible text: \(visible)")
+            return
+        }
+        guard let chipRange = visible.range(of: "[notes") else {
+            Issue.record("expected '[notes' marker in visible text: \(visible)")
+            return
+        }
+        let between = String(visible[notesRange.upperBound..<chipRange.lowerBound])
+        #expect(between.contains("\n"),
+                "Expected a newline between 'Notes:' and the textarea chip — got: \(between.debugDescription)")
+    }
+
+    @Test("non-textarea input remains inline")
+    func nonTextareaInputStaysInline() throws {
+        let markdown = #"Name: =input("name", text, "")"#
+        var document = try Document(rawMarkdown: markdown)
+        document.spans[0].value = .ready(text: "Alice")
+
+        let projection = RenderProjection(document: document)
+        let visible = projection.visibleText
+        // No newline between "Name:" and the chip — it stays on the same line.
+        guard let nameEnd = visible.range(of: "Name:")?.upperBound,
+              let chipStart = visible.range(of: "[name")?.lowerBound else {
+            Issue.record("missing markers in visible: \(visible)")
+            return
+        }
+        let between = String(visible[nameEnd..<chipStart])
+        #expect(!between.contains("\n"),
+                "text input must stay inline; got: \(between.debugDescription)")
+    }
+} // end RenderProjectionTests

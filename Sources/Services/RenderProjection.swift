@@ -225,7 +225,13 @@ struct RenderProjection: Equatable {
         let visibleValue = currentValue.isEmpty ? "value" : currentValue
         switch type {
         case .textarea:
-            return " [\(name): \(visibleValue)]\n [text area]\n [continues here] "
+            // Block-level: a leading newline forces the textarea onto its
+            // own line so the label above it (e.g. "Notes:") stays on the
+            // previous line. The 3-line height preserves the visual area
+            // the textarea reserves. Trailing newline closes the block so
+            // any text after the formula starts on a fresh line too.
+            // See issue #17.
+            return "\n[\(name): \(visibleValue)]\n[text area]\n[continues here]\n"
         case .range:
             return " [\(name): \(visibleValue) slider] "
         case .date, .time, .datetime:
