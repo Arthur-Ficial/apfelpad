@@ -4,6 +4,126 @@ Every pale-green span in an apfelpad document is a **formula**. This page
 is the full catalogue — every formula apfelpad ships, with signature,
 semantics, edge cases, and real examples you can paste into the app.
 
+## Index
+
+The block below is **generated from `FormulaRegistry.all`** by
+`scripts/generate-formula-docs.sh` — do not hand-edit between the
+markers. Detailed semantics and examples follow each category in the
+prose sections later in this file.
+
+<!-- begin:formula-catalogue -->
+Every formula apfelpad ships, generated from `FormulaRegistry.all`.
+
+### ON-DEVICE AI
+
+- `=(prompt, seed?)` — Anonymous shortcut — canonicalises to =apfel(...)
+- `=apfel(prompt, seed?)` — On-device LLM call via apfel --serve
+
+### ARITHMETIC
+
+- `=ABS(n)` — Absolute value
+- `=CEILING(value, [factor])` — Round up to nearest multiple of factor
+- `=COMBIN(n, k)` — Combinations: n choose k
+- `=EVEN(n)` — Round up magnitude to nearest even integer
+- `=EXP(n)` — e raised to the power n
+- `=FACT(n)` — Factorial of a non-negative integer
+- `=FLOOR(value, [factor])` — Round down to nearest multiple of factor
+- `=GCD(a, b)` — Greatest common divisor
+- `=INT(n)` — Truncate toward zero
+- `=LCM(a, b)` — Least common multiple
+- `=LN(n)` — Natural logarithm (base e)
+- `=LOG(value, [base])` — Logarithm; base defaults to 10
+- `=LOG10(n)` — Logarithm base 10
+- `=MAX(n1, n2, …)` — Largest of the supplied numbers
+- `=MIN(n1, n2, …)` — Smallest of the supplied numbers
+- `=MOD(dividend, divisor)` — Remainder of dividend / divisor
+- `=ODD(n)` — Round up magnitude to nearest odd integer
+- `=PI()` — π ≈ 3.14159…
+- `=POW(base, exponent)` — Alias for =POWER
+- `=POWER(base, exponent)` — base raised to the power exponent (alias: =POW)
+- `=PRODUCT(n1, n2, …)` — Multiply all values together
+- `=RAND()` — Random number in [0, 1)
+- `=RANDBETWEEN(low, high)` — Random integer in [low, high]
+- `=ROUND(value, [places])` — Standard rounding to N decimal places
+- `=ROUNDDOWN(value, [places])` — Round toward zero
+- `=ROUNDUP(value, [places])` — Round away from zero
+- `=SIGN(n)` — Returns -1, 0, or 1
+- `=SQRT(n)` — Square root
+- `=math(expression)` — Arithmetic with US annotation ($, commas, k/m/b)
+
+### TEXT
+
+- `=CHAR(code)` — Unicode character for a code point
+- `=CLEAN(text)` — Strip ASCII control characters (0-31)
+- `=CODE(text)` — Code point of the first character
+- `=EXACT(a, b)` — TRUE if both strings are identical (case-sensitive)
+- `=FIND(needle, haystack, [start])` — 1-indexed position, case-sensitive; errors if not found
+- `=LEFT(text, n)` — First n characters of text
+- `=MID(text, start, length)` — Substring of length chars starting at 1-indexed start
+- `=PROPER(text)` — Title-case each space-separated word
+- `=REPT(text, n)` — Repeat text n times
+- `=RIGHT(text, n)` — Last n characters of text
+- `=SEARCH(needle, haystack, [start])` — Like FIND but case-insensitive
+- `=TEXT(value, [format])` — Format a number: 0 (int), 0.00 (fixed), 0% (percent)
+- `=TEXTJOIN(delim, ignore_empty, text1, …)` — Join texts with delim; optionally skip empties
+- `=VALUE(text)` — Parse text as a number; errors if not parseable
+- `=clip()` — Current clipboard contents (text only)
+- `=concatenate(a, b, c, …)` — Join any number of strings
+- `=len(text)` — Count grapheme clusters (emoji-safe)
+- `=lower(text)` — Lowercase a string
+- `=split(text, delim, index?)` — Return the nth piece (default 0)
+- `=substitute(text, old_text, new_text, [occurrence])` — Substitute the first occurrence (or nth if occurrence given)
+- `=trim(text)` — Strip leading and trailing whitespace
+- `=upper(text)` — Uppercase a string
+
+### AGGREGATES
+
+- `=average(n1, n2, …)` — Arithmetic mean
+- `=sum(n1, n2, …)` — Variadic numeric sum
+
+### LOGICAL
+
+- `=AND(expr1, expr2, …)` — TRUE if every argument is truthy
+- `=FALSE()` — The literal string FALSE
+- `=IFERROR(value, fallback)` — Return value or, if it errors, fallback
+- `=IFS(cond1, value1, …)` — Return value for the first truthy condition
+- `=NOT(expr)` — TRUE if argument is falsy, FALSE if truthy
+- `=OR(expr1, expr2, …)` — TRUE if any argument is truthy
+- `=SWITCH(expr, case1, value1, …, [default])` — Match expr against cases; return matching value or default
+- `=TRUE()` — The literal string TRUE
+- `=if(cond, then, else)` — Branch on a truthy condition
+
+### DATES & TIME
+
+- `=HOUR()` — Current hour, 0-23
+- `=MINUTE()` — Current minute, 0-59
+- `=NOW()` — Current date and time as YYYY-MM-DD HH:mm
+- `=SECOND()` — Current second, 0-59
+- `=WEEKDAY()` — Day of the week as a number (1=Sunday, 7=Saturday)
+- `=YEAR()` — Current 4-digit year
+- `=date(offset?)` — Today's date in ISO 8601 with optional day offset
+- `=day()` — Current weekday name in the user's locale
+- `=month()` — Current month name in the user's locale
+- `=time()` — Current time as HH:mm
+- `=today()` — Today's date in ISO 8601
+- `=weeknum(offset?)` — ISO calendar week with optional offset
+
+### DOCUMENT
+
+- `=count(@#anchor?)` — Word count of the whole document or a named section
+- `=file(path)` — Read a local text file (max 1 MB)
+- `=input(name, type, default?)` — Declare a reactive variable. Reference with @name in other formulas.
+- `=ref(@#anchor)` — Insert the text of a named heading section (live)
+- `=show(@name)` — Echo the current value of a bound variable
+
+### INFO
+
+- `=ISBLANK(value)` — TRUE if value is empty (after trimming), FALSE otherwise
+- `=ISNUMBER(value)` — TRUE if value parses as a number, FALSE otherwise
+- `=ISTEXT(value)` — TRUE if value is not a number, FALSE if it is
+- `=TYPE(value)` — Returns 'number', 'text', or 'blank' describing the value
+<!-- end:formula-catalogue -->
+
 apfelpad is **Turing-complete** by composition: formulas can be nested,
 `=if` branches, and `=ref` can pull any section's text into any other
 formula. See the [composition](#composition) section at the bottom.

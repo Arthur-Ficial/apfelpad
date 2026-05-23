@@ -26,6 +26,137 @@ Think spreadsheets, but for text, with on-device AI as one of the functions.
 
 **Every formula has a live example you can paste into the app.** The full reference with edge cases is **[docs/formulas.md](docs/formulas.md)**.
 
+> The complete list below is **generated from `FormulaRegistry.all`** by
+> `scripts/generate-formula-docs.sh`. Do not hand-edit between the markers —
+> changes get overwritten on the next release.
+
+<!-- begin:formula-catalogue -->
+**ON-DEVICE AI**
+
+| Formula | Live example | Result |
+|---|---|---|
+| `=(prompt, seed?)` | `=(write a haiku, 3)` | (streams from Foundation Models) |
+| `=apfel(prompt, seed?)` | `=apfel("write a haiku about spring", 42)` | (streams from Foundation Models) |
+
+**ARITHMETIC**
+
+| Formula | Live example | Result |
+|---|---|---|
+| `=ABS(n)` | `=ABS(-5)` | 5 |
+| `=CEILING(value, [factor])` | `=CEILING(4.1, 1)` | 5 |
+| `=COMBIN(n, k)` | `=COMBIN(5, 2)` | 10 |
+| `=EVEN(n)` | `=EVEN(3)` | 4 |
+| `=EXP(n)` | `=EXP(1)` | 2.7182818284590451 |
+| `=FACT(n)` | `=FACT(5)` | 120 |
+| `=FLOOR(value, [factor])` | `=FLOOR(4.9, 1)` | 4 |
+| `=GCD(a, b)` | `=GCD(12, 8)` | 4 |
+| `=INT(n)` | `=INT(3.7)` | 3 |
+| `=LCM(a, b)` | `=LCM(4, 6)` | 12 |
+| `=LN(n)` | `=LN(2.718281828)` | 1 |
+| `=LOG(value, [base])` | `=LOG(8, 2)` | 3 |
+| `=LOG10(n)` | `=LOG10(100)` | 2 |
+| `=MAX(n1, n2, …)` | `=MAX(3, 1, 7)` | 7 |
+| `=MIN(n1, n2, …)` | `=MIN(3, 1, 7)` | 1 |
+| `=MOD(dividend, divisor)` | `=MOD(10, 3)` | 1 |
+| `=ODD(n)` | `=ODD(4)` | 5 |
+| `=PI()` | `=PI()` | 3.141592653589793 |
+| `=POW(base, exponent)` | `=POW(2, 3)` | 8 |
+| `=POWER(base, exponent)` | `=POWER(2, 10)` | 1024 |
+| `=PRODUCT(n1, n2, …)` | `=PRODUCT(2, 3, 4)` | 24 |
+| `=RAND()` | `=RAND()` | (0..<1) |
+| `=RANDBETWEEN(low, high)` | `=RANDBETWEEN(1, 10)` | (1-10) |
+| `=ROUND(value, [places])` | `=ROUND(3.14159, 2)` | 3.14 |
+| `=ROUNDDOWN(value, [places])` | `=ROUNDDOWN(3.9)` | 3 |
+| `=ROUNDUP(value, [places])` | `=ROUNDUP(3.1)` | 4 |
+| `=SIGN(n)` | `=SIGN(-5)` | -1 |
+| `=SQRT(n)` | `=SQRT(16)` | 4 |
+| `=math(expression)` | `=math($1,250 + $750)` | 2000 |
+
+**TEXT**
+
+| Formula | Live example | Result |
+|---|---|---|
+| `=CHAR(code)` | `=CHAR(65)` | A |
+| `=CLEAN(text)` | `=CLEAN("hello\u{00}world")` | helloworld |
+| `=CODE(text)` | `=CODE("A")` | 65 |
+| `=EXACT(a, b)` | `=EXACT("hello", "hello")` | TRUE |
+| `=FIND(needle, haystack, [start])` | `=FIND("pad", "apfelpad")` | 6 |
+| `=LEFT(text, n)` | `=LEFT("apfelpad", 5)` | apfel |
+| `=MID(text, start, length)` | `=MID("apfelpad", 6, 3)` | pad |
+| `=PROPER(text)` | `=PROPER("hello world")` | Hello World |
+| `=REPT(text, n)` | `=REPT("ab", 3)` | ababab |
+| `=RIGHT(text, n)` | `=RIGHT("apfelpad", 3)` | pad |
+| `=SEARCH(needle, haystack, [start])` | `=SEARCH("PAD", "apfelpad")` | 6 |
+| `=TEXT(value, [format])` | `=TEXT("3.14", "0.00")` | 3.14 |
+| `=TEXTJOIN(delim, ignore_empty, text1, …)` | `=TEXTJOIN(", ", true, "a", "", "b")` | a, b |
+| `=VALUE(text)` | `=VALUE("123.45")` | 123.45 |
+| `=clip()` | `=clip()` | (clipboard text) |
+| `=concatenate(a, b, c, …)` | `=concatenate("Hello, ", "world", "!")` | Hello, world! |
+| `=len(text)` | `=len("apfelpad")` | 8 |
+| `=lower(text)` | `=lower("WORLD")` | world |
+| `=split(text, delim, index?)` | `=split("a,b,c", ",", 1)` | b |
+| `=substitute(text, old_text, new_text, [occurrence])` | `=substitute("hello world", "world", "apfelpad")` | hello apfelpad |
+| `=trim(text)` | `=trim("   padded   ")` | padded |
+| `=upper(text)` | `=upper("hello apfelpad")` | HELLO APFELPAD |
+
+**AGGREGATES**
+
+| Formula | Live example | Result |
+|---|---|---|
+| `=average(n1, n2, …)` | `=average(2, 4, 6)` | 4 |
+| `=sum(n1, n2, …)` | `=sum(1, 2, 3, 4, 5)` | 15 |
+
+**LOGICAL**
+
+| Formula | Live example | Result |
+|---|---|---|
+| `=AND(expr1, expr2, …)` | `=AND("yes", "1", "true")` | TRUE |
+| `=FALSE()` | `=FALSE()` | FALSE |
+| `=IFERROR(value, fallback)` | `=IFERROR(=math(1/0), "division error")` | division error |
+| `=IFS(cond1, value1, …)` | `=IFS("false", "no", "true", "yes")` | yes |
+| `=NOT(expr)` | `=NOT("false")` | TRUE |
+| `=OR(expr1, expr2, …)` | `=OR("no", "0", "yes")` | TRUE |
+| `=SWITCH(expr, case1, value1, …, [default])` | `=SWITCH("b", "a", "first", "b", "second", "default")` | second |
+| `=TRUE()` | `=TRUE()` | TRUE |
+| `=if(cond, then, else)` | `=if("yes", "go", "stop")` | go |
+
+**DATES & TIME**
+
+| Formula | Live example | Result |
+|---|---|---|
+| `=HOUR()` | `=HOUR()` | (0-23) |
+| `=MINUTE()` | `=MINUTE()` | (0-59) |
+| `=NOW()` | `=NOW()` | (current date and time) |
+| `=SECOND()` | `=SECOND()` | (0-59) |
+| `=WEEKDAY()` | `=WEEKDAY()` | (weekday 1-7) |
+| `=YEAR()` | `=YEAR()` | (current year) |
+| `=date(offset?)` | `=date(+4)` | (four days from today) |
+| `=day()` | `=day()` | (today's weekday) |
+| `=month()` | `=month()` | (current month) |
+| `=time()` | `=time()` | (now, 24-hour) |
+| `=today()` | `=today()` | (today's date) |
+| `=weeknum(offset?)` | `=weeknum(-1)` | (last week's number) |
+
+**DOCUMENT**
+
+| Formula | Live example | Result |
+|---|---|---|
+| `=count(@#anchor?)` | `=count(@#intro)` | 42 |
+| `=file(path)` | `=file("~/notes.txt")` | (file contents) |
+| `=input(name, type, default?)` | `=input("hours", number, "40")` | 40 |
+| `=ref(@#anchor)` | `=ref(@#intro)` | (contents of the 'Intro' section) |
+| `=show(@name)` | `=show(@hours)` | (current value) |
+
+**INFO**
+
+| Formula | Live example | Result |
+|---|---|---|
+| `=ISBLANK(value)` | `=ISBLANK("")` | TRUE |
+| `=ISNUMBER(value)` | `=ISNUMBER("42")` | TRUE |
+| `=ISTEXT(value)` | `=ISTEXT("hello")` | TRUE |
+| `=TYPE(value)` | `=TYPE("hello")` | text |
+<!-- end:formula-catalogue -->
+
 **On-device AI + math**
 
 | Formula | Live example | Rendered result |
