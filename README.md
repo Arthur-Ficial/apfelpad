@@ -12,7 +12,7 @@ Markdown underneath. 100% local. No API keys. Nothing leaves your Mac except an 
 
 **Built on [apfel](https://github.com/Arthur-Ficial/apfel)** — the CLI + OpenAI-compatible HTTP server wrapping Apple's on-device `FoundationModels` framework. Architecture copied 1:1 from [apfel-chat](https://github.com/Arthur-Ficial/apfel-chat): SwiftUI + `@Observable` MVVM + protocol-driven TDD with swift-testing. Release pipeline identical. Signed, notarised, shipped via Homebrew cask.
 
-> **Status: v0.6.0 shipped.** 75 formulas now — Google-Sheets-aligned text, math, logical, date/time, info. `brew install Arthur-Ficial/tap/apfelpad` · [Landing page](https://apfelpad.franzai.com) · [Latest release](https://github.com/Arthur-Ficial/apfelpad/releases/latest)
+> **Status: v0.6.1 shipped.** 75 formulas + render polish (• bullets, em-dash thematic rules, block-level textareas, per-example thumbnails). `brew install Arthur-Ficial/tap/apfelpad` · [Landing page](https://apfelpad.franzai.com) · [Latest release](https://github.com/Arthur-Ficial/apfelpad/releases/latest)
 
 ---
 
