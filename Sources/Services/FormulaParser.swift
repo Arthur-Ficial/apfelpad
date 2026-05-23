@@ -192,6 +192,41 @@ enum FormulaParser {
                 return .type(value: "")
             }
             return .type(value: try singleStringArg(rawArgs, name: "type"))
+        case .and:
+            return .and(args: rawArgs.map(Self.parseStringLiteral))
+        case .or:
+            return .or(args: rawArgs.map(Self.parseStringLiteral))
+        case .not:
+            return .not(value: try singleStringArg(rawArgs, name: "not"))
+        case .iferror:
+            guard rawArgs.count == 2 else {
+                throw Error.malformedArguments("iferror expects 2 args: =IFERROR(value, fallback)")
+            }
+            // First arg: keep raw (may contain nested formula source). Strip
+            // only matched outer quote pair so a literal string still works.
+            let rawFirst = rawArgs[0].trimmingCharacters(in: .whitespaces)
+            let value: String
+            if rawFirst.count >= 2,
+               (rawFirst.hasPrefix("\"") && rawFirst.hasSuffix("\"")) ||
+                (rawFirst.hasPrefix("'") && rawFirst.hasSuffix("'")) {
+                value = String(rawFirst.dropFirst().dropLast())
+            } else {
+                value = rawFirst
+            }
+            return .iferror(value: value, fallback: Self.parseStringLiteral(rawArgs[1]))
+        case .switchCall:
+            guard rawArgs.count >= 3 else {
+                throw Error.malformedArguments("switch expects expr + at least one case/value")
+            }
+            return .switchCall(args: rawArgs.map(Self.parseStringLiteral))
+        case .ifs:
+            return .ifs(args: rawArgs.map(Self.parseStringLiteral))
+        case .trueLit:
+            guard rawArgs.isEmpty else { throw Error.malformedArguments("TRUE takes no args") }
+            return .trueLit
+        case .falseLit:
+            guard rawArgs.isEmpty else { throw Error.malformedArguments("FALSE takes no args") }
+            return .falseLit
         }
     }
 
@@ -295,6 +330,22 @@ enum FormulaParser {
             return "=ISBLANK(\"\(v)\")"
         case .type(let v):
             return "=TYPE(\"\(v)\")"
+        case .and(let args):
+            return "=AND(\(args.map { "\"\($0)\"" }.joined(separator: ", ")))"
+        case .or(let args):
+            return "=OR(\(args.map { "\"\($0)\"" }.joined(separator: ", ")))"
+        case .not(let v):
+            return "=NOT(\"\(v)\")"
+        case .iferror(let v, let fb):
+            // Preserve formula sources unquoted; quote literal strings.
+            let firstRendered = v.hasPrefix("=") ? v : "\"\(v)\""
+            return "=IFERROR(\(firstRendered), \"\(fb)\")"
+        case .switchCall(let args):
+            return "=SWITCH(\(args.map { "\"\($0)\"" }.joined(separator: ", ")))"
+        case .ifs(let args):
+            return "=IFS(\(args.map { "\"\($0)\"" }.joined(separator: ", ")))"
+        case .trueLit: return "=TRUE()"
+        case .falseLit: return "=FALSE()"
         }
     }
 

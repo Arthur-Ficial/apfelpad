@@ -39,6 +39,14 @@ struct FormulaDefinition: Identifiable, Equatable, Hashable {
         case hour
         case minute
         case second
+        case and
+        case or
+        case not
+        case iferror
+        case switchCall
+        case ifs
+        case trueLit
+        case falseLit
     }
 
     let functionName: String
@@ -494,6 +502,94 @@ enum FormulaRegistry {
             keywords: ["second", "clock", "time"],
             parserKind: .second
         ),
+        FormulaDefinition(
+            functionName: "and",
+            displayName: "=AND",
+            category: .logical,
+            signature: "=AND(expr1, expr2, …)",
+            description: "TRUE if every argument is truthy",
+            example: #"=AND("yes", "1", "true")"#,
+            exampleResult: "TRUE",
+            keywords: ["and", "logical", "conjunction", "all"],
+            parserKind: .and
+        ),
+        FormulaDefinition(
+            functionName: "or",
+            displayName: "=OR",
+            category: .logical,
+            signature: "=OR(expr1, expr2, …)",
+            description: "TRUE if any argument is truthy",
+            example: #"=OR("no", "0", "yes")"#,
+            exampleResult: "TRUE",
+            keywords: ["or", "logical", "disjunction", "any"],
+            parserKind: .or
+        ),
+        FormulaDefinition(
+            functionName: "not",
+            displayName: "=NOT",
+            category: .logical,
+            signature: "=NOT(expr)",
+            description: "TRUE if argument is falsy, FALSE if truthy",
+            example: #"=NOT("false")"#,
+            exampleResult: "TRUE",
+            keywords: ["not", "logical", "negate", "invert"],
+            parserKind: .not
+        ),
+        FormulaDefinition(
+            functionName: "iferror",
+            displayName: "=IFERROR",
+            category: .logical,
+            signature: "=IFERROR(value, fallback)",
+            description: "Return value or, if it errors, fallback",
+            example: #"=IFERROR(=math(1/0), "division error")"#,
+            exampleResult: "division error",
+            keywords: ["iferror", "error", "fallback", "catch", "try"],
+            parserKind: .iferror
+        ),
+        FormulaDefinition(
+            functionName: "switch",
+            displayName: "=SWITCH",
+            category: .logical,
+            signature: "=SWITCH(expr, case1, value1, …, [default])",
+            description: "Match expr against cases; return matching value or default",
+            example: #"=SWITCH("b", "a", "first", "b", "second", "default")"#,
+            exampleResult: "second",
+            keywords: ["switch", "case", "match", "branch"],
+            parserKind: .switchCall
+        ),
+        FormulaDefinition(
+            functionName: "ifs",
+            displayName: "=IFS",
+            category: .logical,
+            signature: "=IFS(cond1, value1, …)",
+            description: "Return value for the first truthy condition",
+            example: #"=IFS("false", "no", "true", "yes")"#,
+            exampleResult: "yes",
+            keywords: ["ifs", "if", "branch", "ladder"],
+            parserKind: .ifs
+        ),
+        FormulaDefinition(
+            functionName: "true",
+            displayName: "=TRUE",
+            category: .logical,
+            signature: "=TRUE()",
+            description: "The literal string TRUE",
+            example: "=TRUE()",
+            exampleResult: "TRUE",
+            keywords: ["true", "literal", "boolean"],
+            parserKind: .trueLit
+        ),
+        FormulaDefinition(
+            functionName: "false",
+            displayName: "=FALSE",
+            category: .logical,
+            signature: "=FALSE()",
+            description: "The literal string FALSE",
+            example: "=FALSE()",
+            exampleResult: "FALSE",
+            keywords: ["false", "literal", "boolean"],
+            parserKind: .falseLit
+        ),
     ]
 
     static var discoverableFunctionNames: Set<String> {
@@ -508,6 +604,7 @@ enum FormulaRegistry {
         [
             "today", "time", "month", "day", "clip", "recording", "count",
             "now", "year", "weekday", "hour", "minute", "second",
+            "true", "false",
         ]
     }
 

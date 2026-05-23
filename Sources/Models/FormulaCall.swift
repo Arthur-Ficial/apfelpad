@@ -45,4 +45,13 @@ enum FormulaCall: Equatable {
     case hour
     case minute
     case second
+    // v0.6 — logical (Phase 4)
+    case and(args: [String])
+    case or(args: [String])
+    case not(value: String)
+    case iferror(value: String, fallback: String)
+    case switchCall(args: [String])
+    case ifs(args: [String])
+    case trueLit
+    case falseLit
 }

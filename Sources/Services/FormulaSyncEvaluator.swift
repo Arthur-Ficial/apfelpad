@@ -96,6 +96,22 @@ enum FormulaSyncEvaluator {
             return MinuteFormulaEvaluator.evaluate()
         case .second:
             return SecondFormulaEvaluator.evaluate()
+        case .and(let args):
+            return AndFormulaEvaluator.evaluate(args)
+        case .or(let args):
+            return OrFormulaEvaluator.evaluate(args)
+        case .not(let v):
+            return NotFormulaEvaluator.evaluate(v)
+        case .iferror(let v, let fb):
+            return try IfErrorFormulaEvaluator.evaluate(value: v, fallback: fb)
+        case .switchCall(let args):
+            return try SwitchFormulaEvaluator.evaluate(args: args)
+        case .ifs(let args):
+            return try IfsFormulaEvaluator.evaluate(args: args)
+        case .trueLit:
+            return TrueFormulaEvaluator.evaluate()
+        case .falseLit:
+            return FalseFormulaEvaluator.evaluate()
         }
     }
 }

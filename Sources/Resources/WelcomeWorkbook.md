@@ -64,6 +64,16 @@ Word count of the project brief: =count(@#project-brief)
 Project brief pulled live: =ref(@#project-brief)
 Shouted brief: =upper(=ref(@#project-brief))
 
+## Logical
+
+All inputs are truthy? =AND(=show(@client), =show(@hours), =show(@rate))
+Any value present? =OR(=show(@client), =show(@hours))
+Negation: =NOT("false")
+Constants: =TRUE() and =FALSE()
+Catch errors: =IFERROR(=sum(notanumber), "n/a")
+Branch on cases: =SWITCH("b", "a", "first", "b", "second", "default")
+Ladder: =IFS("false", "no", "true", "yes")
+
 ## Type Checking
 
 Is the discount a number? =ISNUMBER(=show(@discount))

@@ -156,6 +156,65 @@ Combine with nested `=math` to make numeric conditionals work:
 
 ---
 
+## Logical
+
+Truthiness follows `=if`: empty, `"0"`, `"false"`, `"no"` (case-insensitive,
+trimmed) are falsy; everything else is truthy.
+
+### `=AND(expr1, expr2, …)` / `=OR(expr1, expr2, …)` / `=NOT(expr)`
+
+```
+=AND("yes", "1", "true")        → TRUE
+=AND("yes", "0", "true")        → FALSE
+=OR("no", "0", "yes")           → TRUE
+=NOT("false")                   → TRUE
+=NOT("hello")                   → FALSE
+```
+
+### `=TRUE()` / `=FALSE()`
+
+Literal boolean strings — useful as cell defaults or as the right-hand
+side of `=if` branches. Both accept the bare form (`=TRUE`, `=false`).
+
+### `=IFERROR(value, fallback)`
+
+Evaluate `value`. If it errors (parse error or runtime error), return
+`fallback` instead. If `value` is a plain string, it is returned as-is.
+
+```
+=IFERROR(=sum(notanumber), "n/a")   → n/a
+=IFERROR(=math(1+1), "fb")          → 2
+=IFERROR("hello", "fb")             → hello
+```
+
+Note: division-by-zero in `=math` returns IEEE `inf` rather than throwing,
+matching Swift's `Double` semantics — IFERROR will pass it through. Use
+this for malformed expressions, unparseable values, anchor lookups that
+miss, and other genuine error paths.
+
+### `=SWITCH(expr, case1, value1, [case2, value2, ...], [default])`
+
+```
+=SWITCH("b", "a", "first", "b", "second", "default")   → second
+=SWITCH("x", "a", "first", "none found")               → none found
+```
+
+If no case matches and no default is supplied, SWITCH errors.
+
+### `=IFS(cond1, value1, [cond2, value2, ...])`
+
+Return the value paired with the first truthy condition.
+
+```
+=IFS("false", "no", "true", "yes")     → yes
+=IFS("0", "zero", "1", "one")          → one
+```
+
+If no condition is truthy, IFS errors. Combine with `=IFERROR` for a
+"none-of-the-above" fallback.
+
+---
+
 ## Dates and time
 
 All date/time formulas read the user's locale by default. `=date` returns
