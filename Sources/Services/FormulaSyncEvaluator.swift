@@ -84,6 +84,18 @@ enum FormulaSyncEvaluator {
             return IsBlankFormulaEvaluator.evaluate(v)
         case .type(let v):
             return TypeFormulaEvaluator.evaluate(v)
+        case .now:
+            return NowFormulaEvaluator.evaluate()
+        case .year:
+            return YearFormulaEvaluator.evaluate()
+        case .weekday:
+            return WeekdayFormulaEvaluator.evaluate()
+        case .hour:
+            return HourFormulaEvaluator.evaluate()
+        case .minute:
+            return MinuteFormulaEvaluator.evaluate()
+        case .second:
+            return SecondFormulaEvaluator.evaluate()
         }
     }
 }

@@ -46,6 +46,12 @@ Calendar week: =weeknum()
 Next week: =weeknum(+1)
 Month: =month()
 Current time: =time()
+Right now: =NOW()
+Current year: =YEAR()
+Day of week (1-7): =WEEKDAY()
+Hour: =HOUR()
+Minute: =MINUTE()
+Second: =SECOND()
 
 ## Project Brief
 

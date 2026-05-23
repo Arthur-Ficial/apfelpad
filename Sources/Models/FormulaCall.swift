@@ -38,4 +38,11 @@ enum FormulaCall: Equatable {
     case istext(value: String)
     case isblank(value: String)
     case type(value: String)
+    // v0.6 — extended date/time (Phase 5)
+    case now
+    case year
+    case weekday
+    case hour
+    case minute
+    case second
 }

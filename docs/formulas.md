@@ -186,6 +186,25 @@ Returns today's date in ISO 8601 format (YYYY-MM-DD). No arguments.
 =weeknum(+1)       → 16
 ```
 
+### `=NOW()` / `=YEAR()` / `=WEEKDAY()` / `=HOUR()` / `=MINUTE()` / `=SECOND()`
+
+Extended date/time accessors matching Google Sheets conventions. All
+take no arguments.
+
+```
+=NOW()        → 2026-04-12 17:30
+=YEAR()       → 2026
+=WEEKDAY()    → 1 (Sunday) … 7 (Saturday)
+=HOUR()       → 17
+=MINUTE()     → 30
+=SECOND()     → 45
+```
+
+All accept a bare form too — `=NOW` / `=year` / `=hour` etc. work as
+shorthand. The wall-clock formulas (`=NOW`, `=HOUR`, `=MINUTE`,
+`=SECOND`) re-evaluate every time you re-open the document or click
+their span — they are intentionally not cached.
+
 ### `=month()` / `=day()` / `=time()`
 
 ```

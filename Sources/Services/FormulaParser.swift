@@ -157,6 +157,24 @@ enum FormulaParser {
                 throw Error.malformedArguments("file expects 1 arg: =file(path)")
             }
             return .file(path: Self.parseStringLiteral(rawArgs[0]))
+        case .now:
+            guard rawArgs.isEmpty else { throw Error.malformedArguments("now takes no args") }
+            return .now
+        case .year:
+            guard rawArgs.isEmpty else { throw Error.malformedArguments("year takes no args") }
+            return .year
+        case .weekday:
+            guard rawArgs.isEmpty else { throw Error.malformedArguments("weekday takes no args") }
+            return .weekday
+        case .hour:
+            guard rawArgs.isEmpty else { throw Error.malformedArguments("hour takes no args") }
+            return .hour
+        case .minute:
+            guard rawArgs.isEmpty else { throw Error.malformedArguments("minute takes no args") }
+            return .minute
+        case .second:
+            guard rawArgs.isEmpty else { throw Error.malformedArguments("second takes no args") }
+            return .second
         case .isnumber:
             return .isnumber(value: try singleStringArg(rawArgs, name: "isnumber"))
         case .istext:
@@ -263,6 +281,12 @@ enum FormulaParser {
             return "=clip()"
         case .file(let path):
             return "=file(\"\(path)\")"
+        case .now: return "=NOW()"
+        case .year: return "=YEAR()"
+        case .weekday: return "=WEEKDAY()"
+        case .hour: return "=HOUR()"
+        case .minute: return "=MINUTE()"
+        case .second: return "=SECOND()"
         case .isnumber(let v):
             return "=ISNUMBER(\"\(v)\")"
         case .istext(let v):

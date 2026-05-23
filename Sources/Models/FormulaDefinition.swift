@@ -33,6 +33,12 @@ struct FormulaDefinition: Identifiable, Equatable, Hashable {
         case istext
         case isblank
         case type
+        case now
+        case year
+        case weekday
+        case hour
+        case minute
+        case second
     }
 
     let functionName: String
@@ -422,6 +428,72 @@ enum FormulaRegistry {
             keywords: ["type", "kind", "classify", "info"],
             parserKind: .type
         ),
+        FormulaDefinition(
+            functionName: "now",
+            displayName: "=NOW",
+            category: .date,
+            signature: "=NOW()",
+            description: "Current date and time as YYYY-MM-DD HH:mm",
+            example: "=NOW()",
+            exampleResult: "(current date and time)",
+            keywords: ["now", "current", "time", "timestamp"],
+            parserKind: .now
+        ),
+        FormulaDefinition(
+            functionName: "year",
+            displayName: "=YEAR",
+            category: .date,
+            signature: "=YEAR()",
+            description: "Current 4-digit year",
+            example: "=YEAR()",
+            exampleResult: "(current year)",
+            keywords: ["year", "annual", "date"],
+            parserKind: .year
+        ),
+        FormulaDefinition(
+            functionName: "weekday",
+            displayName: "=WEEKDAY",
+            category: .date,
+            signature: "=WEEKDAY()",
+            description: "Day of the week as a number (1=Sunday, 7=Saturday)",
+            example: "=WEEKDAY()",
+            exampleResult: "(weekday 1-7)",
+            keywords: ["weekday", "day", "dow"],
+            parserKind: .weekday
+        ),
+        FormulaDefinition(
+            functionName: "hour",
+            displayName: "=HOUR",
+            category: .date,
+            signature: "=HOUR()",
+            description: "Current hour, 0-23",
+            example: "=HOUR()",
+            exampleResult: "(0-23)",
+            keywords: ["hour", "clock", "time"],
+            parserKind: .hour
+        ),
+        FormulaDefinition(
+            functionName: "minute",
+            displayName: "=MINUTE",
+            category: .date,
+            signature: "=MINUTE()",
+            description: "Current minute, 0-59",
+            example: "=MINUTE()",
+            exampleResult: "(0-59)",
+            keywords: ["minute", "clock", "time"],
+            parserKind: .minute
+        ),
+        FormulaDefinition(
+            functionName: "second",
+            displayName: "=SECOND",
+            category: .date,
+            signature: "=SECOND()",
+            description: "Current second, 0-59",
+            example: "=SECOND()",
+            exampleResult: "(0-59)",
+            keywords: ["second", "clock", "time"],
+            parserKind: .second
+        ),
     ]
 
     static var discoverableFunctionNames: Set<String> {
@@ -433,7 +505,10 @@ enum FormulaRegistry {
     /// Used by `Document.discover` so users can type `=today` instead of
     /// `=today()`. See issue #18.
     static var bareNameAllowedNames: Set<String> {
-        ["today", "time", "month", "day", "clip", "recording", "count"]
+        [
+            "today", "time", "month", "day", "clip", "recording", "count",
+            "now", "year", "weekday", "hour", "minute", "second",
+        ]
     }
 
     static var publicDefinitions: [FormulaDefinition] {
