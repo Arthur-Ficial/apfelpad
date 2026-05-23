@@ -47,6 +47,20 @@ struct FormulaDefinition: Identifiable, Equatable, Hashable {
         case ifs
         case trueLit
         case falseLit
+        case left
+        case right
+        case mid
+        case find
+        case search
+        case rept
+        case proper
+        case clean
+        case exact
+        case char
+        case code
+        case textjoin
+        case value
+        case textFmt
     }
 
     let functionName: String
@@ -589,6 +603,160 @@ enum FormulaRegistry {
             exampleResult: "FALSE",
             keywords: ["false", "literal", "boolean"],
             parserKind: .falseLit
+        ),
+        FormulaDefinition(
+            functionName: "left",
+            displayName: "=LEFT",
+            category: .text,
+            signature: "=LEFT(text, n)",
+            description: "First n characters of text",
+            example: #"=LEFT("apfelpad", 5)"#,
+            exampleResult: "apfel",
+            keywords: ["left", "prefix", "first", "head"],
+            parserKind: .left
+        ),
+        FormulaDefinition(
+            functionName: "right",
+            displayName: "=RIGHT",
+            category: .text,
+            signature: "=RIGHT(text, n)",
+            description: "Last n characters of text",
+            example: #"=RIGHT("apfelpad", 3)"#,
+            exampleResult: "pad",
+            keywords: ["right", "suffix", "last", "tail"],
+            parserKind: .right
+        ),
+        FormulaDefinition(
+            functionName: "mid",
+            displayName: "=MID",
+            category: .text,
+            signature: "=MID(text, start, length)",
+            description: "Substring of length chars starting at 1-indexed start",
+            example: #"=MID("apfelpad", 6, 3)"#,
+            exampleResult: "pad",
+            keywords: ["mid", "substring", "slice"],
+            parserKind: .mid
+        ),
+        FormulaDefinition(
+            functionName: "find",
+            displayName: "=FIND",
+            category: .text,
+            signature: "=FIND(needle, haystack, [start])",
+            description: "1-indexed position, case-sensitive; errors if not found",
+            example: #"=FIND("pad", "apfelpad")"#,
+            exampleResult: "6",
+            keywords: ["find", "search", "index", "position", "case"],
+            parserKind: .find
+        ),
+        FormulaDefinition(
+            functionName: "search",
+            displayName: "=SEARCH",
+            category: .text,
+            signature: "=SEARCH(needle, haystack, [start])",
+            description: "Like FIND but case-insensitive",
+            example: #"=SEARCH("PAD", "apfelpad")"#,
+            exampleResult: "6",
+            keywords: ["search", "find", "case-insensitive", "position"],
+            parserKind: .search
+        ),
+        FormulaDefinition(
+            functionName: "rept",
+            displayName: "=REPT",
+            category: .text,
+            signature: "=REPT(text, n)",
+            description: "Repeat text n times",
+            example: #"=REPT("ab", 3)"#,
+            exampleResult: "ababab",
+            keywords: ["rept", "repeat", "multiply", "string"],
+            parserKind: .rept
+        ),
+        FormulaDefinition(
+            functionName: "proper",
+            displayName: "=PROPER",
+            category: .text,
+            signature: "=PROPER(text)",
+            description: "Title-case each space-separated word",
+            example: #"=PROPER("hello world")"#,
+            exampleResult: "Hello World",
+            keywords: ["proper", "title", "capitalise", "case"],
+            parserKind: .proper
+        ),
+        FormulaDefinition(
+            functionName: "clean",
+            displayName: "=CLEAN",
+            category: .text,
+            signature: "=CLEAN(text)",
+            description: "Strip ASCII control characters (0-31)",
+            example: #"=CLEAN("hello\u{00}world")"#,
+            exampleResult: "helloworld",
+            keywords: ["clean", "strip", "control", "scrub"],
+            parserKind: .clean
+        ),
+        FormulaDefinition(
+            functionName: "exact",
+            displayName: "=EXACT",
+            category: .text,
+            signature: "=EXACT(a, b)",
+            description: "TRUE if both strings are identical (case-sensitive)",
+            example: #"=EXACT("hello", "hello")"#,
+            exampleResult: "TRUE",
+            keywords: ["exact", "equal", "compare", "case"],
+            parserKind: .exact
+        ),
+        FormulaDefinition(
+            functionName: "char",
+            displayName: "=CHAR",
+            category: .text,
+            signature: "=CHAR(code)",
+            description: "Unicode character for a code point",
+            example: "=CHAR(65)",
+            exampleResult: "A",
+            keywords: ["char", "codepoint", "unicode", "letter"],
+            parserKind: .char
+        ),
+        FormulaDefinition(
+            functionName: "code",
+            displayName: "=CODE",
+            category: .text,
+            signature: "=CODE(text)",
+            description: "Code point of the first character",
+            example: #"=CODE("A")"#,
+            exampleResult: "65",
+            keywords: ["code", "codepoint", "unicode", "ascii"],
+            parserKind: .code
+        ),
+        FormulaDefinition(
+            functionName: "textjoin",
+            displayName: "=TEXTJOIN",
+            category: .text,
+            signature: "=TEXTJOIN(delim, ignore_empty, text1, …)",
+            description: "Join texts with delim; optionally skip empties",
+            example: #"=TEXTJOIN(", ", true, "a", "", "b")"#,
+            exampleResult: "a, b",
+            keywords: ["textjoin", "join", "concat", "delimiter"],
+            parserKind: .textjoin
+        ),
+        FormulaDefinition(
+            functionName: "value",
+            displayName: "=VALUE",
+            category: .text,
+            signature: "=VALUE(text)",
+            description: "Parse text as a number; errors if not parseable",
+            example: #"=VALUE("123.45")"#,
+            exampleResult: "123.45",
+            keywords: ["value", "parse", "to-number", "convert"],
+            parserKind: .value
+        ),
+        FormulaDefinition(
+            functionName: "text",
+            displayName: "=TEXT",
+            category: .text,
+            signature: "=TEXT(value, [format])",
+            description: "Format a number: 0 (int), 0.00 (fixed), 0% (percent)",
+            example: #"=TEXT("3.14", "0.00")"#,
+            exampleResult: "3.14",
+            keywords: ["text", "format", "number", "decimal", "percent"],
+            parserKind: .textFmt
         ),
     ]
 

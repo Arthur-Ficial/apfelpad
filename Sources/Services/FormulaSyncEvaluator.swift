@@ -112,6 +112,34 @@ enum FormulaSyncEvaluator {
             return TrueFormulaEvaluator.evaluate()
         case .falseLit:
             return FalseFormulaEvaluator.evaluate()
+        case .left(let t, let n):
+            return try LeftFormulaEvaluator.evaluate(text: t, n: n)
+        case .right(let t, let n):
+            return try RightFormulaEvaluator.evaluate(text: t, n: n)
+        case .mid(let t, let s, let l):
+            return try MidFormulaEvaluator.evaluate(text: t, start: s, length: l)
+        case .find(let n, let h, let s):
+            return try FindFormulaEvaluator.evaluate(needle: n, haystack: h, start: s)
+        case .search(let n, let h, let s):
+            return try SearchFormulaEvaluator.evaluate(needle: n, haystack: h, start: s)
+        case .rept(let t, let n):
+            return ReptFormulaEvaluator.evaluate(text: t, n: n)
+        case .proper(let t):
+            return ProperFormulaEvaluator.evaluate(t)
+        case .clean(let t):
+            return CleanFormulaEvaluator.evaluate(t)
+        case .exact(let a, let b):
+            return ExactFormulaEvaluator.evaluate(a: a, b: b)
+        case .char(let c):
+            return try CharFormulaEvaluator.evaluate(c)
+        case .code(let t):
+            return try CodeFormulaEvaluator.evaluate(t)
+        case .textjoin(let d, let ie, let parts):
+            return TextJoinFormulaEvaluator.evaluate(delim: d, ignoreEmpty: ie, parts: parts)
+        case .value(let t):
+            return try ValueFormulaEvaluator.evaluate(t)
+        case .textFmt(let v, let f):
+            return try TextFormulaEvaluator.evaluate(value: v, format: f)
         }
     }
 }

@@ -227,6 +227,62 @@ enum FormulaParser {
         case .falseLit:
             guard rawArgs.isEmpty else { throw Error.malformedArguments("FALSE takes no args") }
             return .falseLit
+        case .left:
+            guard rawArgs.count == 2 else { throw Error.malformedArguments("LEFT expects (text, n)") }
+            return .left(text: Self.parseStringLiteral(rawArgs[0]), n: try parseIntLiteral(rawArgs[1]))
+        case .right:
+            guard rawArgs.count == 2 else { throw Error.malformedArguments("RIGHT expects (text, n)") }
+            return .right(text: Self.parseStringLiteral(rawArgs[0]), n: try parseIntLiteral(rawArgs[1]))
+        case .mid:
+            guard rawArgs.count == 3 else { throw Error.malformedArguments("MID expects (text, start, length)") }
+            return .mid(
+                text: Self.parseStringLiteral(rawArgs[0]),
+                start: try parseIntLiteral(rawArgs[1]),
+                length: try parseIntLiteral(rawArgs[2])
+            )
+        case .find:
+            guard (2...3).contains(rawArgs.count) else { throw Error.malformedArguments("FIND expects (needle, haystack, [start])") }
+            let start = rawArgs.count == 3 ? try parseIntLiteral(rawArgs[2]) : 1
+            return .find(
+                needle: Self.parseStringLiteral(rawArgs[0]),
+                haystack: Self.parseStringLiteral(rawArgs[1]),
+                start: start
+            )
+        case .search:
+            guard (2...3).contains(rawArgs.count) else { throw Error.malformedArguments("SEARCH expects (needle, haystack, [start])") }
+            let start = rawArgs.count == 3 ? try parseIntLiteral(rawArgs[2]) : 1
+            return .search(
+                needle: Self.parseStringLiteral(rawArgs[0]),
+                haystack: Self.parseStringLiteral(rawArgs[1]),
+                start: start
+            )
+        case .rept:
+            guard rawArgs.count == 2 else { throw Error.malformedArguments("REPT expects (text, n)") }
+            return .rept(text: Self.parseStringLiteral(rawArgs[0]), n: try parseIntLiteral(rawArgs[1]))
+        case .proper:
+            return .proper(text: try singleStringArg(rawArgs, name: "PROPER"))
+        case .clean:
+            return .clean(text: try singleStringArg(rawArgs, name: "CLEAN"))
+        case .exact:
+            guard rawArgs.count == 2 else { throw Error.malformedArguments("EXACT expects 2 args") }
+            return .exact(a: Self.parseStringLiteral(rawArgs[0]), b: Self.parseStringLiteral(rawArgs[1]))
+        case .char:
+            guard rawArgs.count == 1 else { throw Error.malformedArguments("CHAR expects 1 arg") }
+            return .char(code: try parseIntLiteral(rawArgs[0]))
+        case .code:
+            return .code(text: try singleStringArg(rawArgs, name: "CODE"))
+        case .textjoin:
+            guard rawArgs.count >= 3 else { throw Error.malformedArguments("TEXTJOIN expects (delim, ignore_empty, text1, …)") }
+            let delim = Self.parseStringLiteral(rawArgs[0])
+            let ignore = IfFormulaEvaluator.isTruthy(Self.parseStringLiteral(rawArgs[1]))
+            let parts = rawArgs.dropFirst(2).map(Self.parseStringLiteral)
+            return .textjoin(delim: delim, ignoreEmpty: ignore, parts: Array(parts))
+        case .value:
+            return .value(text: try singleStringArg(rawArgs, name: "VALUE"))
+        case .textFmt:
+            guard (1...2).contains(rawArgs.count) else { throw Error.malformedArguments("TEXT expects (value, [format])") }
+            let fmt = rawArgs.count == 2 ? Self.parseStringLiteral(rawArgs[1]) : ""
+            return .textFmt(value: Self.parseStringLiteral(rawArgs[0]), format: fmt)
         }
     }
 
@@ -346,6 +402,23 @@ enum FormulaParser {
             return "=IFS(\(args.map { "\"\($0)\"" }.joined(separator: ", ")))"
         case .trueLit: return "=TRUE()"
         case .falseLit: return "=FALSE()"
+        case .left(let t, let n): return "=LEFT(\"\(t)\", \(n))"
+        case .right(let t, let n): return "=RIGHT(\"\(t)\", \(n))"
+        case .mid(let t, let s, let l): return "=MID(\"\(t)\", \(s), \(l))"
+        case .find(let n, let h, let s): return "=FIND(\"\(n)\", \"\(h)\", \(s))"
+        case .search(let n, let h, let s): return "=SEARCH(\"\(n)\", \"\(h)\", \(s))"
+        case .rept(let t, let n): return "=REPT(\"\(t)\", \(n))"
+        case .proper(let t): return "=PROPER(\"\(t)\")"
+        case .clean(let t): return "=CLEAN(\"\(t)\")"
+        case .exact(let a, let b): return "=EXACT(\"\(a)\", \"\(b)\")"
+        case .char(let c): return "=CHAR(\(c))"
+        case .code(let t): return "=CODE(\"\(t)\")"
+        case .textjoin(let d, let ig, let parts):
+            let p = parts.map { "\"\($0)\"" }.joined(separator: ", ")
+            return "=TEXTJOIN(\"\(d)\", \(ig ? "true" : "false"), \(p))"
+        case .value(let t): return "=VALUE(\"\(t)\")"
+        case .textFmt(let v, let f):
+            return f.isEmpty ? "=TEXT(\"\(v)\")" : "=TEXT(\"\(v)\", \"\(f)\")"
         }
     }
 

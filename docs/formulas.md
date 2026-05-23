@@ -85,6 +85,87 @@ All text formulas are **pure Swift** and never touch the LLM.
 
 `=len` counts grapheme clusters, so emoji count as 1.
 
+### `=LEFT(text, n)` / `=RIGHT(text, n)` / `=MID(text, start, length)`
+
+Substring formulas matching Google Sheets. `LEFT` and `RIGHT` clamp to the
+string length; `MID` is **1-indexed** for `start` (the first character is
+position 1, not 0).
+
+```
+=LEFT("apfelpad", 5)        → apfel
+=RIGHT("apfelpad", 3)       → pad
+=MID("apfelpad", 6, 3)      → pad
+```
+
+### `=FIND(needle, haystack, [start])` / `=SEARCH(needle, haystack, [start])`
+
+Return the 1-indexed position of `needle` in `haystack`. `FIND` is
+case-sensitive; `SEARCH` is case-insensitive. Both error if not found —
+combine with `=IFERROR(...)` for soft search.
+
+```
+=FIND("pad", "apfelpad")            → 6
+=FIND("PAD", "apfelpad")            → error
+=SEARCH("PAD", "apfelpad")          → 6
+=FIND("l", "hello world", 5)        → 10
+```
+
+### `=REPT(text, n)`
+
+Repeat `text` `n` times. Negative `n` returns the empty string.
+
+```
+=REPT("ab", 3)              → ababab
+=REPT("x", 0)               → ""
+```
+
+### `=PROPER(text)` / `=CLEAN(text)` / `=EXACT(a, b)`
+
+```
+=PROPER("hello world")              → Hello World
+=PROPER("jOHN DOE")                 → John Doe
+=CLEAN("a\u{0000}b\nc")             → abc   # strips ASCII 0-31
+=EXACT("hello", "hello")            → TRUE
+=EXACT("Hello", "hello")            → FALSE
+```
+
+### `=CHAR(code)` / `=CODE(text)`
+
+Round-trip between a Unicode scalar and its code point.
+
+```
+=CHAR(65)                   → A
+=CHAR(128522)               → 😊
+=CODE("A")                  → 65
+=CODE("😊")                 → 128522
+```
+
+### `=TEXTJOIN(delim, ignore_empty, text1, …)`
+
+Like `=concatenate` but with a separator. If `ignore_empty` is truthy,
+empty strings are skipped.
+
+```
+=TEXTJOIN(", ", true, "a", "", "b", "c")     → a, b, c
+=TEXTJOIN(", ", false, "a", "", "b")         → a, , b
+```
+
+### `=VALUE(text)` / `=TEXT(value, [format])`
+
+Round-trip between number-as-string and string-as-number.
+
+```
+=VALUE("123.45")            → 123.45
+=VALUE("hello")             → error
+=TEXT("3.1", "0.00")        → 3.10
+=TEXT("3.7", "0")           → 4
+=TEXT("0.25", "0%")         → 25%
+```
+
+Supported `TEXT` format codes: `""` (pass through), `"0"` (integer
+round), `"0.0"`/`"0.00"`/… (fixed decimals), `"0%"` (percentage). Anything
+else falls back to the raw value.
+
 ### `=concatenate(a, b, c, …)`
 
 Variadic string concatenation. Joins any number of string args with no

@@ -54,4 +54,19 @@ enum FormulaCall: Equatable {
     case ifs(args: [String])
     case trueLit
     case falseLit
+    // v0.6 — text (Phase 2)
+    case left(text: String, n: Int)
+    case right(text: String, n: Int)
+    case mid(text: String, start: Int, length: Int)
+    case find(needle: String, haystack: String, start: Int)
+    case search(needle: String, haystack: String, start: Int)
+    case rept(text: String, n: Int)
+    case proper(text: String)
+    case clean(text: String)
+    case exact(a: String, b: String)
+    case char(code: Int)
+    case code(text: String)
+    case textjoin(delim: String, ignoreEmpty: Bool, parts: [String])
+    case value(text: String)
+    case textFmt(value: String, format: String)
 }
