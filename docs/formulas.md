@@ -223,6 +223,66 @@ value, so changes propagate immediately without re-evaluation.
 
 ---
 
+## Info
+
+Predicates and type classifiers. All return the literal strings `"TRUE"`,
+`"FALSE"`, or one of `"number" | "text" | "blank"`.
+
+### `=ISNUMBER(value)`
+
+Returns `"TRUE"` if the value parses as a finite decimal number. Empty
+strings and whitespace-only strings are `"FALSE"`.
+
+```
+=ISNUMBER("42")            → TRUE
+=ISNUMBER("3.14")          → TRUE
+=ISNUMBER("-5")            → TRUE
+=ISNUMBER("hello")         → FALSE
+=ISNUMBER("")              → FALSE
+=ISNUMBER("   ")           → FALSE
+```
+
+### `=ISTEXT(value)`
+
+Returns `"TRUE"` if the value is **not** parseable as a number, otherwise
+`"FALSE"`. An empty string is still text.
+
+```
+=ISTEXT("hello")           → TRUE
+=ISTEXT("42")              → FALSE
+=ISTEXT("")                → TRUE
+```
+
+### `=ISBLANK(value)`
+
+Returns `"TRUE"` if the value is empty after trimming whitespace,
+otherwise `"FALSE"`.
+
+```
+=ISBLANK("")               → TRUE
+=ISBLANK("   ")            → TRUE
+=ISBLANK("hi")             → FALSE
+```
+
+### `=TYPE(value)`
+
+Returns one of `"number"`, `"text"`, or `"blank"` describing the value.
+
+```
+=TYPE("42")                → number
+=TYPE("hello")             → text
+=TYPE("")                  → blank
+=TYPE("   ")               → blank
+```
+
+Use info formulas inside `=if` for type-safe branching:
+
+```
+=if(=ISNUMBER(=show(@input)), =math(@input * 2), "enter a number")
+```
+
+---
+
 ## Composition — why apfelpad is Turing-complete
 
 Every formula can take another formula as an argument. The

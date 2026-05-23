@@ -29,6 +29,10 @@ struct FormulaDefinition: Identifiable, Equatable, Hashable {
         case clip
         case file
         case recording
+        case isnumber
+        case istext
+        case isblank
+        case type
     }
 
     let functionName: String
@@ -373,6 +377,50 @@ enum FormulaRegistry {
             keywords: ["record", "audio", "transcribe", "voice", "microphone"],
             parserKind: .recording,
             isPublic: false
+        ),
+        FormulaDefinition(
+            functionName: "isnumber",
+            displayName: "=ISNUMBER",
+            category: .info,
+            signature: "=ISNUMBER(value)",
+            description: "TRUE if value parses as a number, FALSE otherwise",
+            example: #"=ISNUMBER("42")"#,
+            exampleResult: "TRUE",
+            keywords: ["is", "number", "numeric", "type", "check"],
+            parserKind: .isnumber
+        ),
+        FormulaDefinition(
+            functionName: "istext",
+            displayName: "=ISTEXT",
+            category: .info,
+            signature: "=ISTEXT(value)",
+            description: "TRUE if value is not a number, FALSE if it is",
+            example: #"=ISTEXT("hello")"#,
+            exampleResult: "TRUE",
+            keywords: ["is", "text", "string", "type", "check"],
+            parserKind: .istext
+        ),
+        FormulaDefinition(
+            functionName: "isblank",
+            displayName: "=ISBLANK",
+            category: .info,
+            signature: "=ISBLANK(value)",
+            description: "TRUE if value is empty (after trimming), FALSE otherwise",
+            example: #"=ISBLANK("")"#,
+            exampleResult: "TRUE",
+            keywords: ["is", "blank", "empty", "whitespace", "type", "check"],
+            parserKind: .isblank
+        ),
+        FormulaDefinition(
+            functionName: "type",
+            displayName: "=TYPE",
+            category: .info,
+            signature: "=TYPE(value)",
+            description: "Returns 'number', 'text', or 'blank' describing the value",
+            example: #"=TYPE("hello")"#,
+            exampleResult: "text",
+            keywords: ["type", "kind", "classify", "info"],
+            parserKind: .type
         ),
     ]
 

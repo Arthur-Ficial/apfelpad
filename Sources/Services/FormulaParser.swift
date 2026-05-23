@@ -157,6 +157,23 @@ enum FormulaParser {
                 throw Error.malformedArguments("file expects 1 arg: =file(path)")
             }
             return .file(path: Self.parseStringLiteral(rawArgs[0]))
+        case .isnumber:
+            return .isnumber(value: try singleStringArg(rawArgs, name: "isnumber"))
+        case .istext:
+            return .istext(value: try singleStringArg(rawArgs, name: "istext"))
+        case .isblank:
+            // ISBLANK is allowed to receive an empty string literal, so don't
+            // reject when the only arg trimmed to empty (which singleStringArg
+            // would do via splitTopLevelCommas filtering).
+            if rawArgs.isEmpty {
+                return .isblank(value: "")
+            }
+            return .isblank(value: try singleStringArg(rawArgs, name: "isblank"))
+        case .type:
+            if rawArgs.isEmpty {
+                return .type(value: "")
+            }
+            return .type(value: try singleStringArg(rawArgs, name: "type"))
         }
     }
 
@@ -246,6 +263,14 @@ enum FormulaParser {
             return "=clip()"
         case .file(let path):
             return "=file(\"\(path)\")"
+        case .isnumber(let v):
+            return "=ISNUMBER(\"\(v)\")"
+        case .istext(let v):
+            return "=ISTEXT(\"\(v)\")"
+        case .isblank(let v):
+            return "=ISBLANK(\"\(v)\")"
+        case .type(let v):
+            return "=TYPE(\"\(v)\")"
         }
     }
 

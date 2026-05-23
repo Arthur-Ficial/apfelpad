@@ -33,4 +33,9 @@ enum FormulaCall: Equatable {
     // v0.5 — system access
     case clip
     case file(path: String)
+    // v0.6 — info / type-checking (Phase 6)
+    case isnumber(value: String)
+    case istext(value: String)
+    case isblank(value: String)
+    case type(value: String)
 }

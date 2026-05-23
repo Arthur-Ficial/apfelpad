@@ -16,11 +16,15 @@ struct FormulaSSOTTests {
     }()
 
     /// Regex for `=name(` in markdown / HTML. Captures the name part.
-    private static let formulaPattern = "=([a-z]+)\\("
+    /// Case-insensitive so both `=upper(` and `=ISNUMBER(` are detected; the
+    /// catalogue mixes lower- and upper-case display names (Google Sheets
+    /// formulas are uppercase by convention, older apfelpad formulas are
+    /// lowercase). Comparison is case-insensitive too — see `normalize(_:)`.
+    private static let formulaPattern = "=([A-Za-z]+)\\("
 
     /// Scan a file for every =name( mention and return the set of unique
-    /// formula names found. Ignores names that are clearly placeholders
-    /// (e.g. `=name` used as a template variable).
+    /// formula names found, normalised to lowercase. Ignores names that are
+    /// clearly placeholders (e.g. `=name` used as a template variable).
     private static func formulaNames(in fileURL: URL) throws -> Set<String> {
         let text = try String(contentsOf: fileURL, encoding: .utf8)
         let regex = try NSRegularExpression(pattern: formulaPattern)
@@ -30,9 +34,14 @@ struct FormulaSSOTTests {
         for m in matches {
             guard m.numberOfRanges >= 2 else { continue }
             let name = ns.substring(with: m.range(at: 1))
-            out.insert("=\(name)")
+            out.insert("=\(name.lowercased())")
         }
         return out
+    }
+
+    /// Lowercase any set of `=name` strings for case-insensitive comparison.
+    private static func normalize(_ names: Set<String>) -> Set<String> {
+        Set(names.map { $0.lowercased() })
     }
 
     /// Names we explicitly allow in docs/landing even though they're not
@@ -47,7 +56,7 @@ struct FormulaSSOTTests {
     func readmeMatchesCatalogue() throws {
         let url = Self.repoRoot.appendingPathComponent("README.md")
         let found = try Self.formulaNames(in: url)
-        let known = FormulaRegistry.publicNames.union(Self.reserved)
+        let known = Self.normalize(FormulaRegistry.publicNames.union(Self.reserved))
         let unknown = found.subtracting(known)
         if !unknown.isEmpty {
             Issue.record("README.md references unknown formulas: \(unknown.sorted())")
@@ -58,7 +67,7 @@ struct FormulaSSOTTests {
     func docsMatchesCatalogue() throws {
         let url = Self.repoRoot.appendingPathComponent("docs/formulas.md")
         let found = try Self.formulaNames(in: url)
-        let known = FormulaRegistry.publicNames.union(Self.reserved)
+        let known = Self.normalize(FormulaRegistry.publicNames.union(Self.reserved))
         let unknown = found.subtracting(known)
         if !unknown.isEmpty {
             Issue.record("docs/formulas.md references unknown formulas: \(unknown.sorted())")
@@ -69,7 +78,7 @@ struct FormulaSSOTTests {
     func siteMatchesCatalogue() throws {
         let url = Self.repoRoot.appendingPathComponent("site/index.html")
         let found = try Self.formulaNames(in: url)
-        let known = FormulaRegistry.publicNames.union(Self.reserved)
+        let known = Self.normalize(FormulaRegistry.publicNames.union(Self.reserved))
         let unknown = found.subtracting(known)
         if !unknown.isEmpty {
             Issue.record("site/index.html references unknown formulas: \(unknown.sorted())")
@@ -82,7 +91,7 @@ struct FormulaSSOTTests {
         let docs = try Self.formulaNames(in: Self.repoRoot.appendingPathComponent("docs/formulas.md"))
         let site = try Self.formulaNames(in: Self.repoRoot.appendingPathComponent("site/index.html"))
         let mentioned = readme.union(docs).union(site)
-        let catalogue = Set(FormulaCatalogue.all.map(\.name))
+        let catalogue = Self.normalize(Set(FormulaCatalogue.all.map(\.name)))
         // =() is the anonymous shortcut — it doesn't parse as =name( so
         // the regex can't match it. Accept it as documented if the string
         // "=(" or "=()" appears in any doc.

@@ -58,6 +58,13 @@ Word count of the project brief: =count(@#project-brief)
 Project brief pulled live: =ref(@#project-brief)
 Shouted brief: =upper(=ref(@#project-brief))
 
+## Type Checking
+
+Is the discount a number? =ISNUMBER(=show(@discount))
+Is the client name text? =ISTEXT(=show(@client))
+Is the project brief blank? =ISBLANK(=ref(@#project-brief))
+Type of the hours value: =TYPE(=show(@hours))
+
 ## External Context
 
 Bundled sample file: =file("__WELCOME_SAMPLE_FILE__")

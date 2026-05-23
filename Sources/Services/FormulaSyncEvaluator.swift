@@ -76,6 +76,14 @@ enum FormulaSyncEvaluator {
             throw RuntimeError.apfelRequiresStreamingPath
         case .input, .show:
             throw RuntimeError.inputRequiresDocumentContext
+        case .isnumber(let v):
+            return IsNumberFormulaEvaluator.evaluate(v)
+        case .istext(let v):
+            return IsTextFormulaEvaluator.evaluate(v)
+        case .isblank(let v):
+            return IsBlankFormulaEvaluator.evaluate(v)
+        case .type(let v):
+            return TypeFormulaEvaluator.evaluate(v)
         }
     }
 }
