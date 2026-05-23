@@ -35,19 +35,26 @@ Formulas are called **formulas**. Not cells, not blocks, not prompts, not AI cal
 
 Every piece of computed content in apfelpad is a formula. The formula is the unit of authorship, the unit of caching, the unit of rendering, and the unit of reproducibility. If a feature does not fit into the formula model, it does not ship.
 
-Six formulas in v1.0:
+**75 formulas** ship today across 8 categories — every name and signature is
+authoritative in [`Sources/Models/FormulaDefinition.swift`](Sources/Models/FormulaDefinition.swift)
+(`FormulaRegistry.all`). The user-facing index in `README.md` and
+`docs/formulas.md` is **generated** from that registry by
+[`scripts/generate-formula-docs.sh`](scripts/generate-formula-docs.sh).
+Don't hand-edit the bounded `<!-- begin/end:formula-catalogue -->`
+blocks — they are overwritten on every release.
 
-| Formula | Purpose |
-|---|---|
-| `=apfel(prompt, seed?)` | On-device LLM call with auto-scoped context |
-| `=math(expression)` | Pure arithmetic, no LLM |
-| `=ref(@anchor)` | Insert content of a named block/heading |
-| `=count(@anchor?)` | Word count of doc or block |
-| `=date(format?)` | Current date, optionally formatted |
-| `=clip()` | Current clipboard snapshot |
-| `=file(path)` | Local file content (sandboxed) |
+The original v1.0 core set: `=apfel`, `=math`, `=ref`, `=count`, `=date`,
+`=clip`, `=file`. Everything else (Google-Sheets-aligned text / math /
+logical / info functions) layered on top of that without breaking the
+auto-quoting and composition contracts.
 
 **Auto-quoting is non-negotiable:** `=apfel(hello world)` must be canonicalized to `=apfel("hello world")` on commit. Users type English, the parser handles the quotes.
+
+**Adding a new formula** = add a case to `FormulaCall`, a case to
+`FormulaDefinition.ParserKind`, an entry to `FormulaRegistry.all`,
+parser + sync-evaluator wiring, an evaluator file under
+`Sources/Services/Formulas/`, and tests. Then run
+`./scripts/generate-formula-docs.sh` to refresh the public docs.
 
 ## Install & Run
 

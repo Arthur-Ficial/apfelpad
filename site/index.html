@@ -927,6 +927,158 @@
         <div class="formula-desc">Read a local text file (max 1 MB).</div>
       </div>
     </div>
+
+    <h3 style="margin-top:36px;">Logical (Phase 4)</h3>
+    <div class="formula-grid">
+      <div class="formula-item">
+        <div class="formula-name">=AND(e1, e2, …)</div>
+        <div class="formula-desc">TRUE if every argument is truthy.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=OR(e1, e2, …)</div>
+        <div class="formula-desc">TRUE if any argument is truthy.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=NOT(expr)</div>
+        <div class="formula-desc">Invert truthiness.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=IFERROR(value, fallback)</div>
+        <div class="formula-desc">Catch errors from any formula and supply a fallback.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=SWITCH(expr, c1, v1, …, [def])</div>
+        <div class="formula-desc">Pattern-match against cases with an optional default.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=IFS(c1, v1, …)</div>
+        <div class="formula-desc">Return the value paired with the first truthy condition.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=TRUE() / =FALSE()</div>
+        <div class="formula-desc">Literal boolean strings — bare form <code>=TRUE</code> / <code>=false</code> too.</div>
+      </div>
+    </div>
+
+    <h3 style="margin-top:36px;">Extended text (Phase 2)</h3>
+    <div class="formula-grid">
+      <div class="formula-item">
+        <div class="formula-name">=LEFT / =RIGHT / =MID</div>
+        <div class="formula-desc">Substrings — MID is 1-indexed per Google Sheets convention.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=FIND / =SEARCH</div>
+        <div class="formula-desc">1-indexed position — FIND case-sensitive, SEARCH case-insensitive.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=REPT(text, n)</div>
+        <div class="formula-desc">Repeat n times — <code>=REPT("ab", 3)</code> → <code>ababab</code>.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=PROPER(text)</div>
+        <div class="formula-desc">Title-case each space-separated word.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=CLEAN(text)</div>
+        <div class="formula-desc">Strip ASCII control characters.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=EXACT(a, b)</div>
+        <div class="formula-desc">Case-sensitive string equality.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=CHAR(n) / =CODE(s)</div>
+        <div class="formula-desc">Unicode round-trip — code point ↔ character.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=TEXTJOIN(delim, ignore_empty, …)</div>
+        <div class="formula-desc">Join with a delimiter, optionally skipping empties.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=VALUE(text) / =TEXT(value, [fmt])</div>
+        <div class="formula-desc">Parse to number / format a number (supports <code>0</code>, <code>0.00</code>, <code>0%</code>).</div>
+      </div>
+    </div>
+
+    <h3 style="margin-top:36px;">Extended math (Phase 3)</h3>
+    <div class="formula-grid">
+      <div class="formula-item">
+        <div class="formula-name">=MAX / =MIN / =PRODUCT</div>
+        <div class="formula-desc">Variadic numeric aggregates beyond <code>=sum</code> / <code>=average</code>.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=ABS / =SQRT / =INT / =SIGN</div>
+        <div class="formula-desc">Absolute value, square root, truncation, signum.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=EVEN / =ODD / =FACT</div>
+        <div class="formula-desc">Even-rounding, odd-rounding, factorial.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=LN / =LOG10 / =EXP / =LOG(v, [base])</div>
+        <div class="formula-desc">Logarithms and exponentials.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=MOD / =POWER (alias =POW)</div>
+        <div class="formula-desc">Remainder and exponentiation.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=GCD / =LCM / =COMBIN</div>
+        <div class="formula-desc">Greatest common divisor, least common multiple, n-choose-k.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=ROUND / =ROUNDUP / =ROUNDDOWN</div>
+        <div class="formula-desc">Standard, away-from-zero, toward-zero rounding.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=CEILING / =FLOOR</div>
+        <div class="formula-desc">Round to nearest multiple of a factor.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=PI() / =RAND() / =RANDBETWEEN(lo, hi)</div>
+        <div class="formula-desc">Constants and pseudorandom integers.</div>
+      </div>
+    </div>
+
+    <h3 style="margin-top:36px;">Extended date/time (Phase 5)</h3>
+    <div class="formula-grid">
+      <div class="formula-item">
+        <div class="formula-name">=NOW()</div>
+        <div class="formula-desc">Date and time as <code>YYYY-MM-DD HH:mm</code>.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=YEAR()</div>
+        <div class="formula-desc">Current 4-digit year.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=WEEKDAY()</div>
+        <div class="formula-desc">1 = Sunday … 7 = Saturday (Google Sheets default).</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=HOUR / =MINUTE / =SECOND</div>
+        <div class="formula-desc">Hour 0-23, minute / second 0-59.</div>
+      </div>
+    </div>
+
+    <h3 style="margin-top:36px;">Info / type-checking (Phase 6)</h3>
+    <div class="formula-grid">
+      <div class="formula-item">
+        <div class="formula-name">=ISNUMBER(value)</div>
+        <div class="formula-desc">TRUE if the value parses as a number.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=ISTEXT(value)</div>
+        <div class="formula-desc">TRUE if the value is non-numeric (empty string is text).</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=ISBLANK(value)</div>
+        <div class="formula-desc">TRUE for empty or whitespace-only values.</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-name">=TYPE(value)</div>
+        <div class="formula-desc">Returns <code>number</code>, <code>text</code>, or <code>blank</code>.</div>
+      </div>
+    </div>
   </div>
 </section>
 
