@@ -259,10 +259,19 @@ private struct MarkdownStyler: MarkupWalker {
     }
 
     mutating func visitUnorderedList(_ list: UnorderedList) {
+        for item in list.listItems {
+            styleListItem(item, bullet: "•")
+        }
         descendInto(list)
     }
 
     mutating func visitOrderedList(_ list: OrderedList) {
+        for item in list.listItems {
+            // Ordered list items keep their visible "1." / "2." marker; we
+            // only apply hanging indent so wrapped lines line up under the
+            // text, not under the digit.
+            styleListItem(item, bullet: nil)
+        }
         descendInto(list)
     }
 
@@ -270,9 +279,62 @@ private struct MarkdownStyler: MarkupWalker {
         guard let range = rule.range else { return }
         let nsRange = clamp(offsets.nsRange(from: range))
         guard nsRange.length > 0 else { return }
+        // Replace the literal "---" / "***" line with a visible horizontal
+        // rule (em-dashes) and centre it. Stay within the same range so we
+        // don't disturb downstream NSRange calculations — pad with U+2014.
+        let ruleString = String(repeating: "\u{2014}", count: max(3, nsRange.length))
+        // Cap the replacement at the original range length to keep ranges
+        // stable for subsequent visitor passes.
+        let padded = String(ruleString.prefix(nsRange.length))
+        text.replaceCharacters(in: nsRange, with: padded)
+        let center = NSMutableParagraphStyle()
+        center.alignment = .center
         text.addAttributes([
             .foregroundColor: NSColor.tertiaryLabelColor,
+            .paragraphStyle: center,
         ], range: nsRange)
+    }
+
+    /// Walk a list item: replace its leading marker (`-` / `*` / `+`) with
+    /// `bullet` (if supplied) and apply a hanging-indent paragraph style
+    /// so wrapped lines align with the item text, not the bullet.
+    private mutating func styleListItem(_ item: ListItem, bullet: String?) {
+        guard let range = item.range else { return }
+        let nsRange = clamp(offsets.nsRange(from: range))
+        guard nsRange.length > 0 else { return }
+
+        // Replace the first non-whitespace character (the marker) if a
+        // bullet is supplied. Source: `- text` / `* text` / `+ text`.
+        if let bullet,
+           bullet.count == 1,
+           let scalar = bullet.unicodeScalars.first {
+            let ns = text.mutableString
+            // Scan within nsRange for the first non-space character.
+            for k in 0..<nsRange.length {
+                let chIdx = nsRange.location + k
+                let ch = ns.character(at: chIdx)
+                if ch == 0x20 || ch == 0x09 { continue }
+                if ch == 0x2D || ch == 0x2A || ch == 0x2B { // - * +
+                    let replaceRange = NSRange(location: chIdx, length: 1)
+                    text.replaceCharacters(
+                        in: replaceRange,
+                        with: String(UnicodeScalar(scalar.value)!)
+                    )
+                }
+                break
+            }
+        }
+
+        // Hanging indent: firstLineHeadIndent puts the bullet/marker at 16pt,
+        // headIndent puts wrapped lines at 32pt — content aligned under text.
+        let style = NSMutableParagraphStyle()
+        style.firstLineHeadIndent = 16
+        style.headIndent = 32
+        // Apply to the item's paragraph range to ensure the whole wrapped
+        // block gets the indent.
+        let ns = text.string as NSString
+        let paragraphRange = ns.paragraphRange(for: NSRange(location: nsRange.location, length: 0))
+        text.addAttribute(.paragraphStyle, value: style, range: clamp(paragraphRange))
     }
 
     /// In the NSAttributedString, find the line immediately after the table
